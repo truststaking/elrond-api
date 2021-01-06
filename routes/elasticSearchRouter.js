@@ -1,6 +1,6 @@
 const express = require('express');
-let router = express.Router();
-const { elasticSearch } = require('../handlers');
+const router = express.Router();
+const { elasticSearchHandler } = require('../handlers');
 
 const paths = [
   '/blocks',
@@ -16,7 +16,7 @@ const paths = [
 router.get(paths, async (req, res) => {
   const { originalUrl: path, query: queryStringParameters } = req;
 
-  const { statusCode, headers, body } = await elasticSearch({ path, queryStringParameters });
+  const { statusCode, headers, body } = await elasticSearchHandler({ path, queryStringParameters });
 
   res.status(statusCode).set(headers).send(body);
 });

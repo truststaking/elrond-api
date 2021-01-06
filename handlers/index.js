@@ -1,5 +1,7 @@
-const { handler: elasticSearch } = require('./elasticSearch');
+const { handler: constantsHandler } = require('./constants');
+const { handler: elasticSearchHandler } = require('./elasticSearch');
 
 module.exports = {
-  elasticSearch,
+  constantsHandler,
+  elasticSearchHandler,
 };

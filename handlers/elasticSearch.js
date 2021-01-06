@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { bech32, computeShard, response } = require('../helpers'); // getNodes
-const { elasticUrl, gatewayUrl } = require('../config-mainnet'); // walletBucket
+const { elasticUrl, gatewayUrl } = require('../config'); // walletBucket
 
 const createMustQuery = (value, boolQuery) => {
   const firstKey = Object.keys(value)[0];

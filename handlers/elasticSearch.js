@@ -240,16 +240,25 @@ exports.handler = async (event) => {
               hash[key] = _id;
             }
 
+            // if (
+            //   collection === 'blocks' &&
+            //   (!fields || fields.includes('proposer') || fields.includes('validators'))
+            // ) {
+            //   const { shardId: shard, epoch } = _source;
+
+            //   const publicKeys = await getPublicKeys({ shard, epoch });
+
+            //   _source.proposer = publicKeys[_source.proposer];
+            //   _source.validators = _source.validators.map((index) => publicKeys[index]);
+            // }
+
+            // TODO:
             if (
               collection === 'blocks' &&
               (!fields || fields.includes('proposer') || fields.includes('validators'))
             ) {
-              const { shardId: shard, epoch } = _source;
-
-              const publicKeys = await getPublicKeys({ shard, epoch });
-
-              _source.proposer = publicKeys[_source.proposer];
-              _source.validators = _source.validators.map((index) => publicKeys[index]);
+              delete _source.proposer;
+              delete _source.validators;
             }
 
             if (collection === 'rounds') {
@@ -368,16 +377,25 @@ exports.handler = async (event) => {
             hash[key] = _id;
           }
 
+          // if (
+          //   collection === 'blocks' &&
+          //   (!fields || fields.includes('proposer') || fields.includes('validators'))
+          // ) {
+          //   const { shardId: shard, epoch } = _source;
+
+          //   const publicKeys = await getPublicKeys({ shard, epoch });
+
+          //   _source.proposer = publicKeys[_source.proposer];
+          //   _source.validators = _source.validators.map((index) => publicKeys[index]);
+          // }
+
+          // TODO:
           if (
             collection === 'blocks' &&
             (!fields || fields.includes('proposer') || fields.includes('validators'))
           ) {
-            const { shardId: shard, epoch } = _source;
-
-            const publicKeys = await getPublicKeys({ shard, epoch });
-
-            _source.proposer = publicKeys[_source.proposer];
-            _source.validators = _source.validators.map((index) => publicKeys[index]);
+            delete _source.proposer;
+            delete _source.validators;
           }
 
           if (collection === 'rounds') {

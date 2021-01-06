@@ -16,6 +16,7 @@ const vmQueryUrl = () => {
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
 const redisUrl = '';
+const cacheTtl = 6;
 
 module.exports = {
   elasticUrl,
@@ -23,4 +24,5 @@ module.exports = {
   vmQueryUrl,
   esdtContract,
   redisUrl,
+  cacheTtl,
 };

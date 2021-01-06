@@ -9,7 +9,10 @@ const gatewayUrl = () => {
   return gatewayUrls[Math.floor(Math.random() * gatewayUrls.length)];
 };
 
+const redisUrl = '';
+
 module.exports = {
   elasticUrl,
   gatewayUrl,
+  redisUrl,
 };

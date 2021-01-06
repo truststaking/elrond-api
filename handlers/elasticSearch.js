@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { bech32, computeShard, response } = require('../helpers'); // getNodes
+const { bech32, getNodes, response } = require('../helpers');
 const { elasticUrl, gatewayUrl } = require('../config'); // walletBucket
 
 const createMustQuery = (value, boolQuery) => {
@@ -49,8 +49,7 @@ const getPublicKeys = async ({ shard, epoch }) => {
 };
 
 const getValidatorIndex = async ({ validator }) => {
-  // const nodes = await getNodes();
-  const nodes = []; // TODO: <----
+  const nodes = await getNodes();
 
   const { shard } = nodes.find(({ publicKey }) => publicKey === validator);
 
@@ -240,25 +239,16 @@ exports.handler = async (event) => {
               hash[key] = _id;
             }
 
-            // if (
-            //   collection === 'blocks' &&
-            //   (!fields || fields.includes('proposer') || fields.includes('validators'))
-            // ) {
-            //   const { shardId: shard, epoch } = _source;
-
-            //   const publicKeys = await getPublicKeys({ shard, epoch });
-
-            //   _source.proposer = publicKeys[_source.proposer];
-            //   _source.validators = _source.validators.map((index) => publicKeys[index]);
-            // }
-
-            // TODO:
             if (
               collection === 'blocks' &&
               (!fields || fields.includes('proposer') || fields.includes('validators'))
             ) {
-              delete _source.proposer;
-              delete _source.validators;
+              const { shardId: shard, epoch } = _source;
+
+              const publicKeys = await getPublicKeys({ shard, epoch });
+
+              _source.proposer = publicKeys[_source.proposer];
+              _source.validators = _source.validators.map((index) => publicKeys[index]);
             }
 
             if (collection === 'rounds') {
@@ -316,8 +306,8 @@ exports.handler = async (event) => {
                 } = transaction;
 
                 // TODO: pending alignment
-                const receiverShard = computeShard(bech32.decode(receiver));
-                const senderShard = computeShard(bech32.decode(sender));
+                const receiverShard = null;
+                const senderShard = null;
 
                 results = {
                   data: {
@@ -377,25 +367,16 @@ exports.handler = async (event) => {
             hash[key] = _id;
           }
 
-          // if (
-          //   collection === 'blocks' &&
-          //   (!fields || fields.includes('proposer') || fields.includes('validators'))
-          // ) {
-          //   const { shardId: shard, epoch } = _source;
-
-          //   const publicKeys = await getPublicKeys({ shard, epoch });
-
-          //   _source.proposer = publicKeys[_source.proposer];
-          //   _source.validators = _source.validators.map((index) => publicKeys[index]);
-          // }
-
-          // TODO:
           if (
             collection === 'blocks' &&
             (!fields || fields.includes('proposer') || fields.includes('validators'))
           ) {
-            delete _source.proposer;
-            delete _source.validators;
+            const { shardId: shard, epoch } = _source;
+
+            const publicKeys = await getPublicKeys({ shard, epoch });
+
+            _source.proposer = publicKeys[_source.proposer];
+            _source.validators = _source.validators.map((index) => publicKeys[index]);
           }
 
           if (collection === 'rounds') {

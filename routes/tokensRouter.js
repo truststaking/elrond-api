@@ -5,9 +5,12 @@ const { tokensHandler } = require('../handlers');
 const paths = ['/tokens', '/tokens/:identifier', '/accounts/:hash/tokens'];
 
 router.get(paths, async (req, res) => {
-  const { params: pathParameters } = req;
+  const { params: pathParameters, query: queryStringParameters } = req;
 
-  const { statusCode, headers, body } = await tokensHandler({ pathParameters });
+  const { statusCode, headers, body } = await tokensHandler({
+    pathParameters,
+    queryStringParameters,
+  });
 
   res.status(statusCode).set(headers).send(body);
 });

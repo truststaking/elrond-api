@@ -1,82 +1,77 @@
 const axios = require('axios');
 
-const { getTokenProperties, vmQuery, response } = require('../helpers');
-const { esdtContract, gatewayUrl } = require('../config');
+const { getTokens, response } = require('../helpers');
+const { gatewayUrl } = require('../config');
 
-exports.handler = async ({ pathParameters }) => {
-  let address;
-  let identifier;
-
-  if (pathParameters) {
-    if (pathParameters.hash) {
-      address = pathParameters.hash;
-    } else if (pathParameters.identifier) {
-      identifier = pathParameters.identifier;
-    }
-  }
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
+  const { hash: address } = pathParameters;
 
   if (address) {
     try {
-      const {
-        data: {
-          data: { tokens },
+      let [
+        {
+          data: {
+            data: { tokens: addressTokens },
+          },
         },
-      } = await axios.get(`${gatewayUrl()}/address/${address}/esdt`);
+        tokens,
+      ] = await Promise.all([axios.get(`${gatewayUrl()}/address/${address}/esdt`), getTokens()]);
 
-      const promises = [];
+      tokens = tokens.filter(({ tokenIdentifier }) => addressTokens.includes(tokenIdentifier));
 
-      tokens.forEach((tokenIdentifier) => {
-        promises.push(axios.get(`${gatewayUrl()}/address/${address}/esdt/${tokenIdentifier}`));
-        promises.push(getTokenProperties(tokenIdentifier));
-      });
+      const balancesResults = await Promise.all(
+        tokens.map(({ tokenIdentifier }) =>
+          axios.get(`${gatewayUrl()}/address/${address}/esdt/${tokenIdentifier}`)
+        )
+      );
 
-      const results = await Promise.all(promises);
-
-      const data = results.reduce((result, value, index, array) => {
-        if (index % 2 === 0) {
-          const [
-            {
+      balancesResults
+        .map(
+          ({
+            data: {
               data: {
-                data: { tokenData },
+                tokenData: { balance },
               },
             },
-            { tokenName, numDecimals },
-          ] = array.slice(index, index + 2);
+          }) => balance
+        )
+        .forEach((balance, index) => {
+          tokens[index].balance = balance;
+        });
 
-          result.push({ ...tokenData, tokenName, numDecimals });
-        }
-        return result;
-      }, []);
-
-      return response({ data });
+      return response({ data: tokens });
     } catch (error) {
       console.error('address tokens', error);
       return response({ data: [] });
     }
   } else {
     try {
-      const [allESDTTokensEncoded] = await vmQuery({
-        contract: esdtContract,
-        func: 'getAllESDTTokens',
-      });
+      const { identifier } = pathParameters;
+      const { from = 0, size = 25 } = queryStringParameters;
 
-      let tokensIdentifiers = Buffer.from(allESDTTokensEncoded, 'base64').toString().split('@');
+      let results;
+      const tokens = await getTokens();
 
-      if (identifier) {
-        if (tokensIdentifiers.includes(identifier)) {
-          tokensIdentifiers = [identifier];
-        } else {
-          return response({ status: 404 });
+      switch (true) {
+        case identifier && identifier !== 'count': {
+          const token = tokens.find(({ tokenIdentifier }) => tokenIdentifier === identifier);
+          results = token ? { data: token } : { status: 404 };
+          break;
+        }
+        case identifier && identifier === 'count': {
+          results = { data: tokens.length };
+          break;
+        }
+        default: {
+          const endIndex = parseInt(from) + parseInt(size);
+          results = { data: tokens.slice(parseInt(from), endIndex) };
+          break;
         }
       }
 
-      const tokensProperties = await Promise.all(
-        tokensIdentifiers.map((tokenIdentifier) => getTokenProperties(tokenIdentifier))
-      );
-
-      return response({ data: identifier ? tokensProperties[0] : tokensProperties });
+      return response(results);
     } catch (error) {
-      console.error('tokens', error);
+      console.error('tokens error', error);
       return response({ status: 503 });
     }
   }

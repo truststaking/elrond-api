@@ -56,7 +56,7 @@ const response = ({ status = 200, data, headers = {}, extract = false }) => {
       'Access-Control-Expose-Headers': 'x-wallet-version,x-access',
       ...headers,
     },
-    body,
+    body: JSON.parse(body),
   };
 };
 

@@ -68,6 +68,7 @@ const getValidatorIndex = async ({ validator }) => {
 
 exports.handler = async (event) => {
   let [, collection, hash] = event.path.split('/');
+  collection = collection.split('?')[0];
 
   const queryStringParameters = event.queryStringParameters ? event.queryStringParameters : {};
 
@@ -357,6 +358,8 @@ exports.handler = async (event) => {
             hits: { hits },
           },
         } = await axios.post(url, params);
+
+        console.log(url, JSON.stringify(params));
 
         const data = [];
 

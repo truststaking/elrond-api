@@ -18,7 +18,7 @@ router.get(paths, async (req, res) => {
 
   const { statusCode, headers, body } = await elasticSearchHandler({ path, queryStringParameters });
 
-  res.status(statusCode).set(headers).send(body);
+  res.status(statusCode).set(headers).json(body);
 });
 
 module.exports = router;

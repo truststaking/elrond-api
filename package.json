@@ -13,8 +13,7 @@
     "axios": "^0.21.1",
     "bech32": "^1.1.4",
     "express": "^4.17.1",
-    "redis": "^3.0.2",
-    "yup": "^0.32.8"
+    "redis": "^3.0.2"
   },
   "devDependencies": {
     "eslint": "7.6.0",

@@ -1,33 +1,65 @@
+const axios = require('axios');
+
 const {
-  elasticSearch: { getList, getItem, getCount },
+  elasticSearch: { getList, getCount },
   response,
 } = require('../helpers');
+
+const { gatewayUrl } = require('../config');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'accounts';
     const key = 'address';
     const { hash } = pathParameters;
-    const params = queryStringParameters;
+    let query = queryStringParameters;
+
+    const keys = ['from', 'size'];
+
+    Object.keys(query).forEach((key) => {
+      if (!keys.includes(key)) {
+        delete query[key];
+      }
+    });
 
     let data;
+    let status;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
-        data = await getCount({ collection, params });
+        data = await getCount({ collection, query });
         break;
       }
       case hash !== undefined: {
-        data = await getItem({ collection, key });
+        try {
+          const {
+            data: {
+              data: {
+                account: { address, nonce, balance, code, codeHash, rootHash },
+              },
+            },
+          } = await axios({
+            method: 'get',
+            url: `${gatewayUrl()}/address/${hash}`,
+          });
+
+          data = { address, nonce, balance, code, codeHash, rootHash };
+        } catch (error) {
+          status = 404;
+        }
         break;
       }
       default: {
-        data = await getList({ collection, key, params });
+        const sort = {
+          balanceNum: 'desc',
+        };
+
+        data = await getList({ collection, key, query, sort });
         break;
       }
     }
 
-    return response({ data });
+    return response({ status, data });
   } catch (error) {
     console.error('accounts error', error);
     return response({ status: 503 });

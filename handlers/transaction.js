@@ -1,33 +1,11 @@
-const yup = require('yup');
-
-const { bech32 } = require('../helpers');
+const axios = require('axios');
 
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
 } = require('../helpers');
 
-const isBech32 = (address) => {
-  if (!address) {
-    return true;
-  }
-
-  try {
-    bech32.decode(address);
-    return true;
-  } catch (error) {
-    return false;
-  }
-};
-
-const isInt = (string) => {
-  if (!string) {
-    return true;
-  }
-
-  const parsed = parseInt(string);
-  return !isNaN(parsed) && parsed >= 0;
-};
+const { gatewayUrl } = require('../config');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
@@ -36,19 +14,16 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters;
     let query = queryStringParameters;
 
-    const schema = yup.object().shape({
-      sender: yup.string().test('isBech32', 'sender', (address) => isBech32(address)),
-      receiver: yup.string().test('isBech32', 'receiver', (address) => isBech32(address)),
-      senderShard: yup.string().test('isInt', 'senderShard', (shard) => isInt(shard)),
-      receiverShard: yup.string().test('isInt', 'receiverShard', (shard) => isInt(shard)),
-      from: yup.string().test('isInt', 'from', (from) => isInt(from)),
-      size: yup.string().test('isInt', 'size', (size) => isInt(size)),
+    const keys = ['sender', 'receiver', 'senderShard', 'receiverShard', 'from', 'size'];
+
+    Object.keys(query).forEach((key) => {
+      if (!keys.includes(key)) {
+        delete query[key];
+      }
     });
 
-    // TODO: filter & sanitize data
-    await schema.validate(query);
-
     let data;
+    let status;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
@@ -56,7 +31,53 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         break;
       }
       case hash !== undefined: {
-        data = await getItem({ collection, key, hash });
+        try {
+          data = await getItem({ collection, key, hash });
+        } catch (error) {
+          try {
+            const {
+              data: {
+                data: { transaction },
+              },
+            } = await axios({
+              method: 'get',
+              url: `${gatewayUrl()}/transaction/${hash}`,
+            });
+
+            const {
+              gasLimit,
+              gasPrice,
+              miniblockHash: miniBlockHash,
+              nonce,
+              receiver,
+              sender,
+              signature,
+              status,
+              value,
+            } = transaction;
+
+            // TODO: pending alignment
+            const receiverShard = null;
+            const senderShard = null;
+
+            data = {
+              txHash: hash,
+              gasLimit,
+              gasPrice,
+              miniBlockHash,
+              nonce,
+              receiver,
+              receiverShard,
+              sender,
+              senderShard,
+              signature,
+              status,
+              value,
+            };
+          } catch (error) {
+            status = 404;
+          }
+        }
         break;
       }
       default: {
@@ -70,9 +91,9 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ data });
+    return response({ status, data });
   } catch (error) {
-    console.error('accounts error', error);
+    console.error('transactions error', error);
     return response({ status: 503 });
   }
 };

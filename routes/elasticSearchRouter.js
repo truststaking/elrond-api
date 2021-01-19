@@ -3,14 +3,14 @@ const router = express.Router();
 const { elasticSearchHandler } = require('../handlers');
 
 const paths = [
-  '/blocks',
-  '/blocks/:hash',
+  // '/blocks',
+  // '/blocks/:hash',
   '/miniblocks',
   '/miniblocks/:miniBlockHash',
-  '/accounts',
-  '/accounts/:address',
-  '/transactions',
-  '/transactions/:txHash',
+  // '/accounts',
+  // '/accounts/:address',
+  // '/transactions',
+  // '/transactions/:txHash',
 ];
 
 router.get(paths, async (req, res) => {

@@ -84,7 +84,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     return response({ status, data });
   } catch (error) {
-    console.error('transactions error', error);
+    console.error('blocks error', error);
     return response({ status: 503 });
   }
 };

@@ -41,7 +41,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
       return response({ data: tokens });
     } catch (error) {
-      console.error('address tokens', error);
+      console.error('address tokens error', error);
       return response({ data: [] });
     }
   } else {

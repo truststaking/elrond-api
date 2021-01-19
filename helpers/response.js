@@ -12,24 +12,18 @@ const statuses = {
   503: 'Service Unavailable',
 };
 
-const empty = (value) => {
-  if (Array.isArray(value) && value.length !== 0) {
-    value = value.filter((value) => value !== '' && value !== null);
-  }
-
-  if (typeof value === 'object' && Object.keys(value).length !== 0) {
-    for (const prop in value) {
-      if ([null, ''].includes(value[prop])) {
-        delete value[prop];
-      }
-    }
-  }
-
-  return (
-    [null, ''].includes(value) ||
-    (Array.isArray(value) && value.length === 0) ||
-    (typeof value === 'object' && Object.keys(value).length === 0)
-  );
+const replacer = (key, value) => {
+  return value instanceof Object && !(value instanceof Array)
+    ? Object.keys(value)
+        .sort()
+        .reduce((sorted, key) => {
+          sorted[key] = value[key];
+          return sorted;
+        }, {})
+    : ['', null].includes(value) ||
+      (typeof value === 'object' && (value.length === 0 || Object.keys(value).length === 0))
+    ? undefined
+    : value;
 };
 
 const response = ({ status = 200, data, headers = {}, extract = false }) => {
@@ -40,9 +34,7 @@ const response = ({ status = 200, data, headers = {}, extract = false }) => {
   }
 
   let body =
-    Array.isArray(data) && data.length === 0
-      ? JSON.stringify([])
-      : JSON.stringify(data, (key, value) => (empty(value) ? undefined : value));
+    Array.isArray(data) && data.length === 0 ? JSON.stringify([]) : JSON.stringify(data, replacer);
 
   if (extract && typeof data[extract] !== 'undefined') {
     body = data[extract];

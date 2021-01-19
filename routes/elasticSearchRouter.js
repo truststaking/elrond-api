@@ -5,12 +5,13 @@ const { elasticSearchHandler } = require('../handlers');
 const paths = [
   // '/blocks',
   // '/blocks/:hash',
-  '/miniblocks',
-  '/miniblocks/:miniBlockHash',
+  // '/miniblocks',
+  // '/miniblocks/:miniBlockHash',
   // '/accounts',
   // '/accounts/:address',
   // '/transactions',
   // '/transactions/:txHash',
+  '/asdf',
 ];
 
 router.get(paths, async (req, res) => {

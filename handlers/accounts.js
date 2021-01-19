@@ -5,7 +5,7 @@ const {
   response,
 } = require('../helpers');
 
-const { gatewayUrl } = require('../config');
+const { elasticUrl, gatewayUrl } = require('../config');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
@@ -32,18 +32,30 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         try {
-          const {
-            data: {
+          const [
+            {
+              data: { count: txCount },
+            },
+            {
               data: {
-                account: { address, nonce, balance, code, codeHash, rootHash },
+                data: {
+                  account: { address, nonce, balance, code, codeHash, rootHash },
+                },
               },
             },
-          } = await axios({
-            method: 'get',
-            url: `${gatewayUrl()}/address/${hash}`,
-          });
+          ] = await Promise.all([
+            axios.post(`${elasticUrl()}/transactions/_count`, {
+              query: {
+                bool: { should: [{ match: { sender: hash } }, { match: { receiver: hash } }] },
+              },
+            }),
+            axios({
+              method: 'get',
+              url: `${gatewayUrl()}/address/${hash}`,
+            }),
+          ]);
 
-          data = { address, nonce, balance, code, codeHash, rootHash };
+          data = { address, nonce, balance, code, codeHash, rootHash, txCount };
         } catch (error) {
           status = 404;
         }

@@ -1,16 +1,4 @@
-const statuses = {
-  201: 'Created',
-  204: 'No Content',
-  400: 'Bad Request',
-  403: 'Forbidden',
-  404: 'Not Found',
-  405: 'Method Not Allowed',
-  409: 'Conflict',
-  422: 'Unprocessable Entity',
-  429: 'Too Many Requests',
-  500: 'Internal Server Error',
-  503: 'Service Unavailable',
-};
+const { statuses } = require('../config');
 
 const clean = (obj) => {
   if (Array.isArray(obj)) {
@@ -46,9 +34,15 @@ const sort = (key, value) => {
 
 const response = ({ status = 200, data, headers = {}, extract = false }) => {
   if (!data && statuses[status]) {
-    data = {
-      message: statuses[status],
-    };
+    if (status >= 400) {
+      data = {
+        error: statuses[status],
+      };
+    } else {
+      data = {
+        message: statuses[status],
+      };
+    }
   }
 
   let body =
@@ -65,7 +59,6 @@ const response = ({ status = 200, data, headers = {}, extract = false }) => {
     headers: {
       'Constent-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Expose-Headers': 'x-wallet-version,x-access',
       ...headers,
     },
     body: JSON.parse(body),

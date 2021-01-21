@@ -21,7 +21,7 @@ const routes = require('./routes');
 app.use(Object.values(routes));
 
 app.use((req, res) => {
-  res.status(404).json({ error: statuses[404] });
+  res.status(405).json({ error: statuses[405] });
 });
 
 app.listen(port, () => {

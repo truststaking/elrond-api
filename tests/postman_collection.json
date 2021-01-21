@@ -1,0 +1,838 @@
+{
+	"info": {
+		"_postman_id": "7b358eb9-e29b-4c7b-abc1-29eafab61355",
+		"name": "Elrond API Contract Tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "blocks",
+			"item": [
+				{
+					"name": "Get list of blocks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status code should be 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listBlocksSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of blocks\",\r",
+									"    \"description\": \"Response shoul be an array of blocks.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of blocks\", function() {\r",
+									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each block has valid schema\", function() {\r",
+									"    response.forEach((block) =>\r",
+									"        {\r",
+									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
+									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
+									"            pm.expect(JSON.stringify(Object.keys(block))).equals(JSON.stringify(blockSchema.required.sort()))\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/blocks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"blocks"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "25",
+									"disabled": true
+								},
+								{
+									"key": "shard",
+									"value": "0",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Specific block",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var blockSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single block response schema\",\r",
+									"    \"description\": \"Response should be an object.\",\r",
+									"    \"required\": [\r",
+									"        \"hash\",\r",
+									"        \"epoch\",\r",
+									"        \"nonce\",\r",
+									"        \"prevHash\",\r",
+									"        \"proposer\",\r",
+									"        \"pubKeyBitmap\",\r",
+									"        \"round\",\r",
+									"        \"shard\",\r",
+									"        \"size\",\r",
+									"        \"sizeTxs\",\r",
+									"        \"stateRootHash\",\r",
+									"        \"timestamp\",\r",
+									"        \"txCount\",\r",
+									"        \"validators\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"hash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"epoch\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"prevHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"proposer\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"pubKeyBitmap\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"round\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"shard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"size\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"sizeTxs\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"stateRootHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"timestamp\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"txCount\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"validators\": {\r",
+									"            \"type\" : \"array\",\r",
+									"            \"blocks\": [ {\r",
+									"                \"type\": \"string\"\r",
+									"            }]\r",
+									"        }\r",
+									"    }\r",
+									"};\r",
+									"\r",
+									"pm.globals.set(\"blockSchema\", JSON.stringify(blockSchema));\r",
+									"\r",
+									"\r",
+									"pm.test(\"Block has valid schema\",function(){\r",
+									"    pm.expect(tv4.validate(response, blockSchema)).to.be.true;\r",
+									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(blockSchema.required.sort()));\r",
+									"});"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/blocks/:hash",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"blocks",
+								":hash"
+							],
+							"variable": [
+								{
+									"key": "hash",
+									"value": "dc2f6c01bd7f083a037edf68adb89a9efa0b170c8899c6011b30fbbb363a1e83\n"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "transactions",
+			"item": [
+				{
+					"name": "Specific transaction",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var previousTransactionSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"required\": [\r",
+									"        \"hash\",\r",
+									"        \"nonce\",\r",
+									"        \"gasLimit\",\r",
+									"        \"gasPrice\",\r",
+									"        \"value\",\r",
+									"        \"sender\",\r",
+									"        \"receiver\",\r",
+									"        \"relayedValue\",\r",
+									"        \"prevTxHash\",\r",
+									"        \"originalTxHash\",\r",
+									"        \"callType\"\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"hash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"data\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"gasLimit\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"gasPrice\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"value\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"sender\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"receiver\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"relayedValue\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"prevTxHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"originalTxHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"callType\": {\r",
+									"            \"type\": \"string\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"var transactionSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single block response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"txHash\",\r",
+									"        \"gasLimit\",\r",
+									"        \"gasPrice\",\r",
+									"        \"gasUsed\",\r",
+									"        \"miniBlockHash\",\r",
+									"        \"nonce\",\r",
+									"        \"receiver\",\r",
+									"        \"receiverShard\",\r",
+									"        \"round\",\r",
+									"        \"sender\",\r",
+									"        \"senderShard\",\r",
+									"        \"signature\",\r",
+									"        \"status\",\r",
+									"        \"timestamp\",\r",
+									"        \"value\"\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"txHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"data\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"gasLimit\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"gasPrice\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"gasUsed\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"miniBlockHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"receiver\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"receiverShard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"round\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"sender\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"senderShard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"signature\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"status\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"timestamp\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"value\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"scResults\": {\r",
+									"            \"type\": \"array\",\r",
+									"            \"title\": \"Previous transaction\",\r",
+									"            \"description\": \"Response should be an array\",\r",
+									"            \"prevTransactions\": [ previousTransactionSchema ]\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"transactionSchema\", JSON.stringify(transactionSchema));\r",
+									"\r",
+									"pm.test(\"Transaction has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, transactionSchema)).to.be.true;\r",
+									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(transactionSchema.required.sort()));\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/transactions/:txHash",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"transactions",
+								":txHash"
+							],
+							"variable": [
+								{
+									"key": "txHash",
+									"value": "5ceb1528e437c10cd5e46222139defd7178f38b26e208f11e49b92d423724893"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listTransactionsSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of transactions\",\r",
+									"    \"description\": \"Response shoul be an array of transactions.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of transactions\", function() {\r",
+									"    pm.expect(tv4.validate(response, listTransactionsSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each transaction has valid schema\", function() {\r",
+									"    response.forEach((transaction) =>\r",
+									"        {\r",
+									"            var transactionSchema =  JSON.parse(pm.globals.get(\"transactionSchema\"))\r",
+									"            pm.expect(tv4.validate(transaction, transactionSchema)).to.be.true\r",
+									"            pm.expect(JSON.stringify(Object.keys(transaction))).equals(JSON.stringify(transactionSchema.required.sort()))\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/transactions",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"transactions"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "miniblocks",
+			"item": [
+				{
+					"name": "Specific miniblock",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var miniblockSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single miniblock response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"miniBlockHash\",\r",
+									"        \"receiverBlockHash\",\r",
+									"        \"receiverShard\",\r",
+									"        \"senderBlockHash\",\r",
+									"        \"senderShard\",\r",
+									"        \"type\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"miniBlockHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"receiverBlockHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"receiverShard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"senderBlockHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"senderShard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"type\": {\r",
+									"            \"type\": \"string\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"miniblockSchema\", JSON.stringify(miniblockSchema));\r",
+									"\r",
+									"pm.test(\"Miniblock has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, miniblockSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/miniblocks/:miniBlockHash",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"miniblocks",
+								":miniBlockHash"
+							],
+							"variable": [
+								{
+									"key": "miniBlockHash",
+									"value": "1f7b75641d19e9a1667bcd37b75b3710f11ecb22d032716ee9bbe2d0d087ef70"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "accounts",
+			"item": [
+				{
+					"name": "Specific account",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var accountSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single account response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"address\",\r",
+									"        \"nonce\",\r",
+									"        \"balance\",\r",
+									"        \"rootHash\",\r",
+									"        \"txCount\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"address\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"balance\": {\r",
+									"            \"type\":\"string\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"rootHash\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"txCount\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Account has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, accountSchema)).to.be.true;\r",
+									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(accountSchema.required));\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/accounts/:address",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"accounts",
+								":address"
+							],
+							"variable": [
+								{
+									"key": "address",
+									"value": "erd1sea63y47u569ns3x5mqjf4vnygn9whkk7p6ry4rfpqyd6rd5addqyd9lf2"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of accounts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listAccountsSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of accounts\",\r",
+									"    \"description\": \"Response should be an array of accounts.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of accounts\", function() {\r",
+									"    pm.expect(tv4.validate(response, listAccountsSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"var accountItemSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single account response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"address\",\r",
+									"        \"balance\",\r",
+									"        \"nonce\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"address\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"balance\": {\r",
+									"            \"type\":\"string\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Each account has valid schema\", function() {\r",
+									"    response.forEach((account) =>\r",
+									"        {\r",
+									"            pm.expect(JSON.stringify(Object.keys(account))).equals(JSON.stringify(accountItemSchema.required))\r",
+									"            pm.expect(tv4.validate(account, accountItemSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/accounts",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"accounts"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of account tokens",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var accountTokensSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"Single account tokens response schema\",\r",
+									"    \"description\": \"Response should be an array\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of account tokens\", function() {\r",
+									"    pm.expect(tv4.validate(response, accountTokensSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/accounts/:address/tokens",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"accounts",
+								":address",
+								"tokens"
+							],
+							"variable": [
+								{
+									"key": "address",
+									"value": "erd1sea63y47u569ns3x5mqjf4vnygn9whkk7p6ry4rfpqyd6rd5addqyd9lf2"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "constants",
+			"item": [
+				{
+					"name": "Constant",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var constantSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"API constants\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"chainId\",\r",
+									"        \"gasPerDataByte\",\r",
+									"        \"minGasLimit\",\r",
+									"        \"minGasPrice\",\r",
+									"        \"minTransactionVersion\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"chainId\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"gasPerDataByte\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"minGasLimit\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"minGasPrice\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"minTransactionVersion\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"\r",
+									"pm.test(\"Constant has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, constantSchema)).to.be.true;\r",
+									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(constantSchema.required));\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/constants",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"constants"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "https://api.elrond.com"
+		},
+		{
+			"key": "elrond",
+			"value": "https://api.elrond.com"
+		},
+		{
+			"key": "local",
+			"value": "http://localhost:3000/blocks-new"
+		},
+		{
+			"key": "blocksUrlPublic",
+			"value": "https://api.elrond.com/blocks"
+		},
+		{
+			"key": "blocksUrlLocal",
+			"value": "http://localhost:3000/blocks-new"
+		}
+	]
+}

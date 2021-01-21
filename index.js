@@ -20,6 +20,10 @@ const routes = require('./routes');
 
 app.use(Object.values(routes));
 
+app.use((req, res) => {
+  res.status(404).json({ error: statuses[404] });
+});
+
 app.listen(port, () => {
   console.log(`API running at http://localhost:${port}`);
 });

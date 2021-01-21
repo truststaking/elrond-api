@@ -1,10 +1,7 @@
 const { getNodes, response } = require('../helpers');
 
-exports.handler = async (event) => {
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
-    const pathParameters = event.pathParameters ? event.pathParameters : {};
-    const queryStringParameters = event.queryStringParameters ? event.queryStringParameters : {};
-
     const { hash } = pathParameters;
     const {
       from = 0,

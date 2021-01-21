@@ -3,6 +3,10 @@ const {
   response,
 } = require('../helpers');
 
+const transformItem = async (item) => {
+  return { ...item };
+};
+
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'miniblocks';
@@ -27,7 +31,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         break;
       }
       case hash !== undefined: {
-        data = await getItem({ collection, key, hash });
+        const item = await getItem({ collection, key, hash });
+        data = await transformItem(item);
         break;
       }
       default: {
@@ -35,7 +40,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           timestamp: 'desc',
         };
 
-        data = await getList({ collection, key, query, sort });
+        const items = await getList({ collection, key, query, sort });
+
+        data = [];
+        for (const item of items) {
+          data.push(await transformItem(item));
+        }
         break;
       }
     }

@@ -4,7 +4,8 @@ const { handler: constantsHandler } = require('./constants');
 const { handler: miniblocksHandler } = require('./miniblocks');
 const { handler: nodesHandler } = require('./nodes');
 const { handler: tokensHandler } = require('./tokens');
-const { handler: transactionsHandler } = require('./transaction');
+const { handler: transactionsHandler } = require('./transactions');
+const { handler: transactionsSendHandler } = require('./transactionSend');
 
 module.exports = {
   accountsHandler,
@@ -14,4 +15,5 @@ module.exports = {
   nodesHandler,
   tokensHandler,
   transactionsHandler,
+  transactionsSendHandler,
 };

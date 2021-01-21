@@ -2,13 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { accountsHandler } = require('../handlers');
 
-const paths = ['/accounts', '/accounts/:hash'];
-
-router.get(paths, async (req, res) => {
-  const { originalUrl: path, params: pathParameters = {}, query: queryStringParameters = {} } = req;
+router.get(['/accounts', '/accounts/:hash'], async (req, res) => {
+  const { params: pathParameters = {}, query: queryStringParameters = {} } = req;
 
   const { statusCode, headers, body } = await accountsHandler({
-    path,
     pathParameters,
     queryStringParameters,
   });

@@ -7,6 +7,11 @@ const {
 
 const { gatewayUrl } = require('../config');
 
+const transformItem = async (item) => {
+  const { searchOrder, ...rest } = item;
+  return { ...rest };
+};
+
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'transactions';
@@ -32,7 +37,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         try {
-          data = await getItem({ collection, key, hash });
+          const item = await getItem({ collection, key, hash });
+          data = await transformItem(item);
         } catch (error) {
           try {
             const {
@@ -86,7 +92,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           nonce: 'desc',
         };
 
-        data = await getList({ collection, key, query, sort });
+        const items = await getList({ collection, key, query, sort });
+
+        data = [];
+        for (const item of items) {
+          data.push(await transformItem(item));
+        }
         break;
       }
     }

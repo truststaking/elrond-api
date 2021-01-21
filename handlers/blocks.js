@@ -29,7 +29,7 @@ const getPublicKeys = async ({ shard, epoch }) => {
 };
 
 const transformItem = async (item) => {
-  let { shardId: shard, epoch, proposer, validators, ...rest } = item;
+  let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
   const publicKeys = await getPublicKeys({ shard, epoch });
 

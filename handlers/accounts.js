@@ -7,6 +7,11 @@ const {
 
 const { elasticUrl, gatewayUrl } = require('../config');
 
+const transformItem = async (item) => {
+  const { searchOrder, ...rest } = item;
+  return { ...rest };
+};
+
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'accounts';
@@ -66,7 +71,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           balanceNum: 'desc',
         };
 
-        data = await getList({ collection, key, query, sort });
+        const items = await getList({ collection, key, query, sort });
+
+        data = [];
+        for (const item of items) {
+          data.push(await transformItem(item));
+        }
         break;
       }
     }

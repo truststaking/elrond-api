@@ -8,9 +8,9 @@ const clean = (obj) => {
       .map(([k, v]) => [k, v && typeof v === 'object' ? clean(v) : v])
       .reduce(
         (a, [k, v]) =>
-          v == null ||
-          v == '' ||
-          v == '<nil>' ||
+          v === null ||
+          v === '' ||
+          v === '<nil>' ||
           (v instanceof Object && Object.keys(v).length == 0)
             ? a
             : ((a[k] = v), a),

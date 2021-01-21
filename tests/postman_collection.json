@@ -36,7 +36,6 @@
 									"        {\r",
 									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
 									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
-									"            pm.expect(JSON.stringify(Object.keys(block))).equals(JSON.stringify(blockSchema.required.sort()))\r",
 									"        }\r",
 									"    );\r",
 									"})\r",
@@ -154,6 +153,9 @@
 									"        \"txCount\": {\r",
 									"            \"type\": \"integer\"\r",
 									"        },\r",
+									"        // \"notarizedBlocksHashes\" : {\r",
+									"        //     \"type\": \"string\"\r",
+									"        // },\r",
 									"        \"validators\": {\r",
 									"            \"type\" : \"array\",\r",
 									"            \"blocks\": [ {\r",
@@ -168,7 +170,6 @@
 									"\r",
 									"pm.test(\"Block has valid schema\",function(){\r",
 									"    pm.expect(tv4.validate(response, blockSchema)).to.be.true;\r",
-									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(blockSchema.required.sort()));\r",
 									"});"
 								],
 								"type": "text/javascript"
@@ -192,7 +193,7 @@
 							"variable": [
 								{
 									"key": "hash",
-									"value": "dc2f6c01bd7f083a037edf68adb89a9efa0b170c8899c6011b30fbbb363a1e83\n"
+									"value": "a52398f098d7cae0da42f249da4ff67b2fd2dbcd76bb06c665c2ccae5c152851\n"
 								}
 							]
 						}
@@ -287,12 +288,17 @@
 									"        \"round\",\r",
 									"        \"sender\",\r",
 									"        \"senderShard\",\r",
-									"        \"signature\",\r",
 									"        \"status\",\r",
 									"        \"timestamp\",\r",
 									"        \"value\"\r",
 									"    ],\r",
 									"    \"properties\": {\r",
+									"        \"fee\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"log\": {\r",
+									"            \"type\": \"object\"\r",
+									"        },\r",
 									"        \"txHash\": {\r",
 									"            \"type\": \"string\"\r",
 									"        },\r",
@@ -354,7 +360,6 @@
 									"\r",
 									"pm.test(\"Transaction has valid schema\", function() { \r",
 									"    pm.expect(tv4.validate(response, transactionSchema)).to.be.true;\r",
-									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(transactionSchema.required.sort()));\r",
 									"})"
 								],
 								"type": "text/javascript"
@@ -378,7 +383,7 @@
 							"variable": [
 								{
 									"key": "txHash",
-									"value": "5ceb1528e437c10cd5e46222139defd7178f38b26e208f11e49b92d423724893"
+									"value": "62477ce9a5e41438bd5b97bc07f610ab8db40395097e83bfc50a1a3c9ca78e72"
 								}
 							]
 						}
@@ -413,7 +418,6 @@
 									"        {\r",
 									"            var transactionSchema =  JSON.parse(pm.globals.get(\"transactionSchema\"))\r",
 									"            pm.expect(tv4.validate(transaction, transactionSchema)).to.be.true\r",
-									"            pm.expect(JSON.stringify(Object.keys(transaction))).equals(JSON.stringify(transactionSchema.required.sort()))\r",
 									"        }\r",
 									"    );\r",
 									"})\r",
@@ -552,7 +556,6 @@
 									"        \"address\",\r",
 									"        \"nonce\",\r",
 									"        \"balance\",\r",
-									"        \"rootHash\",\r",
 									"        \"txCount\",\r",
 									"    ],\r",
 									"    \"properties\": {\r",
@@ -576,7 +579,6 @@
 									"\r",
 									"pm.test(\"Account has valid schema\", function() { \r",
 									"    pm.expect(tv4.validate(response, accountSchema)).to.be.true;\r",
-									"    pm.expect(JSON.stringify(Object.keys(response))).equals(JSON.stringify(accountSchema.required));\r",
 									"})"
 								],
 								"type": "text/javascript"
@@ -655,7 +657,6 @@
 									"pm.test(\"Each account has valid schema\", function() {\r",
 									"    response.forEach((account) =>\r",
 									"        {\r",
-									"            pm.expect(JSON.stringify(Object.keys(account))).equals(JSON.stringify(accountItemSchema.required))\r",
 									"            pm.expect(tv4.validate(account, accountItemSchema)).to.be.true\r",
 									"        }\r",
 									"    );\r",

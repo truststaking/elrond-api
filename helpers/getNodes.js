@@ -97,6 +97,8 @@ const getNodes = async (args) => {
       peerType,
       isActive,
       validatorStatus,
+      nonce,
+      numInstances,
     } = node;
 
     if (shard === undefined) {
@@ -132,6 +134,8 @@ const getNodes = async (args) => {
       nodeType,
       peerType: typeof peerType === 'undefined' ? undefined : peerType.split(' ')[0], // solution for: eligible (leaving)
       status: isActive ? 'online' : 'offline',
+      nonce,
+      numInstances,
     };
 
     if (resultNode.totalUpTimeSec === 0 && node.totalDownTimeSec === 0) {

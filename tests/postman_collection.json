@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "7b358eb9-e29b-4c7b-abc1-29eafab61355",
+		"_postman_id": "9982b23b-af71-4a1b-9d29-b1c03b00275c",
 		"name": "Elrond API Contract Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -8,78 +8,6 @@
 		{
 			"name": "blocks",
 			"item": [
-				{
-					"name": "Get list of blocks",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"status code should be 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response=pm.response.json();\r",
-									"\r",
-									"var listBlocksSchema = {\r",
-									"    \"type\": \"array\",\r",
-									"    \"title\": \"List of blocks\",\r",
-									"    \"description\": \"Response shoul be an array of blocks.\"\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a list of blocks\", function() {\r",
-									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
-									"})\r",
-									"\r",
-									"pm.test(\"Each block has valid schema\", function() {\r",
-									"    response.forEach((block) =>\r",
-									"        {\r",
-									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
-									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
-									"        }\r",
-									"    );\r",
-									"})\r",
-									"\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/blocks",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"blocks"
-							],
-							"query": [
-								{
-									"key": "from",
-									"value": "0",
-									"disabled": true
-								},
-								{
-									"key": "size",
-									"value": "25",
-									"disabled": true
-								},
-								{
-									"key": "shard",
-									"value": "0",
-									"disabled": true
-								}
-							]
-						}
-					},
-					"response": []
-				},
 				{
 					"name": "Specific block",
 					"event": [
@@ -194,6 +122,77 @@
 								{
 									"key": "hash",
 									"value": "a52398f098d7cae0da42f249da4ff67b2fd2dbcd76bb06c665c2ccae5c152851\n"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get list of blocks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status code should be 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listBlocksSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of blocks\",\r",
+									"    \"description\": \"Response shoul be an array of blocks.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of blocks\", function() {\r",
+									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each block has valid schema\", function() {\r",
+									"    response.forEach((block) =>\r",
+									"        {\r",
+									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
+									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/blocks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"blocks"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "25",
+									"disabled": true
+								},
+								{
+									"key": "shard",
+									"value": "0",
+									"disabled": true
 								}
 							]
 						}
@@ -835,17 +834,12 @@
 									"    \"description\": \"Response should be an object\",\r",
 									"    \"required\": [\r",
 									"        \"publicKey\",\r",
-									"        \"nodeName\",\r",
-									"        \"versionNumber\",\r",
 									"        \"rating\",\r",
 									"        \"tempRating\",\r",
 									"        \"ratingModifier\",\r",
-									"        \"shard\",\r",
 									"        \"nodeType\",\r",
 									"        \"peerType\",\r",
 									"        \"status\",\r",
-									"        \"nonce\",\r",
-									"        \"numInstances\",\r",
 									"    ],\r",
 									"    \"properties\": {\r",
 									"        \"publicKey\": {\r",

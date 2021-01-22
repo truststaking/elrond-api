@@ -812,6 +812,189 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "nodes",
+			"item": [
+				{
+					"name": "Specific node",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var nodeSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single node response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"publicKey\",\r",
+									"        \"nodeName\",\r",
+									"        \"versionNumber\",\r",
+									"        \"rating\",\r",
+									"        \"tempRating\",\r",
+									"        \"ratingModifier\",\r",
+									"        \"totalUpTimeSec\",\r",
+									"        \"totalDownTimeSec\",\r",
+									"        \"shard\",\r",
+									"        \"nodeType\",\r",
+									"        \"peerType\",\r",
+									"        \"status\",\r",
+									"        \"nonce\",\r",
+									"        \"numInstances\",\r",
+									"        \"totalUpTime\",\r",
+									"        \"totalDownTime\",\r",
+									"    ],\r",
+									"    \"properties\": {\r",
+									"        \"publicKey\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"nodeName\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"versionNumber\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"identity\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"rating\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"tempRating\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"ratingModifier\": {\r",
+									"            \"type\": \"number\"\r",
+									"        },\r",
+									"        \"totalUpTimeSec\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"totalDownTimeSec\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"shard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"nodeType\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"peerType\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"status\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"nonce\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"numInstances\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"totalUpTime\": {\r",
+									"            \"type\": \"number\"\r",
+									"        },\r",
+									"        \"totalDownTime\": {\r",
+									"            \"type\": \"number\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"nodeSchema\", JSON.stringify(nodeSchema));\r",
+									"\r",
+									"pm.test(\"Node has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, nodeSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/nodes/:publicKey",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"nodes",
+								":publicKey"
+							],
+							"variable": [
+								{
+									"key": "publicKey",
+									"value": "020000e71fa0703c05cd66ab3decc279585969e1f854c8b959fa6edc376576ddc0771ad42f2179836fcdf6a45389450bfc6e4defbf01984e3298b6a6431f2ba367635b8acc63e8a58f006b0a128eff584c02a60d1823d97f45b4c85d8828cc88"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of nodes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listNodesSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of nodes\",\r",
+									"    \"description\": \"Response should be an array of nodes.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of nodes\", function() {\r",
+									"    pm.expect(tv4.validate(response, listNodesSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each node has valid schema\", function() {\r",
+									"    response.forEach((node) =>\r",
+									"        {\r",
+									"            var nodeSchema =  JSON.parse(pm.globals.get(\"nodeSchema\"))\r",
+									"            pm.expect(tv4.validate(node, nodeSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/nodes",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"nodes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [

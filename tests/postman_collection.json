@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "9982b23b-af71-4a1b-9d29-b1c03b00275c",
+		"_postman_id": "7b358eb9-e29b-4c7b-abc1-29eafab61355",
 		"name": "Elrond API Contract Tests",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -8,6 +8,78 @@
 		{
 			"name": "blocks",
 			"item": [
+				{
+					"name": "Get list of blocks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"status code should be 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listBlocksSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of blocks\",\r",
+									"    \"description\": \"Response shoul be an array of blocks.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of blocks\", function() {\r",
+									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each block has valid schema\", function() {\r",
+									"    response.forEach((block) =>\r",
+									"        {\r",
+									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
+									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									"\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/blocks",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"blocks"
+							],
+							"query": [
+								{
+									"key": "from",
+									"value": "0",
+									"disabled": true
+								},
+								{
+									"key": "size",
+									"value": "25",
+									"disabled": true
+								},
+								{
+									"key": "shard",
+									"value": "0",
+									"disabled": true
+								}
+							]
+						}
+					},
+					"response": []
+				},
 				{
 					"name": "Specific block",
 					"event": [
@@ -122,77 +194,6 @@
 								{
 									"key": "hash",
 									"value": "a52398f098d7cae0da42f249da4ff67b2fd2dbcd76bb06c665c2ccae5c152851\n"
-								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Get list of blocks",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"status code should be 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response=pm.response.json();\r",
-									"\r",
-									"var listBlocksSchema = {\r",
-									"    \"type\": \"array\",\r",
-									"    \"title\": \"List of blocks\",\r",
-									"    \"description\": \"Response shoul be an array of blocks.\"\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a list of blocks\", function() {\r",
-									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
-									"})\r",
-									"\r",
-									"pm.test(\"Each block has valid schema\", function() {\r",
-									"    response.forEach((block) =>\r",
-									"        {\r",
-									"            var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
-									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
-									"        }\r",
-									"    );\r",
-									"})\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/blocks",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"blocks"
-							],
-							"query": [
-								{
-									"key": "from",
-									"value": "0",
-									"disabled": true
-								},
-								{
-									"key": "size",
-									"value": "25",
-									"disabled": true
-								},
-								{
-									"key": "shard",
-									"value": "0",
-									"disabled": true
 								}
 							]
 						}
@@ -834,12 +835,17 @@
 									"    \"description\": \"Response should be an object\",\r",
 									"    \"required\": [\r",
 									"        \"publicKey\",\r",
+									"        \"nodeName\",\r",
+									"        \"versionNumber\",\r",
 									"        \"rating\",\r",
 									"        \"tempRating\",\r",
 									"        \"ratingModifier\",\r",
+									"        \"shard\",\r",
 									"        \"nodeType\",\r",
 									"        \"peerType\",\r",
 									"        \"status\",\r",
+									"        \"nonce\",\r",
+									"        \"numInstances\",\r",
 									"    ],\r",
 									"    \"properties\": {\r",
 									"        \"publicKey\": {\r",
@@ -929,7 +935,7 @@
 							"variable": [
 								{
 									"key": "publicKey",
-									"value": "000523677f6c7f594de2452960c67411cb3503925d65124002edb2aefe125593c9bf588687655a04e4592ab4ade9911257581a71c44fa223752b2cfb7b8d43f1f9ef675d9513f3aa3ca6003118343e05269974848582e5141932be2c31aab582"
+									"value": "020000e71fa0703c05cd66ab3decc279585969e1f854c8b959fa6edc376576ddc0771ad42f2179836fcdf6a45389450bfc6e4defbf01984e3298b6a6431f2ba367635b8acc63e8a58f006b0a128eff584c02a60d1823d97f45b4c85d8828cc88"
 								}
 							]
 						}
@@ -985,6 +991,179 @@
 							"port": "3000",
 							"path": [
 								"nodes"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "tokens",
+			"item": [
+				{
+					"name": "Specific token",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var tokenSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single token response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"numDecimals\",\r",
+									"        \"isPaused\",\r",
+									"        \"mintedValue\",\r",
+									"        \"canBurn\",\r",
+									"        \"tokenName\",\r",
+									"        \"canUpgrade\",\r",
+									"        \"tokenIdentifier\",\r",
+									"        \"canWipe\",\r",
+									"        \"canMint\",\r",
+									"        \"canChangeOwner\",\r",
+									"        \"canFreeze\",\r",
+									"        \"ownerAddress\",\r",
+									"        \"canPause\",\r",
+									"        \"burntValue\"\r",
+									"    ],\r",
+									"    \"properties\" : {\r",
+									"        \"numDecimals\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"isPaused\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"mintedValue\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"canBurn\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"tokenName\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"canUpgrade\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"tokenIdentifier\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"canWipe\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"canMint\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"canChangeOwner\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"canFreeze\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"ownerAddress\": {\r",
+									"            \"type\": \"string\"\r",
+									"        },\r",
+									"        \"canPause\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"burntValue\": {\r",
+									"            \"type\": \"string\"\r",
+									"        }\r",
+									"\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"tokenSchema\", JSON.stringify(tokenSchema));\r",
+									"\r",
+									"pm.test(\"Token has valid schema\", function() { \r",
+									"    pm.expect(tv4.validate(response, tokenSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/tokens/:identifier",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"tokens",
+								":identifier"
+							],
+							"variable": [
+								{
+									"key": "identifier",
+									"value": "TT7778-ff283c"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List of tokens",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listTokensSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of tokens\",\r",
+									"    \"description\": \"Response should be an array of tokens.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of tokens\", function() {\r",
+									"    pm.expect(tv4.validate(response, listTokensSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each token has valid schema\", function() {\r",
+									"    response.forEach((token) =>\r",
+									"        {\r",
+									"            var tokenSchema =  JSON.parse(pm.globals.get(\"tokenSchema\"))\r",
+									"            pm.expect(tv4.validate(token, tokenSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/tokens",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"tokens"
 							]
 						}
 					},

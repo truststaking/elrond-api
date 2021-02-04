@@ -74,8 +74,31 @@ const getCount = async ({ collection, query }) => {
   return count;
 };
 
+const publicKeysCache = {};
+
+const getPublicKeys = async ({ shard, epoch }) => {
+  const key = `${shard}_${epoch}`;
+
+  if (publicKeysCache[key]) {
+    return publicKeysCache[key];
+  }
+
+  const url = `${elasticUrl()}/validators/_doc/${key}`;
+
+  const {
+    data: {
+      _source: { publicKeys },
+    },
+  } = await axios.get(url);
+
+  publicKeysCache[key] = publicKeys;
+
+  return publicKeys;
+};
+
 module.exports = {
   getList,
   getItem,
   getCount,
+  getPublicKeys,
 };

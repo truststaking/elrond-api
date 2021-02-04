@@ -1,32 +1,7 @@
-const axios = require('axios');
-
 const {
-  elasticSearch: { getList, getItem, getCount },
+  elasticSearch: { getList, getItem, getCount, getPublicKeys },
   response,
 } = require('../helpers');
-
-const { elasticUrl } = require('../config');
-
-const publicKeysCache = {};
-const getPublicKeys = async ({ shard, epoch }) => {
-  const key = `${shard}_${epoch}`;
-
-  if (publicKeysCache[key]) {
-    return publicKeysCache[key];
-  }
-
-  const url = `${elasticUrl()}/validators/_doc/${key}`;
-
-  const {
-    data: {
-      _source: { publicKeys },
-    },
-  } = await axios.get(url);
-
-  publicKeysCache[key] = publicKeys;
-
-  return publicKeys;
-};
 
 const transformItem = async (item) => {
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;

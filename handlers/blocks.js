@@ -4,6 +4,7 @@ const {
 } = require('../helpers');
 
 const transformItem = async (item) => {
+  // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
   const publicKeys = await getPublicKeys({ shard, epoch });

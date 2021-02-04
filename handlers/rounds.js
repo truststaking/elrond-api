@@ -4,7 +4,7 @@ const {
 } = require('../helpers');
 
 const transformItem = async (item) => {
-  let { key, round, timestamp, blockWasProposed, signersIndexes, ...rest } = item;
+  let { key, round, timestamp, blockWasProposed, signersIndexes } = item;
 
   // TODO: use the indexed value when available
   const epoch = Math.floor(round / 14401);

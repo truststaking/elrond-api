@@ -57,7 +57,7 @@ const response = ({ status = 200, data, headers = {}, extract = false }) => {
   return {
     statusCode: status,
     headers: {
-      'Constent-Type': 'application/json',
+      'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       ...headers,
     },

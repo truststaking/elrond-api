@@ -6,7 +6,7 @@ const { redisUrl, cacheTtl } = require('../config');
 const client = redis.createClient(redisUrl);
 
 client.on('error', (error) => {
-  console.error(error);
+  console.error('redis error', error);
 });
 
 const asyncSet = promisify(client.set).bind(client);
@@ -23,6 +23,7 @@ const getCache = async ({ key }) => {
   return JSON.parse(response);
 };
 
+// TODO:
 const batchPutCache = async ({ keys, values, ttl = cacheTtl }) => {
   const data = [];
 

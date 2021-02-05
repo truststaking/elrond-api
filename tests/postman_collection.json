@@ -9,242 +9,352 @@
 			"name": "blocks",
 			"item": [
 				{
-					"name": "Get list of blocks",
-					"event": [
+					"name": "endpoints",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"status code should be 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var blockSchema = {\r",
-									"    \"type\": \"object\",\r",
-									"    \"title\": \"Single block response schema\",\r",
-									"    \"description\": \"Response should be an object.\",\r",
-									"    \"required\": [\r",
-									"        \"hash\",\r",
-									"        \"epoch\",\r",
-									"        \"nonce\",\r",
-									"        \"prevHash\",\r",
-									"        \"proposer\",\r",
-									"        \"pubKeyBitmap\",\r",
-									"        \"round\",\r",
-									"        \"shard\",\r",
-									"        \"size\",\r",
-									"        \"sizeTxs\",\r",
-									"        \"stateRootHash\",\r",
-									"        \"timestamp\",\r",
-									"        \"txCount\",\r",
-									"        \"validators\",\r",
-									"    ],\r",
-									"    \"properties\": {\r",
-									"        \"hash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"epoch\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"nonce\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"prevHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"proposer\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"pubKeyBitmap\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"round\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"shard\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"size\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"sizeTxs\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"stateRootHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"timestamp\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"txCount\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        // \"notarizedBlocksHashes\" : {\r",
-									"        //     \"type\": \"string\"\r",
-									"        // },\r",
-									"        \"validators\": {\r",
-									"            \"type\" : \"array\",\r",
-									"            \"blocks\": [ {\r",
-									"                \"type\": \"string\"\r",
-									"            }]\r",
-									"        }\r",
-									"    }\r",
-									"};\r",
-									"\r",
-									"pm.globals.set(\"blockSchema\", JSON.stringify(blockSchema));\r",
-									"\r",
-									"var response=pm.response.json();\r",
-									"\r",
-									"var listBlocksSchema = {\r",
-									"    \"type\": \"array\",\r",
-									"    \"title\": \"List of blocks\",\r",
-									"    \"description\": \"Response shoul be an array of blocks.\"\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a list of blocks\", function() {\r",
-									"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
-									"})\r",
-									"\r",
-									"pm.test(\"Each block has valid schema\", function() {\r",
-									"    response.forEach((block) =>\r",
-									"        {\r",
-									"            pm.globals.set(\"blockHash\", block.hash)\r",
-									"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
-									"        }\r",
-									"    );\r",
-									"})\r",
-									"\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/blocks",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"blocks"
-							],
-							"query": [
+							"name": "Get list of blocks",
+							"event": [
 								{
-									"key": "from",
-									"value": "0",
-									"disabled": true
-								},
-								{
-									"key": "size",
-									"value": "25",
-									"disabled": true
-								},
-								{
-									"key": "shard",
-									"value": "0",
-									"disabled": true
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var blockSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"title\": \"Single block response schema\",\r",
+											"    \"description\": \"Response should be an object.\",\r",
+											"    \"required\": [\r",
+											"        \"hash\",\r",
+											"        \"epoch\",\r",
+											"        \"nonce\",\r",
+											"        \"prevHash\",\r",
+											"        \"proposer\",\r",
+											"        \"pubKeyBitmap\",\r",
+											"        \"round\",\r",
+											"        \"shard\",\r",
+											"        \"size\",\r",
+											"        \"sizeTxs\",\r",
+											"        \"stateRootHash\",\r",
+											"        \"timestamp\",\r",
+											"        \"txCount\",\r",
+											"        \"validators\",\r",
+											"    ],\r",
+											"    \"properties\": {\r",
+											"        \"hash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"epoch\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"nonce\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"prevHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"proposer\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"pubKeyBitmap\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"round\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"shard\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"size\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"sizeTxs\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"stateRootHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"timestamp\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"txCount\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"validators\": {\r",
+											"            \"type\" : \"array\",\r",
+											"            \"blocks\": [ {\r",
+											"                \"type\": \"string\"\r",
+											"            }]\r",
+											"        }\r",
+											"    }\r",
+											"};\r",
+											"\r",
+											"pm.globals.set(\"blockSchema\", JSON.stringify(blockSchema));\r",
+											"\r",
+											"var response=pm.response.json();\r",
+											"\r",
+											"var listBlocksSchema = {\r",
+											"    \"type\": \"array\",\r",
+											"    \"title\": \"List of blocks\",\r",
+											"    \"description\": \"Response shoul be an array of blocks.\"\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Response is a list of blocks\", function() {\r",
+											"    pm.expect(tv4.validate(response, listBlocksSchema)).to.be.true;\r",
+											"})\r",
+											"\r",
+											"pm.test(\"Each block has valid schema\", function() {\r",
+											"    response.forEach((block) =>\r",
+											"        {\r",
+											"            pm.globals.set(\"blockHash\", block.hash)\r",
+											"            pm.expect(tv4.validate(block, blockSchema)).to.be.true\r",
+											"        }\r",
+											"    );\r",
+											"})\r",
+											"\r",
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/blocks",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"blocks"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "0",
+											"disabled": true
+										},
+										{
+											"key": "size",
+											"value": "25",
+											"disabled": true
+										},
+										{
+											"key": "shard",
+											"value": "0",
+											"disabled": true
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Specific block",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"\r",
+											"var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
+											"\r",
+											"pm.test(\"Block has valid schema\",function(){\r",
+											"   \r",
+											"    pm.expect(tv4.validate(response, blockSchema)).to.be.true;\r",
+											"});"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/blocks/:hash",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"blocks",
+										":hash"
+									],
+									"variable": [
+										{
+											"key": "hash",
+											"value": "{{blockHash}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count blocks",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"\r",
+											"var countSchema = {\r",
+											"    \"type\": \"number\",\r",
+											"    \"title\": \"Count blocks response schema\",\r",
+											"    \"description\": \"Response should be a number.\",\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Response is a count of blocks\", function() {\r",
+											"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/blocks/count",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"blocks",
+										"count"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Specific block",
-					"event": [
+					"name": "query params",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response = pm.response.json();\r",
-									"\r",
-									"var blockSchema = JSON.parse(pm.globals.get(\"blockSchema\"))\r",
-									"\r",
-									"pm.test(\"Block has valid schema\",function(){\r",
-									"    pm.expect(tv4.validate(response, blockSchema)).to.be.true;\r",
-									"});"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/blocks/:hash",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"blocks",
-								":hash"
-							],
-							"variable": [
+							"name": "Blocks pagination",
+							"event": [
 								{
-									"key": "hash",
-									"value": "{{blockHash}}"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Test pagination of blocks\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.equals(parseInt(queryObject.size));\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Count blocks",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response = pm.response.json();\r",
-									"\r",
-									"var countSchema = {\r",
-									"    \"type\": \"number\",\r",
-									"    \"title\": \"Count blocks response schema\",\r",
-									"    \"description\": \"Response should be a number.\",\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a count of blocks\", function() {\r",
-									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
-									"})"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/blocks/count",
-							"protocol": "http",
-							"host": [
-								"localhost"
 							],
-							"port": "3000",
-							"path": [
-								"blocks",
-								"count"
-							]
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/blocks?from=0&size=1",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"blocks"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Blocks shard",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each block belongs to this shard\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no blocks which belongs to shard \" + queryObject.shard);\r",
+											"    response.forEach((block) =>\r",
+											"    {\r",
+											"        pm.expect(block.shard).to.equals(parseInt(queryObject.shard));\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/blocks?shard=1",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"blocks"
+									],
+									"query": [
+										{
+											"key": "shard",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				}
 			]
 		},
@@ -252,294 +362,641 @@
 			"name": "transactions",
 			"item": [
 				{
-					"name": "List of transactions",
-					"event": [
+					"name": "endpoints",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var previousTransactionSchema = {\r",
-									"    \"type\": \"object\",\r",
-									"    \"required\": [\r",
-									"        \"hash\",\r",
-									"        \"nonce\",\r",
-									"        \"gasLimit\",\r",
-									"        \"gasPrice\",\r",
-									"        \"value\",\r",
-									"        \"sender\",\r",
-									"        \"receiver\",\r",
-									"        \"relayedValue\",\r",
-									"        \"prevTxHash\",\r",
-									"        \"originalTxHash\",\r",
-									"        \"callType\"\r",
-									"    ],\r",
-									"    \"properties\": {\r",
-									"        \"hash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"data\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"nonce\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"gasLimit\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"gasPrice\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"value\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"sender\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"receiver\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"relayedValue\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"prevTxHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"originalTxHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"callType\": {\r",
-									"            \"type\": \"string\"\r",
-									"        }\r",
-									"    }\r",
-									"}\r",
-									"var transactionSchema = {\r",
-									"    \"type\": \"object\",\r",
-									"    \"title\": \"Single block response schema\",\r",
-									"    \"description\": \"Response should be an object\",\r",
-									"    \"required\": [\r",
-									"        \"txHash\",\r",
-									"        \"gasLimit\",\r",
-									"        \"gasPrice\",\r",
-									"        \"gasUsed\",\r",
-									"        \"miniBlockHash\",\r",
-									"        \"nonce\",\r",
-									"        \"receiver\",\r",
-									"        \"receiverShard\",\r",
-									"        \"round\",\r",
-									"        \"sender\",\r",
-									"        \"senderShard\",\r",
-									"        \"status\",\r",
-									"        \"timestamp\",\r",
-									"        \"value\"\r",
-									"    ],\r",
-									"    \"properties\": {\r",
-									"        \"fee\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"log\": {\r",
-									"            \"type\": \"object\"\r",
-									"        },\r",
-									"        \"txHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"data\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"gasLimit\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"gasPrice\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"gasUsed\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"miniBlockHash\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"nonce\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"receiver\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"receiverShard\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"round\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"sender\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"senderShard\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"signature\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"status\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"timestamp\": {\r",
-									"            \"type\": \"integer\"\r",
-									"        },\r",
-									"        \"value\": {\r",
-									"            \"type\": \"string\"\r",
-									"        },\r",
-									"        \"scResults\": {\r",
-									"            \"type\": \"array\",\r",
-									"            \"title\": \"Previous transaction\",\r",
-									"            \"description\": \"Response should be an array\",\r",
-									"            \"prevTransactions\": [ previousTransactionSchema ]\r",
-									"        }\r",
-									"    }\r",
-									"}\r",
-									"\r",
-									"pm.globals.set(\"transactionSchema\", JSON.stringify(transactionSchema));\r",
-									"\r",
-									"var response=pm.response.json();\r",
-									"\r",
-									"var listTransactionsSchema = {\r",
-									"    \"type\": \"array\",\r",
-									"    \"title\": \"List of transactions\",\r",
-									"    \"description\": \"Response shoul be an array of transactions.\"\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a list of transactions\", function() {\r",
-									"    pm.expect(tv4.validate(response, listTransactionsSchema)).to.be.true;\r",
-									"})\r",
-									"\r",
-									"pm.test(\"Each transaction has valid schema\", function() {\r",
-									"    response.forEach((transaction) =>\r",
-									"        {\r",
-									"            pm.globals.set(\"txHash\", transaction.txHash)\r",
-									"            if('miniBlockHash' in transaction)\r",
-									"            {\r",
-									"                pm.globals.set(\"miniblockHash\", transaction.miniBlockHash)\r",
-									"            }\r",
-									"            pm.expect(tv4.validate(transaction, transactionSchema)).to.be.true\r",
-									"        }\r",
-									"    );\r",
-									"})\r",
-									""
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/transactions",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"transactions"
-							]
-						}
-					},
-					"response": []
-				},
-				{
-					"name": "Specific transaction",
-					"event": [
-						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response = pm.response.json();\r",
-									"\r",
-									"var transactionSchema =  JSON.parse(pm.globals.get(\"transactionSchema\"))\r",
-									"\r",
-									"pm.test(\"Transaction has valid schema\", function() { \r",
-									"    pm.expect(tv4.validate(response, transactionSchema)).to.be.true;\r",
-									"})"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/transactions/:txHash",
-							"protocol": "http",
-							"host": [
-								"localhost"
-							],
-							"port": "3000",
-							"path": [
-								"transactions",
-								":txHash"
-							],
-							"variable": [
+							"name": "List of transactions",
+							"event": [
 								{
-									"key": "txHash",
-									"value": "{{txHash}}"
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var previousTransactionSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"required\": [\r",
+											"        \"hash\",\r",
+											"        \"nonce\",\r",
+											"        \"gasLimit\",\r",
+											"        \"gasPrice\",\r",
+											"        \"value\",\r",
+											"        \"sender\",\r",
+											"        \"receiver\",\r",
+											"        \"relayedValue\",\r",
+											"        \"prevTxHash\",\r",
+											"        \"originalTxHash\",\r",
+											"        \"callType\"\r",
+											"    ],\r",
+											"    \"properties\": {\r",
+											"        \"hash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"data\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"nonce\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"gasLimit\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"gasPrice\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"value\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"sender\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"receiver\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"relayedValue\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"prevTxHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"originalTxHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"callType\": {\r",
+											"            \"type\": \"string\"\r",
+											"        }\r",
+											"    }\r",
+											"}\r",
+											"var transactionSchema = {\r",
+											"    \"type\": \"object\",\r",
+											"    \"title\": \"Single block response schema\",\r",
+											"    \"description\": \"Response should be an object\",\r",
+											"    \"required\": [\r",
+											"        \"txHash\",\r",
+											"        \"gasLimit\",\r",
+											"        \"gasPrice\",\r",
+											"        \"gasUsed\",\r",
+											"        \"miniBlockHash\",\r",
+											"        \"nonce\",\r",
+											"        \"receiver\",\r",
+											"        \"receiverShard\",\r",
+											"        \"round\",\r",
+											"        \"sender\",\r",
+											"        \"senderShard\",\r",
+											"        \"status\",\r",
+											"        \"timestamp\",\r",
+											"        \"value\"\r",
+											"    ],\r",
+											"    \"properties\": {\r",
+											"        \"fee\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"log\": {\r",
+											"            \"type\": \"object\"\r",
+											"        },\r",
+											"        \"txHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"data\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"gasLimit\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"gasPrice\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"gasUsed\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"miniBlockHash\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"nonce\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"receiver\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"receiverShard\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"round\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"sender\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"senderShard\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"signature\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"status\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"timestamp\": {\r",
+											"            \"type\": \"integer\"\r",
+											"        },\r",
+											"        \"value\": {\r",
+											"            \"type\": \"string\"\r",
+											"        },\r",
+											"        \"scResults\": {\r",
+											"            \"type\": \"array\",\r",
+											"            \"title\": \"Previous transaction\",\r",
+											"            \"description\": \"Response should be an array\",\r",
+											"            \"prevTransactions\": [ previousTransactionSchema ]\r",
+											"        }\r",
+											"    }\r",
+											"}\r",
+											"\r",
+											"pm.globals.set(\"transactionSchema\", JSON.stringify(transactionSchema));\r",
+											"\r",
+											"var response=pm.response.json();\r",
+											"\r",
+											"var listTransactionsSchema = {\r",
+											"    \"type\": \"array\",\r",
+											"    \"title\": \"List of transactions\",\r",
+											"    \"description\": \"Response shoul be an array of transactions.\"\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Response is a list of transactions\", function() {\r",
+											"    pm.expect(tv4.validate(response, listTransactionsSchema)).to.be.true;\r",
+											"})\r",
+											"\r",
+											"pm.test(\"Each transaction has valid schema\", function() {\r",
+											"    response.forEach((transaction) =>\r",
+											"        {\r",
+											"            pm.globals.set(\"txHash\", transaction.txHash)\r",
+											"            pm.globals.set(\"sender\", transaction.sender)\r",
+											"            pm.globals.set(\"senderShard\", transaction.senderShard)\r",
+											"            pm.globals.set(\"receiver\", transaction.receiver)\r",
+											"            pm.globals.set(\"receiverShard\", transaction.receiverShard)\r",
+											"            if('miniBlockHash' in transaction)\r",
+											"            {\r",
+											"                pm.globals.set(\"miniblockHash\", transaction.miniBlockHash)\r",
+											"            }\r",
+											"            pm.expect(tv4.validate(transaction, transactionSchema)).to.be.true\r",
+											"        }\r",
+											"    );\r",
+											"})\r",
+											""
+										],
+										"type": "text/javascript"
+									}
 								}
-							]
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Specific transaction",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"\r",
+											"var transactionSchema =  JSON.parse(pm.globals.get(\"transactionSchema\"))\r",
+											"\r",
+											"pm.test(\"Transaction has valid schema\", function() { \r",
+											"    pm.expect(tv4.validate(response, transactionSchema)).to.be.true;\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions/:txHash",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions",
+										":txHash"
+									],
+									"variable": [
+										{
+											"key": "txHash",
+											"value": "{{txHash}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Count transactions",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"Status code is 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"\r",
+											"var countSchema = {\r",
+											"    \"type\": \"number\",\r",
+											"    \"title\": \"Count transactions response schema\",\r",
+											"    \"description\": \"Response should be a number.\",\r",
+											"}\r",
+											"\r",
+											"pm.test(\"Response is a count of transactions\", function() {\r",
+											"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions/count",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions",
+										"count"
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				},
 				{
-					"name": "Count transactions",
-					"event": [
+					"name": "query params",
+					"item": [
 						{
-							"listen": "test",
-							"script": {
-								"exec": [
-									"pm.test(\"Status code is 200\", function () {\r",
-									"    pm.response.to.have.status(200);\r",
-									"});\r",
-									"\r",
-									"var response = pm.response.json();\r",
-									"\r",
-									"var countSchema = {\r",
-									"    \"type\": \"number\",\r",
-									"    \"title\": \"Count transactions response schema\",\r",
-									"    \"description\": \"Response should be a number.\",\r",
-									"}\r",
-									"\r",
-									"pm.test(\"Response is a count of transactions\", function() {\r",
-									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
-									"})"
-								],
-								"type": "text/javascript"
-							}
-						}
-					],
-					"request": {
-						"method": "GET",
-						"header": [],
-						"url": {
-							"raw": "http://localhost:3000/transactions/count",
-							"protocol": "http",
-							"host": [
-								"localhost"
+							"name": "Transactions pagination",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Test pagination of transactions\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.equals(parseInt(queryObject.size));\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
 							],
-							"port": "3000",
-							"path": [
-								"transactions",
-								"count"
-							]
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?from=0&size=1",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions sender",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction belongs to sender\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions which belongs to sender \" + queryObject.sender);\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.sender).to.equals(queryObject.sender);\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?sender={{sender}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "sender",
+											"value": "{{sender}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions receiver",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction belongs to receiver\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions which belongs to receiver \" + queryObject.receiver);\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.receiver).to.equals(queryObject.receiver);\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?receiver={{receiver}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "receiver",
+											"value": "{{receiver}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions sender shard",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction belongs to sender shard \", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions which belongs to sender shard \" + queryObject.senderShard);\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.senderShard).to.equals(parseInt(queryObject.senderShard));\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?senderShard={{senderShard}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "senderShard",
+											"value": "{{senderShard}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions receiver shard",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction belongs to receiver shard \", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions which belongs to receiver shard \" + queryObject.receiverShard);\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.receiverShard).to.equals(parseInt(queryObject.receiverShard));\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?receiverShard={{receiverShard}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "receiverShard",
+											"value": "{{receiverShard}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions params",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction belongs to sender, receiver, senderShard and receiverShard \", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions which belongs to this params \" + queryObject.receiverShard);\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.sender).to.equals(queryObject.sender);\r",
+											"        pm.expect(transaction.receiver).to.equals(queryObject.receiver);\r",
+											"        pm.expect(transaction.senderShard).to.equals(parseInt(queryObject.senderShard));\r",
+											"        pm.expect(transaction.receiverShard).to.equals(parseInt(queryObject.receiverShard));\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?sender={{sender}}&receiver={{receiver}}&senderShard={{senderShard}}&receiverShard={{receiverShard}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "sender",
+											"value": "{{sender}}"
+										},
+										{
+											"key": "receiver",
+											"value": "{{receiver}}"
+										},
+										{
+											"key": "senderShard",
+											"value": "{{senderShard}}"
+										},
+										{
+											"key": "receiverShard",
+											"value": "{{receiverShard}}"
+										}
+									]
+								}
+							},
+							"response": []
 						}
-					},
-					"response": []
+					]
 				}
 			]
 		},
@@ -607,12 +1064,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/miniblocks/:miniBlockHash",
-							"protocol": "http",
+							"raw": "{{local-host}}/miniblocks/:miniBlockHash",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"miniblocks",
 								":miniBlockHash"
@@ -658,12 +1113,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/miniblocks/count",
-							"protocol": "http",
+							"raw": "{{local-host}}/miniblocks/count",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"miniblocks",
 								"count"
@@ -677,6 +1130,65 @@
 		{
 			"name": "accounts",
 			"item": [
+				{
+					"name": "query params",
+					"item": [
+						{
+							"name": "Accounts pagination",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Test pagination of accounts\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.equals(parseInt(queryObject.size));\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/accounts?from=0&size=1",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"accounts"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "List of accounts",
 					"event": [
@@ -740,12 +1252,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/accounts",
-							"protocol": "http",
+							"raw": "{{local-host}}/accounts",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"accounts"
 							]
@@ -807,12 +1317,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/accounts/:address",
-							"protocol": "http",
+							"raw": "{{local-host}}/accounts/:address",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"accounts",
 								":address"
@@ -858,12 +1366,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/accounts/:address/tokens",
-							"protocol": "http",
+							"raw": "{{local-host}}/accounts/:address/tokens",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"accounts",
 								":address",
@@ -910,12 +1416,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/accounts/count",
-							"protocol": "http",
+							"raw": "{{local-host}}/accounts/count",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"accounts",
 								"count"
@@ -986,12 +1490,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/constants",
-							"protocol": "http",
+							"raw": "{{local-host}}/constants",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"constants"
 							]
@@ -1004,6 +1506,65 @@
 		{
 			"name": "nodes",
 			"item": [
+				{
+					"name": "query params",
+					"item": [
+						{
+							"name": "Nodes pagination",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Test pagination of nodes\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.equals(parseInt(queryObject.size));\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/nodes?from=0&size=1",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"nodes"
+									],
+									"query": [
+										{
+											"key": "from",
+											"value": "0"
+										},
+										{
+											"key": "size",
+											"value": "1"
+										}
+									]
+								}
+							},
+							"response": []
+						}
+					]
+				},
 				{
 					"name": "List of nodes",
 					"event": [
@@ -1047,10 +1608,10 @@
 									"            \"type\": \"string\"\r",
 									"        },\r",
 									"        \"rating\": {\r",
-									"            \"type\": \"number\"\r",
+									"            \"type\": \"integer\"\r",
 									"        },\r",
 									"        \"tempRating\": {\r",
-									"            \"type\": \"number\"\r",
+									"            \"type\": \"integer\"\r",
 									"        },\r",
 									"        \"ratingModifier\": {\r",
 									"            \"type\": \"number\"\r",
@@ -1126,12 +1687,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/nodes",
-							"protocol": "http",
+							"raw": "{{local-host}}/nodes",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"nodes"
 							]
@@ -1166,12 +1725,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/nodes/:publicKey",
-							"protocol": "http",
+							"raw": "{{local-host}}/nodes/:publicKey",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"nodes",
 								":publicKey"
@@ -1217,12 +1774,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/nodes/count",
-							"protocol": "http",
+							"raw": "{{local-host}}/nodes/count",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"nodes",
 								"count"
@@ -1346,12 +1901,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/tokens",
-							"protocol": "http",
+							"raw": "{{local-host}}/tokens",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"tokens"
 							]
@@ -1386,12 +1939,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/tokens/:identifier",
-							"protocol": "http",
+							"raw": "{{local-host}}/tokens/:identifier",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"tokens",
 								":identifier"
@@ -1479,12 +2030,10 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "http://localhost:3000/rounds",
-							"protocol": "http",
+							"raw": "{{local-host}}/rounds",
 							"host": [
-								"localhost"
+								"{{local-host}}"
 							],
-							"port": "3000",
 							"path": [
 								"rounds"
 							]
@@ -1515,6 +2064,10 @@
 		{
 			"key": "blocksUrlLocal",
 			"value": "http://localhost:3000/blocks-new"
+		},
+		{
+			"key": "local-host",
+			"value": "http://localhost:3000"
 		}
 	]
 }

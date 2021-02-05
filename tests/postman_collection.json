@@ -200,6 +200,51 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Count blocks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var countSchema = {\r",
+									"    \"type\": \"number\",\r",
+									"    \"title\": \"Count blocks response schema\",\r",
+									"    \"description\": \"Response should be a number.\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a count of blocks\", function() {\r",
+									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/blocks/count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"blocks",
+								"count"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -450,6 +495,51 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Count transactions",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var countSchema = {\r",
+									"    \"type\": \"number\",\r",
+									"    \"title\": \"Count transactions response schema\",\r",
+									"    \"description\": \"Response should be a number.\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a count of transactions\", function() {\r",
+									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/transactions/count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"transactions",
+								"count"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},
@@ -532,6 +622,51 @@
 									"key": "miniBlockHash",
 									"value": "{{miniblockHash}}"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Count miniblocks",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var countSchema = {\r",
+									"    \"type\": \"number\",\r",
+									"    \"title\": \"Count miniblocks response schema\",\r",
+									"    \"description\": \"Response should be a number.\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a count of miniblocks\", function() {\r",
+									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/miniblocks/count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"miniblocks",
+								"count"
 							]
 						}
 					},
@@ -739,6 +874,51 @@
 									"key": "address",
 									"value": "{{accountAddress}}"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Count accounts",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var countSchema = {\r",
+									"    \"type\": \"number\",\r",
+									"    \"title\": \"Count accounts response schema\",\r",
+									"    \"description\": \"Response should be a number.\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a count of accounts\", function() {\r",
+									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/accounts/count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"accounts",
+								"count"
 							]
 						}
 					},
@@ -1001,6 +1181,51 @@
 									"key": "publicKey",
 									"value": "{{nodePublicKey}}"
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Count nodes",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"var countSchema = {\r",
+									"    \"type\": \"number\",\r",
+									"    \"title\": \"Count nodes response schema\",\r",
+									"    \"description\": \"Response should be a number.\",\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a count of nodes\", function() {\r",
+									"    pm.expect(tv4.validate(response, countSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:3000/nodes/count",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"nodes",
+								"count"
 							]
 						}
 					},

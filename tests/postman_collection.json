@@ -1407,6 +1407,84 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "rounds",
+			"item": [
+				{
+					"name": "List of rounds",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var roundSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Single round response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"blockWasProposed\",\r",
+									"        \"round\",\r",
+									"        \"shard\",\r",
+									"        \"timestamp\",\r",
+									"    ],\r",
+									"    \"properties\" : {\r",
+									"        \"blockWasProposed\": {\r",
+									"            \"type\": \"boolean\"\r",
+									"        },\r",
+									"        \"round\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"shard\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"timestamp\": {\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.globals.set(\"roundSchema\", JSON.stringify(roundSchema));\r",
+									"\r",
+									"var response=pm.response.json();\r",
+									"\r",
+									"var listRoundsSchema = {\r",
+									"    \"type\": \"array\",\r",
+									"    \"title\": \"List of rounds\",\r",
+									"    \"description\": \"Response should be an array of rounds.\"\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a list of rounds\", function() {\r",
+									"    pm.expect(tv4.validate(response, listRoundsSchema)).to.be.true;\r",
+									"})\r",
+									"\r",
+									"pm.test(\"Each round has valid schema\", function() {\r",
+									"    response.forEach((round) =>\r",
+									"        {\r",
+									"            pm.expect(tv4.validate(round, roundSchema)).to.be.true\r",
+									"        }\r",
+									"    );\r",
+									"})\r",
+									""
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": ""
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	],
 	"variable": [

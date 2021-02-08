@@ -535,6 +535,8 @@
 											"            pm.globals.set(\"senderShard\", transaction.senderShard)\r",
 											"            pm.globals.set(\"receiver\", transaction.receiver)\r",
 											"            pm.globals.set(\"receiverShard\", transaction.receiverShard)\r",
+											"            pm.globals.set(\"before\", transaction.timestamp);\r",
+											"            pm.globals.set(\"after\", transaction.timestamp);\r",
 											"            if('miniBlockHash' in transaction)\r",
 											"            {\r",
 											"                pm.globals.set(\"miniblockHash\", transaction.miniBlockHash)\r",
@@ -990,6 +992,65 @@
 										{
 											"key": "receiverShard",
 											"value": "{{receiverShard}}"
+										}
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Transactions date ranges",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"exec": [
+											"pm.test(\"status code should be 200\", function () {\r",
+											"    pm.response.to.have.status(200);\r",
+											"});\r",
+											"\r",
+											"var response = pm.response.json();\r",
+											"var urlQuery = pm.request.url.query.toJSON();\r",
+											"\r",
+											"var queryObject = {};\r",
+											"urlQuery.forEach((queryParam) =>\r",
+											"{\r",
+											"    queryObject[queryParam.key] = queryParam.value;\r",
+											"});\r",
+											"\r",
+											"pm.test(\"Each transaction is in date range\", function()\r",
+											"{\r",
+											"    pm.expect(response.length).to.greaterThan(0, \"There are no transactions in this date range \");\r",
+											"    response.forEach((transaction) =>\r",
+											"    {\r",
+											"        pm.expect(transaction.timestamp).to.gte(parseInt(queryObject.after));\r",
+											"        pm.expect(transaction.timestamp).to.lte(parseInt(queryObject.before));\r",
+											"    })\r",
+											"})"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{local-host}}/transactions?before={{before}}&after={{after}}",
+									"host": [
+										"{{local-host}}"
+									],
+									"path": [
+										"transactions"
+									],
+									"query": [
+										{
+											"key": "before",
+											"value": "{{before}}"
+										},
+										{
+											"key": "after",
+											"value": "{{after}}"
 										}
 									]
 								}

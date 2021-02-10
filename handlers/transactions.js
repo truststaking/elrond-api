@@ -63,6 +63,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               round,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniblockHash: miniBlockHash,
               sourceShard: senderShard,
               destinationShard: receiverShard,
@@ -79,9 +80,11 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             // const senderShard = null;
 
             data = {
+              data: transaction.data,
               txHash: hash,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniBlockHash,
               nonce,
               receiver,

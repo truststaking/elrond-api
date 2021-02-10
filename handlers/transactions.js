@@ -19,7 +19,16 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters;
     let query = queryStringParameters;
 
-    const keys = ['sender', 'receiver', 'senderShard', 'receiverShard', 'from', 'size'];
+    const keys = [
+      'sender',
+      'receiver',
+      'senderShard',
+      'receiverShard',
+      'from',
+      'size',
+      'before',
+      'after',
+    ];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -51,9 +60,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             });
 
             const {
+              round,
               gasLimit,
               gasPrice,
               miniblockHash: miniBlockHash,
+              sourceShard: senderShard,
+              destinationShard: receiverShard,
               nonce,
               receiver,
               sender,
@@ -62,9 +74,9 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               value,
             } = transaction;
 
-            // TODO: pending alignment
-            const receiverShard = null;
-            const senderShard = null;
+            // // TODO: pending alignment
+            // const receiverShard = null;
+            // const senderShard = null;
 
             data = {
               txHash: hash,
@@ -74,6 +86,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               nonce,
               receiver,
               receiverShard,
+              round,
               sender,
               senderShard,
               signature,

@@ -5,6 +5,11 @@ const buildQuery = (query = {}) => {
   delete query.from;
   delete query.size;
 
+  const { before, after } = query;
+  delete query.before;
+  delete query.after;
+  const range = buildRange({ before, after });
+
   if (Object.keys(query).length) {
     const must = Object.keys(query).map((key) => {
       const match = {};
@@ -12,8 +17,9 @@ const buildQuery = (query = {}) => {
 
       return { match };
     });
-
     query = { bool: { must } };
+  } else if (Object.keys(range.timestamp).length != 0) {
+    query.range = range;
   } else {
     query = { match_all: {} };
   }
@@ -31,6 +37,20 @@ const buildSort = (sort = {}) => {
   });
 
   return sort;
+};
+
+const buildRange = (range = {}) => {
+  let obj = {};
+  obj.timestamp = {};
+  Object.keys(range).map((key) => {
+    if (key == 'before' && range[key] != undefined) {
+      obj.timestamp.lte = range[key];
+    }
+    if (key == 'after' && range[key] != undefined) {
+      obj.timestamp.gte = range[key];
+    }
+  });
+  return obj;
 };
 
 const formatItem = ({ document, key }) => {

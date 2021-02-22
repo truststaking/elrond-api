@@ -19,7 +19,16 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters;
     let query = queryStringParameters;
 
-    const keys = ['sender', 'receiver', 'senderShard', 'receiverShard', 'from', 'size'];
+    const keys = [
+      'sender',
+      'receiver',
+      'senderShard',
+      'receiverShard',
+      'from',
+      'size',
+      'before',
+      'after',
+    ];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {

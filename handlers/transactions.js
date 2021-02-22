@@ -60,9 +60,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             });
 
             const {
+              round,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniblockHash: miniBlockHash,
+              sourceShard: senderShard,
+              destinationShard: receiverShard,
               nonce,
               receiver,
               sender,
@@ -71,18 +75,21 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               value,
             } = transaction;
 
-            // TODO: pending alignment
-            const receiverShard = null;
-            const senderShard = null;
+            // // TODO: pending alignment
+            // const receiverShard = null;
+            // const senderShard = null;
 
             data = {
+              data: transaction.data,
               txHash: hash,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniBlockHash,
               nonce,
               receiver,
               receiverShard,
+              round,
               sender,
               senderShard,
               signature,

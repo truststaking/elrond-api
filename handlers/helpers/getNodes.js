@@ -1,6 +1,6 @@
 const axios = require('axios');
 const { getCache, putCache, batchGetCache, batchPutCache } = require('./cache');
-const { gatewayUrl } = require('../config');
+const { gatewayUrl } = require('../configs/config');
 const getChunks = require('./getChunks');
 const confirmNodeIdentity = require('./confirmNodeIdentity');
 

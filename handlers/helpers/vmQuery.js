@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const { vmQueryUrl } = require('../config');
+const { vmQueryUrl } = require('../configs/config');
 
 const vmQuery = async ({ contract: scAddress, func: FuncName, caller, args = [] }) => {
   const {

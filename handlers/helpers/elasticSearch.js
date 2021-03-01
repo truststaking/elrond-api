@@ -1,5 +1,5 @@
 const axios = require('axios');
-const { elasticUrl } = require('../config');
+const { elasticUrl } = require('../configs/config');
 
 const buildQuery = (query = {}) => {
   delete query.from;

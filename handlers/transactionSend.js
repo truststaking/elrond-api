@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-const { gatewayUrl } = require('../config');
-const { response } = require('../helpers');
+const { gatewayUrl } = require('./configs/config');
+const { response } = require('./helpers');
 
 exports.handler = async ({ body }) => {
   try {

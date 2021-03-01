@@ -3,9 +3,9 @@ const axios = require('axios');
 const {
   elasticSearch: { getList, getCount },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
-const { elasticUrl, gatewayUrl } = require('../config');
+const { elasticUrl, gatewayUrl } = require('./configs/config');
 
 const transformItem = async (item) => {
   const { searchOrder, ...rest } = item;

@@ -1,4 +1,4 @@
-const { statuses } = require('../config');
+const { statuses } = require('../configs/config');
 
 const clean = (obj) => {
   if (Array.isArray(obj)) {

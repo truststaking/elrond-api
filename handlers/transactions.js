@@ -3,9 +3,9 @@ const axios = require('axios');
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
-const { gatewayUrl } = require('../config');
+const { gatewayUrl } = require('./configs/config');
 
 const transformItem = async (item) => {
   const { searchOrder, ...rest } = item;
@@ -16,8 +16,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'transactions';
     const key = 'txHash';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = [
       'sender',

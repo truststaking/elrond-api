@@ -1,7 +1,7 @@
 const {
   elasticSearch: { getList, getCount, getPublicKeys },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
 const transformItem = async (item) => {
   let { key, round, timestamp, blockWasProposed, signersIndexes } = item;

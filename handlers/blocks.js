@@ -1,7 +1,7 @@
 const {
   elasticSearch: { getList, getItem, getCount, getPublicKeys },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars

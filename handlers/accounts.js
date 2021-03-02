@@ -8,7 +8,7 @@ const {
 const { elasticUrl, gatewayUrl } = require('./configs/config');
 
 const transformItem = async (item) => {
-  const { searchOrder, ...rest } = item;
+  const { balanceNum, ...rest } = item;
   return { ...rest };
 };
 
@@ -16,8 +16,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'accounts';
     const key = 'address';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = ['from', 'size'];
 
@@ -54,12 +54,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
                 bool: { should: [{ match: { sender: hash } }, { match: { receiver: hash } }] },
               },
             }),
-            axios({
-              method: 'get',
-              url: `${gatewayUrl()}/address/${hash}`,
-            }),
+            axios.get(`${gatewayUrl()}/address/${hash}`),
           ]);
-
           data = { address, nonce, balance, code, codeHash, rootHash, txCount };
         } catch (error) {
           status = 404;

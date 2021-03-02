@@ -6,7 +6,7 @@ const { handler: nodesHandler } = require('./nodes');
 const { handler: roundsHandler } = require('./rounds');
 const { handler: tokensHandler } = require('./tokens');
 const { handler: transactionsHandler } = require('./transactions');
-const { handler: transactionsSendHandler } = require('./transactionSend');
+const { handler: transactionsCreateHandler } = require('./transactionsCreate');
 const { handler: usernamesHandler } = require('./usernames');
 
 module.exports = {
@@ -18,6 +18,6 @@ module.exports = {
   roundsHandler,
   tokensHandler,
   transactionsHandler,
-  transactionsSendHandler,
+  transactionsCreateHandler,
   usernamesHandler,
 };

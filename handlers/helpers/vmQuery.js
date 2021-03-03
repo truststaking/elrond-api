@@ -1,4 +1,4 @@
-const axios = require('axios');
+const { axios } = require('./axiosWrapper');
 
 const { vmQueryUrl } = require('../configs/config');
 

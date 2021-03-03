@@ -1,4 +1,4 @@
-const axios = require('axios');
+const { axios } = require('./helpers');
 
 const { response } = require('./helpers');
 const { gatewayUrl } = require('./configs/config');

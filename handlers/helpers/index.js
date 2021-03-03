@@ -1,3 +1,4 @@
+const { axios, setForwardedHeaders } = require('./axiosWrapper');
 const bech32 = require('./bech32');
 const cache = require('./cache');
 const computeShard = require('./computeShard');
@@ -12,6 +13,8 @@ const vmQuery = require('./vmQuery');
 
 module.exports = {
   bech32,
+  axios,
+  setForwardedHeaders,
   cache,
   computeShard,
   getChunks,

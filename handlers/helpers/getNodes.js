@@ -1,4 +1,4 @@
-const axios = require('axios');
+const { axios } = require('./axiosWrapper');
 const { getCache, putCache, batchGetCache, batchPutCache } = require('./cache');
 const { gatewayUrl } = require('../configs/config');
 const getChunks = require('./getChunks');

@@ -1,5 +1,5 @@
-const elasticUrls = ['https://index.elrond.com'];
-const gatewayUrls = ['https://gateway.elrond.com'];
+const elasticUrls = ['https://devnet-index.elrond.com'];
+const gatewayUrls = ['https://devnet-gateway.elrond.com'];
 
 const elasticUrl = () => {
   return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];

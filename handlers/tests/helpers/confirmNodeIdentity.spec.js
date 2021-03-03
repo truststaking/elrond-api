@@ -1,8 +1,10 @@
 const confirmNodeIdentity = require('../../helpers/confirmNodeIdentity');
 
-jest.mock('axios', () => {
+jest.mock('../../helpers/axiosWrapper', () => {
   return {
-    head: jest.fn(() => ({ status: 200 })),
+    axios: {
+      head: jest.fn(() => ({ status: 200 })),
+    },
   };
 });
 describe(`Test confirmNodeIdentity helper`, () => {

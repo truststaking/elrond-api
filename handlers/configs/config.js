@@ -15,6 +15,9 @@ const vmQueryUrl = () => {
 
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
+const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
+const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
+
 const redisUrl = '';
 const cacheTtl = 6;
 
@@ -37,6 +40,8 @@ module.exports = {
   gatewayUrl,
   vmQueryUrl,
   esdtContract,
+  auctionContract,
+  stakingContract,
   redisUrl,
   cacheTtl,
   statuses,

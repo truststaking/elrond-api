@@ -1,14 +1,11 @@
 const { axios } = require('./helpers');
 
-const { gatewayUrl } = require(`./configs/config`);
-
+const { gatewayUrl } = require('./configs/config');
 const { bech32, computeShard, response } = require('./helpers');
 
 exports.handler = async ({ body }) => {
-  // TODO: limit body size
-
   try {
-    const { sender, receiver } = JSON.parse(body);
+    const { sender, receiver } = body;
 
     const receiverShard = computeShard(bech32.decode(receiver));
     const senderShard = computeShard(bech32.decode(sender));
@@ -42,7 +39,7 @@ exports.handler = async ({ body }) => {
       return response({ status, data });
     } else {
       console.error('transaction create error', error);
-      return response({ status: 503 });
+      return response({ status: 500 });
     }
   }
 };

@@ -18,7 +18,7 @@ describe(`Test '/transaction/send' endpoint`, () => {
       receiver: 'erd1hj7excak3jxfryagl74vyg0shxg2v4qu0gfzpkec4dcs0m7tzkwq7p968g',
     };
     const { statusCode, body: responseBody } = await transactionsCreateHandler({
-      body: JSON.stringify(body),
+      body,
     });
     expect(statusCode).toBe(200);
 

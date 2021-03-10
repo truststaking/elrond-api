@@ -19,29 +19,31 @@ jest.mock('../../helpers/elasticSearch', () => {
   };
 });
 
-jest.mock('axios', () => {
+jest.mock('../../helpers/axiosWrapper', () => {
   return {
-    get: jest.fn(() => {
-      return {
-        data: {
+    axios: {
+      get: jest.fn(() => {
+        return {
           data: {
-            account: {
-              address: 'erd1sea63y47u569ns3x5mqjf4vnygn9whkk7p6ry4rfpqyd6rd5addqyd9lf2',
-              nonce: 1,
-              balance: '6255017500000000000000000',
-              rootHash: '0j2sgjtTpmoYPAz63YGDeD+G4AaQygfzAlXAIrlofpo=',
-              code: 1,
-              codeHash: '0j2sgjtTpmoYPAz63YGDeD+G4AaQygfzAlXAIrlofpo=',
+            data: {
+              account: {
+                address: 'erd1sea63y47u569ns3x5mqjf4vnygn9whkk7p6ry4rfpqyd6rd5addqyd9lf2',
+                nonce: 1,
+                balance: '6255017500000000000000000',
+                rootHash: '0j2sgjtTpmoYPAz63YGDeD+G4AaQygfzAlXAIrlofpo=',
+                code: 1,
+                codeHash: '0j2sgjtTpmoYPAz63YGDeD+G4AaQygfzAlXAIrlofpo=',
+              },
             },
           },
-        },
-      };
-    }),
-    post: jest.fn(() => {
-      return {
-        data: { count: 657 },
-      };
-    }),
+        };
+      }),
+      post: jest.fn(() => {
+        return {
+          data: { count: 657 },
+        };
+      }),
+    },
   };
 });
 

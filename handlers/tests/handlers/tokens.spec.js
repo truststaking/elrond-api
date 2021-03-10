@@ -12,26 +12,28 @@ jest.mock('../../helpers/getTokens', () => {
   ]);
 });
 
-jest.mock('axios', () => {
+jest.mock('../../helpers/axiosWrapper', () => {
   return {
-    get: jest.fn((url) => {
-      if (url.includes('token')) {
+    axios: {
+      get: jest.fn((url) => {
+        if (url.includes('token')) {
+          return {
+            data: {
+              data: {
+                tokenData: { balance: 100 },
+              },
+            },
+          };
+        }
         return {
           data: {
             data: {
-              tokenData: { balance: 100 },
+              tokens: ['token1'],
             },
           },
         };
-      }
-      return {
-        data: {
-          data: {
-            tokens: ['token1'],
-          },
-        },
-      };
-    }),
+      }),
+    },
   };
 });
 

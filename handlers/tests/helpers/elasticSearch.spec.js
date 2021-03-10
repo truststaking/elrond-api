@@ -1,33 +1,34 @@
-const { TestScheduler } = require('jest');
 const { getList, getItem, getCount } = require('../../helpers/elasticSearch');
-jest.mock('axios', () => {
+jest.mock('../../helpers/axiosWrapper', () => {
   return {
-    post: jest.fn((url) => {
-      if (url.includes('_search')) {
-        return {
-          data: {
-            hits: {
-              hits: [
-                {
-                  _id: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
-                  _source: { balance: '6255017500000000000000000', nonce: 1 },
-                },
-              ],
+    axios: {
+      post: jest.fn((url) => {
+        if (url.includes('_search')) {
+          return {
+            data: {
+              hits: {
+                hits: [
+                  {
+                    _id: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
+                    _source: { balance: '6255017500000000000000000', nonce: 1 },
+                  },
+                ],
+              },
             },
-          },
-        };
-      } else {
-        return {
-          data: { count: 362125 },
-        };
-      }
-    }),
-    get: jest.fn(() => ({
-      data: {
-        _id: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
-        _source: { balance: '6255017500000000000000000', nonce: 1 },
-      },
-    })),
+          };
+        } else {
+          return {
+            data: { count: 362125 },
+          };
+        }
+      }),
+      get: jest.fn(() => ({
+        data: {
+          _id: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
+          _source: { balance: '6255017500000000000000000', nonce: 1 },
+        },
+      })),
+    },
   };
 });
 

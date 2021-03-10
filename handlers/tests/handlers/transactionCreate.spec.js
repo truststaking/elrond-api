@@ -1,10 +1,12 @@
 const { handler: transactionsCreateHandler } = require('../../transactionsCreate');
-jest.mock('axios', () => {
-  return jest.fn(() => ({
-    data: {
-      data: { txHash: '859986a295a2e68e0cd5f9a8fe37d378883e053c11fec6d5bf9ced9d2c8561ea' },
-    },
-  }));
+jest.mock('../../helpers/axiosWrapper', () => {
+  return {
+    axios: jest.fn(() => ({
+      data: {
+        data: { txHash: '859986a295a2e68e0cd5f9a8fe37d378883e053c11fec6d5bf9ced9d2c8561ea' },
+      },
+    })),
+  };
 });
 
 describe(`Test '/transaction/send' endpoint`, () => {

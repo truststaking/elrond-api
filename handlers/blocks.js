@@ -30,6 +30,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     });
 
+    // In elastic search exists only shardId
+    if (query.shard) {
+      query.shardId = query.shard;
+      delete query.shard;
+    }
+
     let data;
     let status;
 

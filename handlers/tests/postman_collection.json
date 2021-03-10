@@ -1791,22 +1791,12 @@
 						"method": "GET",
 						"header": [],
 						"url": {
-							"raw": "{{local-host}}/nodes?from=0&size=8",
+							"raw": "{{local-host}}/nodes",
 							"host": [
 								"{{local-host}}"
 							],
 							"path": [
 								"nodes"
-							],
-							"query": [
-								{
-									"key": "from",
-									"value": "0"
-								},
-								{
-									"key": "size",
-									"value": "8"
-								}
 							]
 						}
 					},
@@ -2155,6 +2145,138 @@
 							],
 							"path": [
 								"rounds"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "stake",
+			"item": [
+				{
+					"name": "Total stake",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"let stakeSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Total stake response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"totalValidators\",\r",
+									"        \"activeValidators\",\r",
+									"        \"queueSize\",\r",
+									"        \"totalStaked\",\r",
+									"    ],\r",
+									"    \"properties\":{\r",
+									"        \"totalValidators\":{\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"activeValidators\":{\r",
+									"            \"type\": \"integer\"\r",
+									"        },\r",
+									"        \"queueSize\":{\r",
+									"            \"type\":\"integer\"\r",
+									"        },\r",
+									"        \"totalStaked\":{\r",
+									"            \"type\":\"string\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a total stake object\", function() {\r",
+									"    pm.expect(tv4.validate(response, stakeSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local-host}}/stake",
+							"host": [
+								"{{local-host}}"
+							],
+							"path": [
+								"stake"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Account stake",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"pm.test(\"Status code is 200\", function () {\r",
+									"    pm.response.to.have.status(200);\r",
+									"});\r",
+									"\r",
+									"var response = pm.response.json();\r",
+									"\r",
+									"let accountStakeSchema = {\r",
+									"    \"type\": \"object\",\r",
+									"    \"title\": \"Total stake response schema\",\r",
+									"    \"description\": \"Response should be an object\",\r",
+									"    \"required\": [\r",
+									"        \"totalStaked\",\r",
+									"    ],\r",
+									"    \"properties\":{\r",
+									"        \"totalStaked\":{\r",
+									"            \"type\":\"string\"\r",
+									"        }\r",
+									"    }\r",
+									"}\r",
+									"\r",
+									"pm.test(\"Response is a total stake object\", function() {\r",
+									"    pm.expect(tv4.validate(response, accountStakeSchema)).to.be.true;\r",
+									"})"
+								],
+								"type": "text/javascript"
+							}
+						}
+					],
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{local-host}}/accounts/:address/stake",
+							"host": [
+								"{{local-host}}"
+							],
+							"path": [
+								"accounts",
+								":address",
+								"stake"
+							],
+							"query": [
+								{
+									"key": "",
+									"value": null,
+									"disabled": true
+								}
+							],
+							"variable": [
+								{
+									"key": "address",
+									"value": "{{accountAddress}}"
+								}
 							]
 						}
 					},

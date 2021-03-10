@@ -10,7 +10,7 @@ const setForwardedHeaders = ({
   axios.interceptors.request.use((request) => {
     request.headers['user-agent'] = userAgent;
     request.headers['x-forwarded-for'] = xForwardedFor;
-    console.log(request.headers);
+
     return request;
   });
 };

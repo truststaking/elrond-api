@@ -7,7 +7,6 @@ const nodesRouter = require('./nodesRouter');
 const roundsRouter = require('./roundsRouter');
 const tokensRouter = require('./tokensRouter');
 const transactionsRouter = require('./transactionsRouter');
-const usernamesRouter = require('./usernamesRouter');
 
 module.exports = {
   indexRouter,
@@ -19,5 +18,4 @@ module.exports = {
   roundsRouter,
   tokensRouter,
   transactionsRouter,
-  usernamesRouter,
 };

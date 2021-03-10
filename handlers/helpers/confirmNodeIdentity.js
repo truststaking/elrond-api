@@ -1,4 +1,4 @@
-const axios = require('axios');
+const { axios } = require('./axiosWrapper');
 
 const confirmNodeIdentity = async ({ identity, publicKey }) => {
   try {

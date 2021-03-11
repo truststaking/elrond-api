@@ -22,8 +22,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'rounds';
     const key = 'key';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = ['shard', 'from', 'size'];
 

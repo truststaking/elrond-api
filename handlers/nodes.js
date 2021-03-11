@@ -2,7 +2,7 @@ const { getNodes, response } = require('../helpers');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
-    const { hash } = pathParameters;
+    const { hash } = pathParameters || {};
     const {
       from = 0,
       size = 25,
@@ -15,7 +15,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       identity,
       sort,
       order = 'asc',
-    } = queryStringParameters;
+    } = queryStringParameters || {};
 
     let results;
     const nodes = await getNodes();

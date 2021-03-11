@@ -11,8 +11,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'miniblocks';
     const key = 'miniBlockHash';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = ['from', 'size'];
 

@@ -1,8 +1,9 @@
 const { axios } = require('./axiosWrapper');
-const { getCache, putCache, batchGetCache, batchPutCache } = require('./cache');
+// const { getCache, putCache, batchGetCache, batchPutCache } = require('./cache');
+const { getCache, putCache } = require('./cache');
+// const getChunks = require('./getChunks');
 const { gatewayUrl } = require('../configs/config');
-const getChunks = require('./getChunks');
-const confirmNodeIdentity = require('./confirmNodeIdentity');
+// const confirmNodeIdentity = require('./confirmNodeIdentity');
 
 const nodeIssues = (node, versionNumber) => {
   const nodeIssues = [];
@@ -158,71 +159,71 @@ const getNodes = async (args) => {
     data.push(resultNode);
   }
 
-  let chunks = getChunks(
-    data
-      .filter(({ identity }) => !!identity)
-      .map(({ identity, publicKey }) => {
-        const key = `${identity}:${publicKey}`;
-        return { identity, publicKey, key };
-      }),
-    100
-  );
+  // let chunks = getChunks(
+  //   data
+  //     .filter(({ identity }) => !!identity)
+  //     .map(({ identity, publicKey }) => {
+  //       const key = `${identity}:${publicKey}`;
+  //       return { identity, publicKey, key };
+  //     }),
+  //   100
+  // );
 
-  const cached = await Promise.all(
-    chunks.map((chunk) => {
-      const keys = chunk.map(({ key }) => key);
-      return batchGetCache({ keys });
-    })
-  );
+  // const cached = await Promise.all(
+  //   chunks.map((chunk) => {
+  //     const keys = chunk.map(({ key }) => key);
+  //     return batchGetCache({ keys });
+  //   })
+  // );
 
-  chunks.forEach((chunk, i) => {
-    chunk.forEach(({ publicKey }, j) => {
-      const node = data.find((node) => node.publicKey === publicKey);
-      node.confirmed = cached[i][j];
-    });
-  });
+  // chunks.forEach((chunk, i) => {
+  //   chunk.forEach(({ publicKey }, j) => {
+  //     const node = data.find((node) => node.publicKey === publicKey);
+  //     node.confirmed = cached[i][j];
+  //   });
+  // });
 
-  chunks = getChunks(
-    data
-      .filter(({ identity, confirmed }) => !!identity && confirmed === null)
-      .map(({ identity, publicKey }) => {
-        return { identity, publicKey };
-      })
-  );
+  // chunks = getChunks(
+  //   data
+  //     .filter(({ identity, confirmed }) => !!identity && confirmed === null)
+  //     .map(({ identity, publicKey }) => {
+  //       return { identity, publicKey };
+  //     })
+  // );
 
-  for (const chunk of chunks) {
-    const checks = await Promise.all(
-      chunk.map(({ identity, publicKey }) => confirmNodeIdentity({ identity, publicKey }))
-    );
+  // for (const chunk of chunks) {
+  //   const checks = await Promise.all(
+  //     chunk.map(({ identity, publicKey }) => confirmNodeIdentity({ identity, publicKey }))
+  //   );
 
-    const cache = { confirmed: { keys: [], values: [] }, unconfirmed: { keys: [], values: [] } };
-    checks.forEach((check, index) => {
-      const { identity, publicKey } = chunk[index];
+  //   const cache = { confirmed: { keys: [], values: [] }, unconfirmed: { keys: [], values: [] } };
+  //   checks.forEach((check, index) => {
+  //     const { identity, publicKey } = chunk[index];
 
-      const node = data.find((node) => node.publicKey === publicKey);
-      node.confirmed = check;
+  //     const node = data.find((node) => node.publicKey === publicKey);
+  //     node.confirmed = check;
 
-      cache[check ? 'confirmed' : 'unconfirmed'].keys.push(`${identity}:${publicKey}`);
-      cache[check ? 'confirmed' : 'unconfirmed'].values.push(check);
-    });
+  //     cache[check ? 'confirmed' : 'unconfirmed'].keys.push(`${identity}:${publicKey}`);
+  //     cache[check ? 'confirmed' : 'unconfirmed'].values.push(check);
+  //   });
 
-    if (cache.confirmed.keys.length) {
-      const { keys, values } = cache.confirmed;
-      await batchPutCache({ keys, values, ttl: 21600 }); // 6 hours
-    }
+  //   if (cache.confirmed.keys.length) {
+  //     const { keys, values } = cache.confirmed;
+  //     await batchPutCache({ keys, values, ttl: 21600 }); // 6 hours
+  //   }
 
-    if (cache.unconfirmed.keys.length) {
-      const { keys, values } = cache.unconfirmed;
-      await batchPutCache({ keys, values, ttl: 300 }); // 5 minutes
-    }
-  }
+  //   if (cache.unconfirmed.keys.length) {
+  //     const { keys, values } = cache.unconfirmed;
+  //     await batchPutCache({ keys, values, ttl: 300 }); // 5 minutes
+  //   }
+  // }
 
-  data.forEach((node) => {
-    if (!node.confirmed) {
-      delete node.identity;
-    }
-    delete node.confirmed;
-  });
+  // data.forEach((node) => {
+  //   if (!node.confirmed) {
+  //     delete node.identity;
+  //   }
+  //   delete node.confirmed;
+  // });
 
   await putCache({ key, value: data, ttl: 70 });
 

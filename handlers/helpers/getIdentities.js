@@ -1,5 +1,3 @@
-const { axios } = require('./axiosWrapper');
-
 const confirmNodeIdentity = async ({ identity, publicKey }) => {
   try {
     const { status } = await axios.head(`https://keybase.pub/${identity}/elrond/${publicKey}`);
@@ -9,4 +7,6 @@ const confirmNodeIdentity = async ({ identity, publicKey }) => {
   }
 };
 
-module.exports = confirmNodeIdentity;
+const getIdentities = async () => {};
+
+module.exports = getIdentities;

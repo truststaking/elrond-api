@@ -2,10 +2,11 @@ const { axios, setForwardedHeaders } = require('./axiosWrapper');
 const bech32 = require('./bech32');
 const cache = require('./cache');
 const computeShard = require('./computeShard');
-const getChunks = require('./getChunks');
-const confirmNodeIdentity = require('./confirmNodeIdentity');
 const elasticSearch = require('./elasticSearch');
+const getChunks = require('./getChunks');
+const getIdentities = require('./getIdentities');
 const getNodes = require('./getNodes');
+const getOwners = require('./getOwners');
 const getTokenProperties = require('./getTokenProperties');
 const getTokens = require('./getTokens');
 const getValidators = require('./getValidators');
@@ -18,10 +19,11 @@ module.exports = {
   setForwardedHeaders,
   cache,
   computeShard,
-  getChunks,
-  confirmNodeIdentity,
   elasticSearch,
+  getChunks,
+  getIdentities,
   getNodes,
+  getOwners,
   getTokenProperties,
   getTokens,
   getValidators,

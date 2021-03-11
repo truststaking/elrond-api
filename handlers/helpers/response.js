@@ -1,6 +1,7 @@
-const { statuses } = require('../config');
+const { statuses } = require('../configs/config');
 
 const clean = (obj) => {
+  if (typeof obj === 'number') return obj;
   if (Array.isArray(obj)) {
     return obj.map((v) => (v && typeof v === 'object' ? clean(v) : v)).filter((v) => !(v == null));
   } else {
@@ -10,7 +11,7 @@ const clean = (obj) => {
         (a, [k, v]) =>
           v === null ||
           v === '' ||
-          v === '<nil>' ||
+          // v === '<nil>' ||
           (v instanceof Object && Object.keys(v).length == 0)
             ? a
             : ((a[k] = v), a),

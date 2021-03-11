@@ -1,7 +1,7 @@
 const { promisify } = require('util');
 const redis = require('redis');
 
-const { redisUrl, cacheTtl } = require('../config');
+const { redisUrl, cacheTtl } = require('../configs/config');
 
 const client = redis.createClient(redisUrl);
 

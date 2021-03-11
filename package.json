@@ -4,7 +4,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "test": "newman run tests/postman_collection.json",
+    "test-api-response": "newman run handlers/tests/postman_collection.json",
+    "test-handlers": "set CONFIG=internal && jest --verbose ./tests",
     "start": "node index.js",
     "start-dev": "nodemon index.js"
   },
@@ -22,6 +23,7 @@
     "eslint-config-prettier": "6.11.0",
     "eslint-plugin-import": "2.22.0",
     "eslint-plugin-prettier": "3.1.4",
+    "jest": "^26.6.3",
     "newman": "^5.2.2",
     "nodemon": "^2.0.6",
     "prettier": "2.0.5"

@@ -8,7 +8,8 @@ const {
 const { elasticUrl, gatewayUrl } = require('../config');
 
 const transformItem = async (item) => {
-  const { searchOrder, ...rest } = item;
+  // eslint-disable-next-line no-unused-vars
+  const { balanceNum, ...rest } = item;
   return { ...rest };
 };
 
@@ -16,8 +17,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'accounts';
     const key = 'address';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = ['from', 'size'];
 

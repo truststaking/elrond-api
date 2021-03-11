@@ -16,8 +16,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'transactions';
     const key = 'txHash';
-    const { hash } = pathParameters;
-    let query = queryStringParameters;
+    const { hash } = pathParameters || {};
+    let query = queryStringParameters || {};
 
     const keys = ['sender', 'receiver', 'senderShard', 'receiverShard', 'from', 'size'];
 

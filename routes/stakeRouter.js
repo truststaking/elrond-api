@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { roundsHandler } = require('../handlers');
+const { stakeHandler } = require('../handlers');
 const { setForwardedHeaders } = require('../handlers/helpers');
 
-router.get(['/rounds', '/rounds/:hash'], async (req, res) => {
+router.get(['/stake', '/accounts/:hash/stake'], async (req, res) => {
   const {
     params: pathParameters = {},
     query: queryStringParameters = {},
@@ -12,7 +12,7 @@ router.get(['/rounds', '/rounds/:hash'], async (req, res) => {
 
   await setForwardedHeaders(requestHeaders);
 
-  const { statusCode, headers, body } = await roundsHandler({
+  const { statusCode, headers, body } = await stakeHandler({
     pathParameters,
     queryStringParameters,
   });

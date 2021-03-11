@@ -1,7 +1,7 @@
 const {
   elasticSearch: { getList, getItem, getCount, getPublicKeys },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
@@ -29,6 +29,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         delete query[key];
       }
     });
+
+    // In elastic search exists only shardId
+    if (query.shard) {
+      query.shardId = query.shard;
+      delete query.shard;
+    }
 
     let data;
     let status;

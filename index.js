@@ -1,7 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const { statuses } = require('./config');
+const { statuses } = require('./handlers/configs/config.js');
 
 const app = express();
 const port = 3000;

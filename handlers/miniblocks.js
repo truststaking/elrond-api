@@ -1,7 +1,7 @@
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
 const transformItem = async (item) => {
   return { ...item };

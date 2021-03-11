@@ -1,11 +1,11 @@
-const axios = require('axios');
+const { axios } = require('./helpers');
 
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
-} = require('../helpers');
+} = require('./helpers');
 
-const { gatewayUrl } = require('../config');
+const { gatewayUrl } = require('./configs/config');
 
 const transformItem = async (item) => {
   const { searchOrder, ...rest } = item;
@@ -19,7 +19,16 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
 
-    const keys = ['sender', 'receiver', 'senderShard', 'receiverShard', 'from', 'size'];
+    const keys = [
+      'sender',
+      'receiver',
+      'senderShard',
+      'receiverShard',
+      'from',
+      'size',
+      'before',
+      'after',
+    ];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -51,9 +60,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             });
 
             const {
+              round,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniblockHash: miniBlockHash,
+              sourceShard: senderShard,
+              destinationShard: receiverShard,
               nonce,
               receiver,
               sender,
@@ -62,18 +75,21 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               value,
             } = transaction;
 
-            // TODO: pending alignment
-            const receiverShard = null;
-            const senderShard = null;
+            // // TODO: pending alignment
+            // const receiverShard = null;
+            // const senderShard = null;
 
             data = {
+              data: transaction.data,
               txHash: hash,
               gasLimit,
               gasPrice,
+              gasUsed,
               miniBlockHash,
               nonce,
               receiver,
               receiverShard,
+              round,
               sender,
               senderShard,
               signature,

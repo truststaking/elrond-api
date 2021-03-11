@@ -1,4 +1,4 @@
-const { getNodes, response } = require('../helpers');
+const { getNodes, response } = require('./helpers');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {

@@ -6,7 +6,7 @@ const elasticSearch = require('./elasticSearch');
 const getChunks = require('./getChunks');
 const getIdentities = require('./getIdentities');
 const getNodes = require('./getNodes');
-const getOwners = require('./getOwners');
+const getNodesData = require('./getNodesData');
 const getTokenProperties = require('./getTokenProperties');
 const getTokens = require('./getTokens');
 const getValidators = require('./getValidators');
@@ -23,7 +23,7 @@ module.exports = {
   getChunks,
   getIdentities,
   getNodes,
-  getOwners,
+  getNodesData,
   getTokenProperties,
   getTokens,
   getValidators,

@@ -1,13 +1,13 @@
-const { getNodes, getOwners } = require('./helpers');
+const { getNodes, getNodesData } = require('./helpers');
 
 (async () => {
-  const nodes = await getNodes({ skipCache: true });
+  const nodes = await getNodes();
 
-  const validators = nodes.filter(({ nodeType }) => nodeType === 'validator');
+  const publicKeys = nodes
+    .filter(({ nodeType }) => nodeType === 'validator')
+    .map(({ publicKey }) => publicKey);
 
-  const blsKeys = validators.map(({ publicKey }) => publicKey);
+  const nodesData = await getNodesData({ publicKeys });
 
-  const owners = await getOwners(blsKeys);
-
-  console.log('owners', owners);
+  console.log('nodesData', nodesData);
 })();

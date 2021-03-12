@@ -17,6 +17,7 @@ const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
+const delegationManagerContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6';
 
 const redisUrl = '';
 const cacheTtl = 6;
@@ -42,6 +43,7 @@ module.exports = {
   esdtContract,
   auctionContract,
   stakingContract,
+  delegationManagerContract,
   redisUrl,
   cacheTtl,
   statuses,

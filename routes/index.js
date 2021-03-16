@@ -2,6 +2,7 @@ const indexRouter = require('./indexRouter');
 const accountsRouter = require('./accountsRouter');
 const blocksRouter = require('./blocksRouter');
 const constantsRouter = require('./constantsRouter');
+const markersRouter = require('./markersRouter');
 const miniblocksRouter = require('./miniblocksRouter');
 const nodesRouter = require('./nodesRouter');
 const roundsRouter = require('./roundsRouter');
@@ -14,6 +15,7 @@ module.exports = {
   accountsRouter,
   blocksRouter,
   constantsRouter,
+  markersRouter,
   miniblocksRouter,
   nodesRouter,
   roundsRouter,

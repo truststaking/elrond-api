@@ -21,6 +21,8 @@ const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqlll
 const redisUrl = '';
 const cacheTtl = 6;
 
+const googleMapsAPIKey = 'AIzaSyC9olIiUfjvhHophKy_jZ3_sBESMK1j0_o';
+
 const statuses = {
   201: 'Created',
   204: 'No Content',
@@ -44,5 +46,6 @@ module.exports = {
   stakingContract,
   redisUrl,
   cacheTtl,
+  googleMapsAPIKey,
   statuses,
 };

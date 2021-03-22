@@ -11,8 +11,12 @@ client.on('error', (error) => {
 
 const asyncSet = promisify(client.set).bind(client);
 const asyncGet = promisify(client.get).bind(client);
-const asyncMSet = promisify(client.mset).bind(client);
 const asyncMGet = promisify(client.mget).bind(client);
+
+const asyncMulti = (commands) => {
+  const multi = client.multi(commands);
+  return promisify(multi.exec).call(multi);
+};
 
 const putCache = async ({ key, value, ttl = cacheTtl }) => {
   await asyncSet(key, JSON.stringify(value), 'EX', ttl);
@@ -25,14 +29,11 @@ const getCache = async ({ key }) => {
 
 // TODO:
 const batchPutCache = async ({ keys, values, ttl = cacheTtl }) => {
-  const data = [];
-
-  keys.forEach((key, index) => {
-    data.push(key);
-    data.push(JSON.stringify(values[index]));
+  const sets = keys.map((key, index) => {
+    return ['set', key, JSON.stringify(values[index]), 'ex', ttl];
   });
 
-  await asyncMSet(data);
+  await asyncMulti(sets);
 };
 
 const batchGetCache = async ({ keys }) => {

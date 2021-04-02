@@ -3,8 +3,8 @@ const {
   response,
 } = require('./helpers');
 
-const transformItem = async (item) => {
-  let { key, round, timestamp, blockWasProposed, signersIndexes } = item;
+const transformItem = async (item, fields) => {
+  let { key, round, signersIndexes } = item;
 
   // TODO: use the indexed value when available
   const epoch = Math.floor(round / 14401);
@@ -14,8 +14,18 @@ const transformItem = async (item) => {
 
   const publicKeys = await getPublicKeys({ shard, epoch });
   const signers = signersIndexes.map((index) => publicKeys[index]);
+  item.signers = signers;
+  delete item.signersIndexes;
+  delete item.key;
 
-  return { round, shard, blockWasProposed, signers, timestamp };
+  if (fields) {
+    Object.keys(item).forEach((key) => {
+      if (!fields.includes(key)) {
+        delete item[key];
+      }
+    });
+  }
+  return item;
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -24,8 +34,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'key';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-
-    const keys = ['shard', 'from', 'size'];
+    // Prepare query fields
+    let { fields } = query || {};
+    if (fields) {
+      fields = fields.split(',');
+      query.fields = ['shardId', 'round', 'signersIndexes'].concat(fields);
+    }
+    const keys = ['shard', 'from', 'size', 'fields'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -50,7 +65,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item));
+          data.push(await transformItem(item, fields));
         }
         break;
       }

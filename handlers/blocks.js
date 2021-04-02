@@ -3,16 +3,27 @@ const {
   response,
 } = require('./helpers');
 
-const transformItem = async (item) => {
+const transformItem = async (item, fields) => {
   // eslint-disable-next-line no-unused-vars
-  let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
+  let { shardId: shard, epoch, proposer, validators } = item;
 
   const publicKeys = await getPublicKeys({ shard, epoch });
 
-  proposer = publicKeys[proposer];
-  validators = validators.map((index) => publicKeys[index]);
+  item.proposer = publicKeys[proposer];
+  item.validators = validators.map((index) => publicKeys[index]);
+  item.shard = item.shardId;
+  delete item.shardId;
+  delete item.searchOrder;
 
-  return { shard, epoch, proposer, validators, ...rest };
+  if (fields) {
+    Object.keys(item).forEach((key) => {
+      if (!fields.includes(key) && key !== 'hash') {
+        delete item[key];
+      }
+    });
+  }
+
+  return item;
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -21,8 +32,15 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'hash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
+    // Prepare query fields
+    let { fields } = query || {};
+    if (fields) {
+      fields = fields.split(',');
 
-    const keys = ['shard', 'from', 'size'];
+      // Mandatory fields
+      query.fields = ['hash', 'proposer', 'shardId', 'epoch', 'validators'].concat(fields);
+    }
+    const keys = ['shard', 'from', 'size', 'fields'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -46,7 +64,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
-        data = await transformItem(item);
+        data = await transformItem(item, fields);
         break;
       }
       default: {
@@ -58,7 +76,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item));
+          data.push(await transformItem(item, fields));
         }
         break;
       }

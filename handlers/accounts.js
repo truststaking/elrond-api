@@ -7,10 +7,16 @@ const {
 
 const { elasticUrl, gatewayUrl } = require('./configs/config');
 
-const transformItem = async (item) => {
-  // eslint-disable-next-line no-unused-vars
-  const { balanceNum, ...rest } = item;
-  return { ...rest };
+const transformItem = async (item, fields) => {
+  if (fields) {
+    Object.keys(item).forEach((key) => {
+      if (!fields.includes(key) && key !== 'address') {
+        delete item[key];
+      }
+    });
+  }
+  delete item.balanceNum;
+  return item;
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -20,7 +26,14 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
 
-    const keys = ['from', 'size'];
+    // Prepare query fields
+    let { fields } = query || {};
+    if (fields) {
+      fields = fields.split(',');
+      query.fields = fields;
+    }
+
+    const keys = ['from', 'size', 'fields'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -57,7 +70,10 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             }),
             axios.get(`${gatewayUrl()}/address/${hash}`),
           ]);
-          data = { address, nonce, balance, code, codeHash, rootHash, txCount };
+          data = await transformItem(
+            { address, nonce, balance, code, codeHash, rootHash, txCount },
+            fields
+          );
         } catch (error) {
           status = 404;
         }

@@ -14,7 +14,14 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
 
-    const keys = ['from', 'size'];
+    // Prepare query fields
+    let { fields } = query || {};
+    if (fields) {
+      fields = fields.split(',');
+      query.fields = fields;
+    }
+
+    const keys = ['from', 'size', 'fields'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {

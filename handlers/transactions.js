@@ -7,9 +7,16 @@ const {
 
 const { gatewayUrl } = require('./configs/config');
 
-const transformItem = async (item) => {
-  const { searchOrder, ...rest } = item;
-  return { ...rest };
+const transformItem = async (item, fields) => {
+  delete item.searchOrder;
+  if (fields) {
+    Object.keys(item).forEach((key) => {
+      if (!fields.includes(key) && key !== 'txHash') {
+        delete item[key];
+      }
+    });
+  }
+  return item;
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -18,6 +25,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'txHash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
+    // Prepare query fields
+    let { fields } = query || {};
+    if (fields) {
+      fields = fields.split(',');
+      query.fields = fields;
+    }
 
     const keys = [
       'sender',
@@ -28,6 +41,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       'size',
       'before',
       'after',
+      'fields',
     ];
 
     Object.keys(query).forEach((key) => {
@@ -47,7 +61,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       case hash !== undefined: {
         try {
           const item = await getItem({ collection, key, hash });
-          data = await transformItem(item);
+          data = await transformItem(item, fields);
         } catch (error) {
           try {
             const {
@@ -112,7 +126,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item));
+          data.push(await transformItem(item, fields));
         }
         break;
       }

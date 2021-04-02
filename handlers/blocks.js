@@ -3,27 +3,16 @@ const {
   response,
 } = require('./helpers');
 
-const transformItem = async (item, fields) => {
+const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
-  let { shardId: shard, epoch, proposer, validators } = item;
+  let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
   const publicKeys = await getPublicKeys({ shard, epoch });
 
-  item.proposer = publicKeys[proposer];
-  item.validators = validators.map((index) => publicKeys[index]);
-  item.shard = item.shardId;
-  delete item.shardId;
-  delete item.searchOrder;
+  proposer = publicKeys[proposer];
+  validators = validators.map((index) => publicKeys[index]);
 
-  if (fields) {
-    Object.keys(item).forEach((key) => {
-      if (!fields.includes(key) && key !== 'hash') {
-        delete item[key];
-      }
-    });
-  }
-
-  return item;
+  return { shard, epoch, proposer, validators, ...rest };
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -34,13 +23,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     // Prepare query fields
     let { fields } = query || {};
-    if (fields) {
-      fields = fields.split(',');
 
-      // Mandatory fields
-      query.fields = ['hash', 'proposer', 'shardId', 'epoch', 'validators'].concat(fields);
-    }
-    const keys = ['shard', 'from', 'size', 'fields'];
+    const keys = ['shard', 'from', 'size'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -64,7 +48,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
-        data = await transformItem(item, fields);
+        data = await transformItem(item);
         break;
       }
       default: {
@@ -76,13 +60,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item, fields));
+          data.push(await transformItem(item));
         }
         break;
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('blocks error', error);
     return response({ status: 503 });

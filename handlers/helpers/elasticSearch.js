@@ -53,10 +53,6 @@ const buildRange = (range = {}) => {
   return obj;
 };
 
-const buildFields = (fields = {}) => {
-  return fields;
-};
-
 const formatItem = ({ document, key }) => {
   const { _id, _source } = document;
   const item = {};
@@ -68,17 +64,15 @@ const formatItem = ({ document, key }) => {
 const getList = async ({ collection, key, query, sort }) => {
   const url = `${elasticUrl()}/${collection}/_search`;
   const { from = 0, size = 25 } = query;
-  let { fields } = query;
-  delete query.fields;
+
   query = buildQuery(query);
   sort = buildSort(sort);
-  let _source = buildFields(fields);
 
   const {
     data: {
       hits: { hits: documents },
     },
-  } = await axios.post(url, { query, sort, from, size, _source });
+  } = await axios.post(url, { query, sort, from, size });
 
   return documents.map((document) => formatItem({ document, key }));
 };

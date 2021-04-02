@@ -7,16 +7,10 @@ const {
 
 const { elasticUrl, gatewayUrl } = require('./configs/config');
 
-const transformItem = async (item, fields) => {
-  if (fields) {
-    Object.keys(item).forEach((key) => {
-      if (!fields.includes(key) && key !== 'address') {
-        delete item[key];
-      }
-    });
-  }
-  delete item.balanceNum;
-  return item;
+const transformItem = async (item) => {
+  // eslint-disable-next-line no-unused-vars
+  const { balanceNum, ...rest } = item;
+  return { ...rest };
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -28,12 +22,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     // Prepare query fields
     let { fields } = query || {};
-    if (fields) {
-      fields = fields.split(',');
-      query.fields = fields;
-    }
 
-    const keys = ['from', 'size', 'fields'];
+    const keys = ['from', 'size'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -70,10 +60,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             }),
             axios.get(`${gatewayUrl()}/address/${hash}`),
           ]);
-          data = await transformItem(
-            { address, nonce, balance, code, codeHash, rootHash, txCount },
-            fields
-          );
+          data = { address, nonce, balance, code, codeHash, rootHash, txCount };
         } catch (error) {
           status = 404;
         }
@@ -94,7 +81,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('accounts error', error);
     return response({ status: 503 });

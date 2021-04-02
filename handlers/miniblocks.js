@@ -16,12 +16,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     // Prepare query fields
     let { fields } = query || {};
-    if (fields) {
-      fields = fields.split(',');
-      query.fields = fields;
-    }
 
-    const keys = ['from', 'size', 'fields'];
+    const keys = ['from', 'size'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -57,7 +53,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('miniblocks error', error);
     return response({ status: 503 });

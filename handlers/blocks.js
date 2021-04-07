@@ -3,7 +3,7 @@ const {
   response,
 } = require('./helpers');
 
-const transformItem = async (item, searchedProposer, searchedValidator) => {
+const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
@@ -29,22 +29,16 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       const { proposer: bls, shard, epoch } = query;
       const index = await getBlsIndex({ bls, shard, epoch });
 
-      delete query.proposer;
-
-      if (index) {
-        query.proposer = index;
-      }
+      if (index) query.proposer = index;
+      else query.proposer = -1;
     }
 
     if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
       const { validator: bls, shard, epoch } = query;
       const index = await getBlsIndex({ bls, shard, epoch });
 
-      delete query.validator;
-
-      if (index) {
-        query.validators = index;
-      }
+      if (index) query.validators = index;
+      else query.validators = -1;
     }
 
     Object.keys(query).forEach((key) => {

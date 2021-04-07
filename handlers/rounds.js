@@ -24,7 +24,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'key';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-
+    let { fields } = query || {};
     const keys = ['shard', 'from', 'size'];
 
     Object.keys(query).forEach((key) => {
@@ -56,7 +56,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('rounds error', error);
     return response({ status: 503 });

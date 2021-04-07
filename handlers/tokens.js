@@ -5,6 +5,7 @@ const { gatewayUrl } = require('./configs/config');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   const { hash: address } = pathParameters;
+  let { fields } = queryStringParameters || {};
 
   if (address) {
     try {
@@ -39,7 +40,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           tokens[index].balance = balance;
         });
 
-      return response({ data: tokens });
+      return response({ data: tokens, fields });
     } catch (error) {
       console.error('address tokens error', error);
       return response({ data: [] });
@@ -55,7 +56,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       switch (true) {
         case identifier && identifier !== 'count': {
           const token = tokens.find(({ tokenIdentifier }) => tokenIdentifier === identifier);
-          results = token ? { data: token } : { status: 404 };
+          results = token ? { data: token, fields } : { status: 404 };
           break;
         }
         case identifier && identifier === 'count': {
@@ -64,7 +65,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         }
         default: {
           const endIndex = parseInt(from) + parseInt(size);
-          results = { data: tokens.slice(parseInt(from), endIndex) };
+          results = { data: tokens.slice(parseInt(from), endIndex), fields };
           break;
         }
       }

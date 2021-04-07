@@ -15,6 +15,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       identity,
       sort,
       order = 'asc',
+      fields,
     } = queryStringParameters || {};
 
     let results;
@@ -23,7 +24,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     if (hash && hash !== 'count') {
       const node = nodes.find((node) => node.publicKey === hash);
 
-      results = node ? { data: node } : { status: 404 };
+      results = node ? { data: node, fields } : { status: 404 };
     } else {
       const data = nodes.filter((node) => {
         if (search) {
@@ -79,7 +80,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         results = { data: data.length };
       } else {
         const endIndex = parseInt(from) + parseInt(size);
-        results = { data: data.slice(parseInt(from), endIndex) };
+        results = { data: data.slice(parseInt(from), endIndex), fields };
       }
     }
 

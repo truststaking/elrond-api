@@ -3,7 +3,7 @@ const {
   response,
 } = require('./helpers');
 
-const transformItem = async (item) => {
+const transformItem = async (item, searchedProposer, searchedValidator) => {
   // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
@@ -11,6 +11,9 @@ const transformItem = async (item) => {
 
   proposer = publicKeys[proposer];
   validators = validators.map((index) => publicKeys[index]);
+
+  if (searchedProposer && proposer !== searchedProposer) return undefined;
+  if (searchedValidator && !validators.includes(searchedValidator)) return undefined;
 
   return { shard, epoch, proposer, validators, ...rest };
 };
@@ -22,6 +25,8 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
     let { fields } = query || {};
+
+    let { proposer, validator } = query || {};
 
     const keys = ['shard', 'from', 'size'];
 
@@ -47,7 +52,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
-        data = await transformItem(item);
+        data = await transformItem(item, proposer, validator);
         break;
       }
       default: {
@@ -59,7 +64,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item));
+          data.push(await transformItem(item, proposer, validator));
         }
         break;
       }

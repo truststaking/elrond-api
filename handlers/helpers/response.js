@@ -33,7 +33,17 @@ const sort = (key, value) => {
   }
 };
 
-const response = ({ status = 200, data, headers = {}, extract = false }) => {
+const transformItem = (item, fields) => {
+  Object.keys(item).forEach((key) => {
+    if (!fields.includes(key)) {
+      delete item[key];
+    }
+  });
+
+  return item;
+};
+
+const response = ({ status = 200, data, fields, headers = {}, extract = false }) => {
   if (!data && statuses[status]) {
     if (status >= 400) {
       data = {
@@ -44,6 +54,12 @@ const response = ({ status = 200, data, headers = {}, extract = false }) => {
         message: statuses[status],
       };
     }
+  }
+
+  if (fields) {
+    if (Array.isArray(data)) {
+      data.map((item) => transformItem(item, fields));
+    } else data = transformItem(data, fields);
   }
 
   let body =

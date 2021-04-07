@@ -13,6 +13,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'miniBlockHash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
+    let { fields } = query || {};
 
     const keys = ['from', 'size'];
 
@@ -50,7 +51,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('miniblocks error', error);
     return response({ status: 503 });

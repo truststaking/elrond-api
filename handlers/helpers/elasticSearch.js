@@ -96,7 +96,7 @@ const getCount = async ({ collection, query }) => {
 
 const publicKeysCache = {};
 
-const getPublicKeys = async ({ shard, epoch }) => {
+const getBlses = async ({ shard, epoch }) => {
   const key = `${shard}_${epoch}`;
 
   if (publicKeysCache[key]) {
@@ -116,9 +116,28 @@ const getPublicKeys = async ({ shard, epoch }) => {
   return publicKeys;
 };
 
+const getBlsIndex = async ({ bls, shard, epoch }) => {
+  const url = `${elasticUrl()}/validators/_doc/${shard}_${epoch}`;
+
+  const {
+    data: {
+      _source: { publicKeys },
+    },
+  } = await axios.get(url);
+
+  const index = publicKeys.indexOf(bls);
+
+  if (index !== -1) {
+    return index;
+  }
+
+  return false;
+};
+
 module.exports = {
   getList,
   getItem,
   getCount,
-  getPublicKeys,
+  getBlses,
+  getBlsIndex,
 };

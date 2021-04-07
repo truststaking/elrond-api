@@ -1,5 +1,5 @@
 const {
-  elasticSearch: { getList, getItem, getCount, getPublicKeys },
+  elasticSearch: { getList, getItem, getCount, getBlses, getBlsIndex },
   response,
 } = require('./helpers');
 
@@ -7,13 +7,10 @@ const transformItem = async (item, searchedProposer, searchedValidator) => {
   // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
-  const publicKeys = await getPublicKeys({ shard, epoch });
+  const publicKeys = await getBlses({ shard, epoch });
 
   proposer = publicKeys[proposer];
   validators = validators.map((index) => publicKeys[index]);
-
-  if (searchedProposer && proposer !== searchedProposer) return undefined;
-  if (searchedValidator && !validators.includes(searchedValidator)) return undefined;
 
   return { shard, epoch, proposer, validators, ...rest };
 };
@@ -26,9 +23,29 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     let { fields } = query || {};
 
-    let { proposer, validator } = query || {};
+    const keys = ['shard', 'epoch', 'from', 'size', 'proposer', 'validators'];
 
-    const keys = ['shard', 'from', 'size'];
+    if (['proposer', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
+      const { proposer: bls, shard, epoch } = query;
+      const index = await getBlsIndex({ bls, shard, epoch });
+
+      delete query.proposer;
+
+      if (index) {
+        query.proposer = index;
+      }
+    }
+
+    if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
+      const { validator: bls, shard, epoch } = query;
+      const index = await getBlsIndex({ bls, shard, epoch });
+
+      delete query.validator;
+
+      if (index) {
+        query.validators = index;
+      }
+    }
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -52,7 +69,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
-        data = await transformItem(item, proposer, validator);
+        data = await transformItem(item);
         break;
       }
       default: {
@@ -64,7 +81,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         data = [];
         for (const item of items) {
-          data.push(await transformItem(item, proposer, validator));
+          data.push(await transformItem(item));
         }
         break;
       }

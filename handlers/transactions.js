@@ -18,7 +18,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'txHash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-
+    let { fields } = query || {};
     const keys = [
       'sender',
       'receiver',
@@ -28,6 +28,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       'size',
       'before',
       'after',
+      'condition',
     ];
 
     Object.keys(query).forEach((key) => {
@@ -118,7 +119,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('transactions error', error);
     return response({ status: 503 });

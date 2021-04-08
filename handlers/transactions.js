@@ -28,6 +28,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       'size',
       'before',
       'after',
+      'condition',
     ];
 
     Object.keys(query).forEach((key) => {

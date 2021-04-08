@@ -15,7 +15,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     let { fields } = query || {};
 
-    const keys = ['from', 'size'];
+    const keys = ['from', 'size', 'condition'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {

@@ -1,5 +1,5 @@
 const {
-  elasticSearch: { getList, getItem, getCount, getPublicKeys },
+  elasticSearch: { getList, getItem, getCount, getBlses, getBlsIndex },
   response,
 } = require('./helpers');
 
@@ -7,7 +7,7 @@ const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
-  const publicKeys = await getPublicKeys({ shard, epoch });
+  const publicKeys = await getBlses({ shard, epoch });
 
   proposer = publicKeys[proposer];
   validators = validators.map((index) => publicKeys[index]);
@@ -21,8 +21,25 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'hash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
+    let { fields } = query || {};
 
-    const keys = ['shard', 'from', 'size'];
+    const keys = ['shard', 'epoch', 'from', 'size', 'proposer', 'validators', 'condition'];
+
+    if (['proposer', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
+      const { proposer: bls, shard, epoch } = query;
+      const index = await getBlsIndex({ bls, shard, epoch });
+
+      if (index) query.proposer = index;
+      else query.proposer = -1;
+    }
+
+    if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
+      const { validator: bls, shard, epoch } = query;
+      const index = await getBlsIndex({ bls, shard, epoch });
+
+      if (index) query.validators = index;
+      else query.validators = -1;
+    }
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -64,7 +81,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('blocks error', error);
     return response({ status: 503 });

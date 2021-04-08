@@ -20,7 +20,9 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
 
-    const keys = ['from', 'size'];
+    let { fields } = query || {};
+
+    const keys = ['from', 'size', 'condition'];
 
     Object.keys(query).forEach((key) => {
       if (!keys.includes(key)) {
@@ -78,7 +80,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data });
+    return response({ status, data, fields });
   } catch (error) {
     console.error('accounts error', error);
     return response({ status: 503 });

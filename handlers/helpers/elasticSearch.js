@@ -10,19 +10,28 @@ const buildQuery = (query = {}) => {
   delete query.after;
   const range = buildRange({ before, after });
 
+  const { condition } = query;
+  delete query.condition;
+
   if (Object.keys(query).length) {
-    const must = Object.keys(query).map((key) => {
+    const params = Object.keys(query).map((key) => {
       const match = {};
       match[key] = query[key];
 
       return { match };
     });
-    query = { bool: { must } };
+
+    query = { bool: {} };
+    query.bool[condition && condition === 'should' ? 'should' : 'must'] = params;
   } else if (Object.keys(range.timestamp).length != 0) {
     query.range = range;
   } else {
     query = { match_all: {} };
   }
+
+  console.log('- - - - - - - - - - - - - - - - - - -');
+  console.log(JSON.stringify(query));
+  console.log('- - - - - - - - - - - - - - - - - - -');
 
   return query;
 };
@@ -96,7 +105,7 @@ const getCount = async ({ collection, query }) => {
 
 const publicKeysCache = {};
 
-const getPublicKeys = async ({ shard, epoch }) => {
+const getBlses = async ({ shard, epoch }) => {
   const key = `${shard}_${epoch}`;
 
   if (publicKeysCache[key]) {
@@ -116,9 +125,28 @@ const getPublicKeys = async ({ shard, epoch }) => {
   return publicKeys;
 };
 
+const getBlsIndex = async ({ bls, shard, epoch }) => {
+  const url = `${elasticUrl()}/validators/_doc/${shard}_${epoch}`;
+
+  const {
+    data: {
+      _source: { publicKeys },
+    },
+  } = await axios.get(url);
+
+  const index = publicKeys.indexOf(bls);
+
+  if (index !== -1) {
+    return index;
+  }
+
+  return false;
+};
+
 module.exports = {
   getList,
   getItem,
   getCount,
-  getPublicKeys,
+  getBlses,
+  getBlsIndex,
 };

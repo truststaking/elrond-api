@@ -10,19 +10,28 @@ const buildQuery = (query = {}) => {
   delete query.after;
   const range = buildRange({ before, after });
 
+  const { condition } = query;
+  delete query.condition;
+
   if (Object.keys(query).length) {
-    const must = Object.keys(query).map((key) => {
+    const params = Object.keys(query).map((key) => {
       const match = {};
       match[key] = query[key];
 
       return { match };
     });
-    query = { bool: { must } };
+
+    query = { bool: {} };
+    query.bool[condition && condition === 'should' ? 'should' : 'must'] = params;
   } else if (Object.keys(range.timestamp).length != 0) {
     query.range = range;
   } else {
     query = { match_all: {} };
   }
+
+  console.log('- - - - - - - - - - - - - - - - - - -');
+  console.log(JSON.stringify(query));
+  console.log('- - - - - - - - - - - - - - - - - - -');
 
   return query;
 };

@@ -26,7 +26,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     let { fields } = query || {};
 
-    const keys = ['shard', 'from', 'size', 'validator'];
+    const keys = ['shard', 'from', 'size'];
 
     if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
       const { validator: bls, shard, epoch } = query;

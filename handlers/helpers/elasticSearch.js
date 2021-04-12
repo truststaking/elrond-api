@@ -25,7 +25,7 @@ const buildQuery = (query = {}) => {
     query.bool[condition && condition === 'should' ? 'should' : 'must'] = params;
     if (range) {
       query.bool.filter = { range };
-      if (condition === 'should') query.bool.minimum_should_match = '100%';
+      if (condition === 'should') query.bool.minimum_should_match = 1;
     }
   } else if (Object.keys(range.timestamp).length != 0) {
     query.range = range;

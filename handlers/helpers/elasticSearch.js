@@ -23,6 +23,7 @@ const buildQuery = (query = {}) => {
 
     query = { bool: {} };
     query.bool[condition && condition === 'should' ? 'should' : 'must'] = params;
+    if (range) params.push({ range: range });
   } else if (Object.keys(range.timestamp).length != 0) {
     query.range = range;
   } else {
@@ -73,6 +74,7 @@ const formatItem = ({ document, key }) => {
 const getList = async ({ collection, key, query, sort }) => {
   const url = `${elasticUrl()}/${collection}/_search`;
   const { from = 0, size = 25 } = query;
+
   query = buildQuery(query);
   sort = buildSort(sort);
 

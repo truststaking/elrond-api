@@ -26,18 +26,20 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     let { fields } = query || {};
 
-    const keys = ['shard', 'from', 'size', 'condition'];
+    const keys = ['from', 'size', 'condition'];
 
     if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
       const { validator: bls, shard, epoch } = query;
       const index = await getBlsIndex({ bls, shard, epoch });
+
+      delete query.validator;
 
       if (index) query.signersIndexes = index;
       else query.signersIndexes = -1;
     }
 
     Object.keys(query).forEach((key) => {
-      if (!keys.includes(key)) {
+      if (!keys.includes(key) && key !== 'signersIndexes') {
         delete query[key];
       }
     });

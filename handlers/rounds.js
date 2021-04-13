@@ -26,11 +26,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     let query = queryStringParameters || {};
     let { fields } = query || {};
 
-    const keys = ['shard', 'from', 'size', 'condition'];
+    const keys = ['shard', 'from', 'size', 'condition', 'signersIndexes'];
 
     if (['validator', 'shard', 'epoch'].every((key) => Object.keys(query).includes(key))) {
       const { validator: bls, shard, epoch } = query;
       const index = await getBlsIndex({ bls, shard, epoch });
+
+      delete query.validator;
 
       if (index) query.signersIndexes = index;
       else query.signersIndexes = -1;
@@ -41,6 +43,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         delete query[key];
       }
     });
+
+    // In elastic search exists only shardId
+    if (query.shard) {
+      query.shardId = query.shard;
+      delete query.shard;
+    }
 
     let data;
     let status;

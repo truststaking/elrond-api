@@ -17,9 +17,15 @@ const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
+const delegationManagerContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6';
+
+const cacheTtl = 6;
+const processTtl = 600; // 10 minutes
+const poolLimit = 10;
 
 const redisUrl = '';
-const cacheTtl = 6;
+
+const network = 'mainnet';
 
 const statuses = {
   201: 'Created',
@@ -42,7 +48,11 @@ module.exports = {
   esdtContract,
   auctionContract,
   stakingContract,
+  delegationManagerContract,
   redisUrl,
   cacheTtl,
+  processTtl,
+  poolLimit,
   statuses,
+  network,
 };

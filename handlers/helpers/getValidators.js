@@ -1,4 +1,4 @@
-const { stakingContract } = require('../configs/config');
+const { stakingContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getNodes = require('./getNodes');
 const vmQuery = require('./vmQuery');

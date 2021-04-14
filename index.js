@@ -1,7 +1,8 @@
+require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const { statuses } = require('./handlers/configs/config.js');
+const { statuses } = require(`./handlers/configs/${process.env.CONFIG}`);
 
 const app = express();
 const port = 3000;

@@ -1,6 +1,6 @@
 const { axios } = require('./helpers');
 
-const { gatewayUrl } = require('./configs/config');
+const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 const { bech32, computeShard, response } = require('./helpers');
 
 exports.handler = async ({ body }) => {

@@ -1,4 +1,4 @@
-const { statuses } = require('../configs/config');
+const { statuses } = require(`../configs/${process.env.CONFIG}`);
 
 const clean = (obj) => {
   if (typeof obj === 'number') return obj;

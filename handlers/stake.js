@@ -1,4 +1,4 @@
-const { auctionContract } = require(`./configs/config`);
+const { auctionContract } = require(`./configs/${process.env.CONFIG}`);
 const { getValidators, vmQuery, response } = require('./helpers');
 
 exports.handler = async ({ pathParameters }) => {

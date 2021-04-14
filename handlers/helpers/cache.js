@@ -5,7 +5,7 @@ const { hash } = objectHash({ sort: true, coerce: true });
 
 const getChunks = require('./getChunks');
 
-const { redisUrl, cacheTtl } = require('../configs/config');
+const { redisUrl, cacheTtl } = require(`../configs/${process.env.CONFIG}`);
 
 const client = redis.createClient(redisUrl);
 

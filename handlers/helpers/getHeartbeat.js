@@ -1,6 +1,6 @@
 const { axios } = require('./axiosWrapper');
 
-const { gatewayUrl } = require(`../configs/config`);
+const { gatewayUrl } = require(`../configs/${process.env.CONFIG}`);
 
 const getIssues = (node, version) => {
   const issues = [];

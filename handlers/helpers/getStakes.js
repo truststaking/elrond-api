@@ -3,7 +3,7 @@ const vmQuery = require('./vmQuery');
 const batchProcess = require('./batchProcess');
 const { getCache, putCache } = require('./cache');
 
-const { auctionContract } = require(`../configs/config`);
+const { auctionContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getStakedTopup = async (address) => {
   const response = await vmQuery({

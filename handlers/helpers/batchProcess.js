@@ -2,7 +2,7 @@ const asyncPool = require('tiny-async-pool');
 
 const { batchGetCache, batchPutCache, hashKey } = require('./cache');
 
-const { processTtl, poolLimit, network } = require(`../configs/config`);
+const { processTtl, poolLimit, network } = require(`../configs/${process.env.CONFIG}`);
 
 const batchProcess = async ({ payload, handler, ttl = processTtl, skipCache = false }) => {
   if (!handler.name) {

@@ -1,5 +1,5 @@
 const { axios } = require('./axiosWrapper');
-const { elasticUrl } = require('../configs/config');
+const { elasticUrl } = require(`../configs/${process.env.CONFIG}`);
 
 const buildQuery = (query = {}) => {
   delete query.from;
@@ -32,10 +32,6 @@ const buildQuery = (query = {}) => {
   } else {
     query = { match_all: {} };
   }
-
-  console.log('- - - - - - - - - - - - - - - - - - -');
-  console.log(JSON.stringify(query));
-  console.log('- - - - - - - - - - - - - - - - - - -');
 
   return query;
 };

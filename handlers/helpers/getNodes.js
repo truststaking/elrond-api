@@ -102,7 +102,7 @@ const getNodes = async (args) => {
     }
   });
 
-  await putCache({ key, value: nodes, ttl: 3600 }); // 1h
+  await putCache({ key, value: nodes, ttl: 60 }); //1m
 
   return nodes;
 };

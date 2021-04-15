@@ -1,5 +1,5 @@
-const elasticUrls = ['https://devnet-index.elrond.com'];
-const gatewayUrls = ['https://devnet-gateway.elrond.com'];
+const elasticUrls = ['https://index.elrond.com'];
+const gatewayUrls = ['https://gateway.elrond.com'];
 
 const elasticUrl = () => {
   return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
@@ -14,6 +14,9 @@ const vmQueryUrl = () => {
 };
 
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
+
+const delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
+const delegationContractShardId = 2;
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
@@ -41,11 +44,20 @@ const statuses = {
   503: 'Service Unavailable',
 };
 
+const cache = {
+  skip: 0, // no cache
+  live: 3, // 3 seconds (half a round)
+  moderate: 300, // 5 minutes
+  final: 3600, // 1 hour (we don't expect this to ever change)
+};
+
 module.exports = {
   elasticUrl,
   gatewayUrl,
   vmQueryUrl,
   esdtContract,
+  delegationContract,
+  delegationContractShardId,
   auctionContract,
   stakingContract,
   delegationManagerContract,
@@ -55,4 +67,5 @@ module.exports = {
   poolLimit,
   statuses,
   network,
+  cache,
 };

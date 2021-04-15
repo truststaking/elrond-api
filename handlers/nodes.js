@@ -22,7 +22,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const nodes = await getNodes();
 
     if (hash && hash !== 'count') {
-      const node = nodes.find((node) => node.publicKey === hash);
+      const node = nodes.find((node) => node.bls === hash);
 
       results = node ? { data: node, fields } : { status: 404 };
     } else {

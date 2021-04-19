@@ -13,6 +13,7 @@ const getTokens = require('./getTokens');
 const getValidators = require('./getValidators');
 const response = require('./response');
 const vmQuery = require('./vmQuery');
+const padHex = (value) => (value.length % 2 ? '0' + value : value);
 
 module.exports = {
   bech32,
@@ -31,4 +32,5 @@ module.exports = {
   getValidators,
   response,
   vmQuery,
+  padHex,
 };

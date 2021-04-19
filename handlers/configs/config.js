@@ -1,5 +1,7 @@
-const elasticUrls = ['https://index.elrond.com'];
-const gatewayUrls = ['https://gateway.elrond.com'];
+const elasticUrls = ['https://testnet-index.elrond.com'];
+const gatewayUrls = ['https://testnet-gateway.elrond.com'];
+const metaChainShard = 4294967295;
+const providersUrl = 'https://delegation.maiarbrowser.com/providers';
 
 const elasticUrl = () => {
   return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
@@ -15,7 +17,7 @@ const vmQueryUrl = () => {
 
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
-const delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
+const delegationContract = 'erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx';
 const delegationContractShardId = 2;
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
@@ -54,6 +56,8 @@ const cache = {
 module.exports = {
   elasticUrl,
   gatewayUrl,
+  metaChainShard,
+  providersUrl,
   vmQueryUrl,
   esdtContract,
   delegationContract,

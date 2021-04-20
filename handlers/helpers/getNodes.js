@@ -12,7 +12,7 @@ const { network } = require(`../configs/${process.env.CONFIG}`);
 const getNodes = async (args) => {
   const { skipCache } = args || {};
 
-  const key = 'nodes';
+  const key = `${network}:nodes`;
 
   if (!skipCache) {
     const cached = await getCache({ key });

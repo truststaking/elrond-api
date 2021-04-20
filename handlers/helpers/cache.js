@@ -5,7 +5,7 @@ const { hash } = objectHash({ sort: true, coerce: true });
 
 const getChunks = require('./getChunks');
 
-const { redisUrl, cacheTtl } = require(`../configs/${process.env.CONFIG}`);
+const { redisUrl, cacheTtl, network } = require(`../configs/${process.env.CONFIG}`);
 
 const client = redis.createClient(redisUrl);
 
@@ -23,11 +23,12 @@ const asyncMulti = (commands) => {
 };
 
 const putCache = async ({ key, value, ttl = cacheTtl }) => {
-  await asyncSet(key, JSON.stringify(value), 'EX', ttl);
+  await asyncSet(`${network}:${key}`, JSON.stringify(value), 'EX', ttl);
 };
 
 const getCache = async ({ key }) => {
-  const response = await asyncGet(key);
+  const response = await asyncGet(`${network}:${key}`);
+
   return JSON.parse(response);
 };
 
@@ -67,6 +68,7 @@ const batchGetCache = async ({ keys }) => {
 
   for (const chunkKeys of chunks) {
     let chunkValues = await asyncMGet(chunkKeys);
+
     chunkValues = chunkValues.map((value) => (value ? JSON.parse(value) : null));
 
     result.push(...chunkValues);
@@ -75,7 +77,7 @@ const batchGetCache = async ({ keys }) => {
   return result;
 };
 
-const hashKey = ({ key, network, data }) => {
+const hashKey = ({ key, data }) => {
   return `${key}:${network}:${hash(data)}`;
 };
 

@@ -3,7 +3,7 @@ const vmQuery = require('./vmQuery');
 const batchProcess = require('./batchProcess');
 const { getCache, putCache } = require('./cache');
 
-const { auctionContract, network } = require(`../configs/${process.env.CONFIG}`);
+const { auctionContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getStakedTopup = async (address) => {
   const response = await vmQuery({
@@ -61,7 +61,7 @@ const getStakedTopup = async (address) => {
 };
 
 const getStakes = async ({ addresses, skipCache }) => {
-  const key = `${network}:stakes`;
+  const key = 'stakes';
 
   if (!skipCache) {
     const cached = await getCache({ key });

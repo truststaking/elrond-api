@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const { statuses } = require(`./handlers/configs/${process.env.CONFIG}`);
@@ -10,6 +11,13 @@ const port = 8000;
 
 app.use(bodyParser.json());
 
+app.use(
+  cors({
+    origin: '*',
+    headers: '*',
+    methods: '*',
+  })
+);
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError) {
     res.status(400).json({ error: statuses[400] });

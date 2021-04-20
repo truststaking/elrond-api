@@ -6,11 +6,14 @@ const getChunks = require('./getChunks');
 const confirmNodeIdentity = require('./confirmNodeIdentity');
 const elasticSearch = require('./elasticSearch');
 const getNodes = require('./getNodes');
+const getProviders = require('./getProviders');
+const getStakes = require('./getStakes');
 const getTokenProperties = require('./getTokenProperties');
 const getTokens = require('./getTokens');
 const getValidators = require('./getValidators');
 const response = require('./response');
 const vmQuery = require('./vmQuery');
+const padHex = (value) => (value.length % 2 ? '0' + value : value);
 
 module.exports = {
   bech32,
@@ -22,9 +25,12 @@ module.exports = {
   confirmNodeIdentity,
   elasticSearch,
   getNodes,
+  getProviders,
+  getStakes,
   getTokenProperties,
   getTokens,
   getValidators,
   response,
   vmQuery,
+  padHex,
 };

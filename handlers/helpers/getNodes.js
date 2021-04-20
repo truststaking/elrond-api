@@ -7,7 +7,7 @@ const getQueue = require('./getQueue');
 const getStakes = require('./getStakes');
 const { getCache, putCache } = require('./cache');
 
-const { network } = require(`../configs/config`);
+const { network } = require(`../configs/${process.env.CONFIG}`);
 
 const getNodes = async (args) => {
   const { skipCache } = args || {};
@@ -102,7 +102,7 @@ const getNodes = async (args) => {
     }
   });
 
-  await putCache({ key, value: nodes, ttl: 3600 }); // 1h
+  await putCache({ key, value: nodes, ttl: 3600 }); //1h
 
   return nodes;
 };

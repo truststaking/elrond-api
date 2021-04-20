@@ -1,6 +1,6 @@
 const { axios } = require('./helpers');
 
-const { gatewayUrl } = require('./configs/config');
+const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 const { bech32, computeShard, response } = require('./helpers');
 
 exports.handler = async ({ body }) => {
@@ -30,7 +30,7 @@ exports.handler = async ({ body }) => {
       status: 'Pending',
     };
 
-    return response({ data });
+    return response({ status: 201, data });
   } catch (error) {
     // if error http status
     if (error.response) {
@@ -39,7 +39,7 @@ exports.handler = async ({ body }) => {
       return response({ status, data });
     } else {
       console.error('transaction create error', error);
-      return response({ status: 500 });
+      return response({ status: 503 });
     }
   }
 };

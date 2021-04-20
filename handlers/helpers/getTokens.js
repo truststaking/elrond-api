@@ -2,7 +2,7 @@ const vmQuery = require('./vmQuery');
 const getChunks = require('./getChunks');
 const { batchGetCache, batchPutCache, getCache, putCache } = require('./cache');
 const getTokenProperties = require('./getTokenProperties');
-const { esdtContract } = require('../configs/config');
+const { esdtContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getTokens = async (args) => {
   let skipCache = false;

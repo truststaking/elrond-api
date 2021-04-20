@@ -1,52 +1,101 @@
-const { getNodes, response } = require('./helpers');
+const { getNodes, response, setForwardedHeaders } = require('./helpers');
 
-exports.handler = async ({ pathParameters, queryStringParameters }) => {
+const {
+  cache: { moderate },
+} = require(`./configs/${process.env.CONFIG}`);
+
+let globalNodes;
+let globalTimestamp;
+
+exports.handler = async ({
+  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
+  pathParameters,
+  queryStringParameters,
+}) => {
+  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+
   try {
     const { hash } = pathParameters || {};
     const {
       from = 0,
       size = 25,
       search,
+      online,
+      type,
       status,
-      peerType,
-      nodeType,
       shard,
       issues,
       identity,
+      provider,
+      owner,
       sort,
       order = 'asc',
-      fields,
     } = queryStringParameters || {};
 
     let results;
-    const nodes = await getNodes();
+    let nodes;
 
-    if (hash && hash !== 'count') {
-      const node = nodes.find((node) => node.publicKey === hash);
+    // attempt to not reload the nodes sooner than once every 30 seconds
+    if (globalNodes && globalTimestamp && globalTimestamp + 30 < Math.floor(Date.now() / 1000)) {
+      // console.log('global cache');
+      nodes = globalNodes;
+    } else {
+      // console.log('new fetch', globalTimestamp, Math.floor(Date.now() / 1000));
+      nodes = await getNodes();
+      globalNodes = nodes;
+      globalTimestamp = Math.floor(Date.now() / 1000);
+    }
 
-      results = node ? { data: node, fields } : { status: 404 };
+    if (hash && !['count', 'versions'].includes(hash)) {
+      const node = nodes.find(({ bls }) => bls === hash);
+
+      results = node ? { data: node } : { status: 404 };
+    } else if (hash && hash === 'versions') {
+      const data = nodes
+        .filter(({ type }) => type === 'validator')
+        .reduce((accumulator, item) => {
+          if (item.version) {
+            if (!accumulator[item.version]) {
+              accumulator[item.version] = 1;
+            } else {
+              accumulator[item.version] += 1;
+            }
+          }
+
+          return accumulator;
+        }, {});
+
+      const sum = Object.keys(data).reduce((accumulator, item) => {
+        return accumulator + data[item];
+      }, 0);
+
+      Object.keys(data).forEach((key) => {
+        data[key] = parseFloat((data[key] / sum).toFixed(2));
+      });
+
+      results = { data };
     } else {
       const data = nodes.filter((node) => {
         if (search) {
-          const pubKeyMatches = node.publicKey.toLowerCase().includes(search.toLowerCase());
-          const nameMatches =
-            node.nodeName && node.nodeName.toLowerCase().includes(search.toLowerCase());
-          const versionMatches = node.versionNumber.toLowerCase().includes(search.toLowerCase());
+          const nodeMatches = node.bls.toLowerCase().includes(search.toLowerCase());
+          const nameMatches = node.name && node.name.toLowerCase().includes(search.toLowerCase());
+          const versionMatches =
+            node.version && node.version.toLowerCase().includes(search.toLowerCase());
 
-          if (!pubKeyMatches && !nameMatches && !versionMatches) {
+          if (!nodeMatches && !nameMatches && !versionMatches) {
             return false;
           }
         }
 
+        if (online && String(node.online) !== online) {
+          return false;
+        }
+
+        if (type && node.type !== type) {
+          return false;
+        }
+
         if (status && node.status !== status) {
-          return false;
-        }
-
-        if (peerType && node.peerType !== peerType) {
-          return false;
-        }
-
-        if (nodeType && node.nodeType !== nodeType) {
           return false;
         }
 
@@ -57,7 +106,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           return false;
         }
 
-        if (issues && !node.issues.length > 0) {
+        if (issues && (!node.issues || !node.issues.length > 0)) {
           return false;
         }
 
@@ -65,10 +114,18 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
           return false;
         }
 
+        if (provider && node.provider !== provider) {
+          return false;
+        }
+
+        if (owner && node.owner !== owner) {
+          return false;
+        }
+
         return true;
       });
 
-      if (sort && ['nodeName', 'versionNumber', 'totalUpTime', 'tempRating'].includes(sort)) {
+      if (sort && ['name', 'version', 'uptime', 'tempRating'].includes(sort)) {
         data.sort((a, b) => (a[sort] > b[sort] ? 1 : b[sort] > a[sort] ? -1 : 0));
 
         if (order === 'desc') {
@@ -80,11 +137,11 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         results = { data: data.length };
       } else {
         const endIndex = parseInt(from) + parseInt(size);
-        results = { data: data.slice(parseInt(from), endIndex), fields };
+        results = { data: data.slice(parseInt(from), endIndex) };
       }
     }
 
-    return response(results);
+    return response({ ...results, cache: moderate });
   } catch (error) {
     console.error('nodes error', error);
     return response({ status: 503 });

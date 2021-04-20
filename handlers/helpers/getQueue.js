@@ -1,7 +1,7 @@
 const vmQuery = require('./vmQuery');
 const bech32 = require('./bech32');
 
-const { stakingContract, auctionContract } = require(`../configs/config`);
+const { stakingContract, auctionContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getQueue = async () => {
   const queueEncoded = await vmQuery({

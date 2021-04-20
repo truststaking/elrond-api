@@ -1,7 +1,8 @@
-const elasticUrls = ['https://testnet-index.elrond.com'];
-const gatewayUrls = ['https://testnet-gateway.elrond.com'];
+const apiUrl = 'https://devnet-api.elrond.com';
+const elasticUrls = ['https://devnet-index.elrond.com'];
+const gatewayUrls = ['https://devnet-gateway.elrond.com'];
 const metaChainShard = 4294967295;
-const providersUrl = 'https://delegation.maiarbrowser.com/providers';
+const providersUrl = 'https://devnet-delegation.maiarbrowser.com/providers';
 
 const elasticUrl = () => {
   return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
@@ -18,11 +19,13 @@ const vmQueryUrl = () => {
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
 const delegationContract = 'erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx';
-const delegationContractShardId = 2;
+const delegationContractShardId = 0;
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
 const delegationManagerContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6';
+
+const genesisTime = 1596117600;
 
 const cacheTtl = 6;
 const processTtl = 600; // 10 minutes
@@ -30,7 +33,7 @@ const poolLimit = 10;
 
 const redisUrl = '';
 
-const network = 'mainnet';
+const network = 'devnet';
 
 const statuses = {
   201: 'Created',
@@ -45,7 +48,6 @@ const statuses = {
   500: 'Internal Server Error',
   503: 'Service Unavailable',
 };
-
 const cache = {
   skip: 0, // no cache
   live: 3, // 3 seconds (half a round)
@@ -54,22 +56,24 @@ const cache = {
 };
 
 module.exports = {
-  elasticUrl,
   gatewayUrl,
-  metaChainShard,
-  providersUrl,
+  elasticUrl,
   vmQueryUrl,
+  apiUrl,
+  providersUrl,
   esdtContract,
   delegationContract,
   delegationContractShardId,
   auctionContract,
   stakingContract,
   delegationManagerContract,
-  redisUrl,
+  genesisTime,
   cacheTtl,
   processTtl,
   poolLimit,
-  statuses,
+  metaChainShard,
+  redisUrl,
   network,
+  statuses,
   cache,
 };

@@ -5,7 +5,7 @@ const {
   response,
 } = require('./helpers');
 
-const { elasticUrl, gatewayUrl } = require('./configs/config');
+const { elasticUrl, gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars

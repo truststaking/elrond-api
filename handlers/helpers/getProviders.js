@@ -4,7 +4,11 @@ const vmQuery = require('./vmQuery');
 const { getCache, putCache } = require('./cache');
 const batchProcess = require('./batchProcess');
 
-const { delegationManagerContract, processTtl, network } = require(`../configs/config`);
+const {
+  delegationManagerContract,
+  processTtl,
+  network,
+} = require(`../configs/${process.env.CONFIG}`);
 
 const getProvidersAddresses = async () => {
   const key = 'providersAddresses';

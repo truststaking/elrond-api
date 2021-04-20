@@ -1,7 +1,7 @@
 const vmQuery = require('./vmQuery');
 const bech32 = require('./bech32');
 
-const { esdtContract } = require('../configs/config');
+const { esdtContract } = require(`../configs/${process.env.CONFIG}`);
 
 const canBool = (string) => {
   return string.split('-').pop() === 'true';

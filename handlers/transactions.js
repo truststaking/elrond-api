@@ -5,7 +5,7 @@ const {
   response,
 } = require('./helpers');
 
-const { gatewayUrl } = require('./configs/config');
+const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   const { searchOrder, ...rest } = item;

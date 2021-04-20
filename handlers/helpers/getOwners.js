@@ -2,7 +2,7 @@ const { batchGetCache, batchPutCache } = require('./cache');
 const vmQuery = require('./vmQuery');
 const bech32 = require('./bech32');
 
-const { auctionContract, stakingContract } = require(`../configs/config`);
+const { auctionContract, stakingContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getBlsOwner = async (bls) => {
   const [encodedOwnerBase64] = await vmQuery({

@@ -1,3 +1,4 @@
+const apiUrl = 'https://testnet-api.elrond.com';
 const elasticUrls = ['https://testnet-index.elrond.com'];
 const gatewayUrls = ['https://testnet-gateway.elrond.com'];
 const metaChainShard = 4294967295;
@@ -18,11 +19,13 @@ const vmQueryUrl = () => {
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
 const delegationContract = 'erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx';
-const delegationContractShardId = 2;
+const delegationContractShardId = 0;
 
 const auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 const stakingContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7';
 const delegationManagerContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6';
+
+const genesisTime = 1596117600;
 
 const cacheTtl = 6;
 const processTtl = 600; // 10 minutes
@@ -30,7 +33,7 @@ const poolLimit = 10;
 
 const redisUrl = '';
 
-const network = 'mainnet';
+const network = 'testnet';
 
 const statuses = {
   201: 'Created',
@@ -54,22 +57,24 @@ const cache = {
 };
 
 module.exports = {
-  elasticUrl,
   gatewayUrl,
-  metaChainShard,
-  providersUrl,
+  elasticUrl,
   vmQueryUrl,
+  apiUrl,
+  providersUrl,
   esdtContract,
   delegationContract,
   delegationContractShardId,
   auctionContract,
   stakingContract,
   delegationManagerContract,
-  redisUrl,
+  genesisTime,
   cacheTtl,
   processTtl,
   poolLimit,
-  statuses,
+  metaChainShard,
+  redisUrl,
   network,
+  statuses,
   cache,
 };

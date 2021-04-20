@@ -1,7 +1,7 @@
 const { axios } = require('./helpers');
 
 const { getTokens, response } = require('./helpers');
-const { gatewayUrl } = require('./configs/config');
+const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
   const { hash: address } = pathParameters;

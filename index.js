@@ -1,13 +1,23 @@
+require('dotenv').config();
 const express = require('express');
+const cors = require('cors');
 const bodyParser = require('body-parser');
 
-const { statuses } = require('./handlers/configs/config.js');
+const { statuses } = require(`./handlers/configs/${process.env.CONFIG}`);
+const { prewarmHandler } = require('./handlers');
 
 const app = express();
-const port = 3000;
+const port = 8000;
 
 app.use(bodyParser.json());
 
+app.use(
+  cors({
+    origin: '*',
+    headers: '*',
+    methods: '*',
+  })
+);
 app.use((error, req, res, next) => {
   if (error instanceof SyntaxError) {
     res.status(400).json({ error: statuses[400] });
@@ -26,4 +36,5 @@ app.use((req, res) => {
 
 app.listen(port, () => {
   console.log(`API running at http://localhost:${port}`);
+  setInterval(prewarmHandler, 60000);
 });

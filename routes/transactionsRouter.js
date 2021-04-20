@@ -20,7 +20,7 @@ router.get(['/transactions', '/transactions/:hash'], async (req, res) => {
   res.status(statusCode).set(headers).json(body);
 });
 
-router.post(['/transactions'], async (req, res) => {
+router.post('/transactions', async (req, res) => {
   const { body: payload, headers: requestHeaders = {} } = req;
 
   await setForwardedHeaders(requestHeaders);

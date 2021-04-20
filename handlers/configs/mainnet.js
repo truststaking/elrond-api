@@ -19,11 +19,11 @@ const vmQueryUrl = () => {
 const network = 'mainnet';
 
 module.exports = {
+  ...configs,
   gatewayUrl,
   elasticUrl,
   vmQueryUrl,
   apiUrl,
   providersUrl,
   network,
-  ...configs,
 };

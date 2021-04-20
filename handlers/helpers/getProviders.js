@@ -11,7 +11,7 @@ const {
 } = require(`../configs/${process.env.CONFIG}`);
 
 const getProvidersAddresses = async () => {
-  const key = 'providersAddresses';
+  const key = `${network}:providersAddresses`;
   const cached = await getCache({ key });
 
   if (cached) {
@@ -128,7 +128,7 @@ const getCumulatedRewards = async (address) => {
 const getProviders = async (args) => {
   const { skipCache } = args || {};
 
-  const key = 'getProviders';
+  const key = `${network}:getProviders`;
 
   if (!skipCache) {
     const cached = await getCache({ key });

@@ -33,7 +33,7 @@ const poolLimit = 10;
 
 const redisUrl = '';
 
-const network = 'mainnet';
+const network = 'testnet';
 
 const statuses = {
   201: 'Created',

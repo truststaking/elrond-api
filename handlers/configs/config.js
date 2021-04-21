@@ -1,19 +1,4 @@
-const elasticUrls = ['https://testnet-index.elrond.com'];
-const gatewayUrls = ['https://testnet-gateway.elrond.com'];
 const metaChainShard = 4294967295;
-const providersUrl = 'https://delegation.maiarbrowser.com/providers';
-
-const elasticUrl = () => {
-  return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
-};
-
-const gatewayUrl = () => {
-  return gatewayUrls[Math.floor(Math.random() * gatewayUrls.length)];
-};
-
-const vmQueryUrl = () => {
-  return gatewayUrl();
-};
 
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
 
@@ -29,8 +14,6 @@ const processTtl = 600; // 10 minutes
 const poolLimit = 10;
 
 const redisUrl = '';
-
-const network = 'mainnet';
 
 const statuses = {
   201: 'Created',
@@ -54,11 +37,7 @@ const cache = {
 };
 
 module.exports = {
-  elasticUrl,
-  gatewayUrl,
   metaChainShard,
-  providersUrl,
-  vmQueryUrl,
   esdtContract,
   delegationContract,
   delegationContractShardId,
@@ -70,6 +49,5 @@ module.exports = {
   processTtl,
   poolLimit,
   statuses,
-  network,
   cache,
 };

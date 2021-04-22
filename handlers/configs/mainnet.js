@@ -1,29 +1,22 @@
 const configs = require('./config');
+const urls = {
+  elasticUrls: ['https://index.elrond.com'],
+  gatewayUrls: ['https://gateway.elrond.com'],
+};
 const apiUrl = 'https://api.elrond.com';
-const elasticUrls = ['https://index.elrond.com'];
-const gatewayUrls = ['https://gateway.elrond.com'];
 const providersUrl = 'https://internal-delegation-api.elrond.com/providers';
 
-const elasticUrl = () => {
-  return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
-};
+configs.buildUrls.call(urls);
+delete configs.buildUrls;
 
-const gatewayUrl = () => {
-  return gatewayUrls[Math.floor(Math.random() * gatewayUrls.length)];
-};
-
-const vmQueryUrl = () => {
-  return gatewayUrl();
-};
+const delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
 
 const network = 'mainnet';
 
 module.exports = {
   ...configs,
-  gatewayUrl,
-  elasticUrl,
-  vmQueryUrl,
   apiUrl,
   providersUrl,
+  delegationContract,
   network,
 };

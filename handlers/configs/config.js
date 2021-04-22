@@ -18,7 +18,6 @@ const config = {
   auctionContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
   stakingContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7',
   delegationManagerContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6',
-  cmcApiKey: '4188e8d9-5663-4e65-8a3f-03316e2effa5',
   genesisTime: 1596117600,
   cacheTtl: 6,
   processTtl: 600,

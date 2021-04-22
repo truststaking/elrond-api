@@ -1,19 +1,9 @@
-const configs = require('./config');
-const urls = {
-  elasticUrls: ['https://testnet-index.elrond.com'],
-  gatewayUrls: ['https://testnet-gateway.elrond.com'],
-};
-const apiUrl = 'https://testnet-api.elrond.com';
-const providersUrl = 'https://delegation.maiarbrowser.com/providers';
+const config = require('./config');
 
-configs.buildUrls.call(urls);
-delete configs.buildUrls;
+config.elasticUrls = ['https://testnet-index.elrond.com'];
+config.gatewayUrls = ['https://testnet-gateway.elrond.com'];
+config.apiUrl = 'https://devnet-api.elrond.com';
+config.providersUrl = 'https://devnet-delegation.maiarbrowser.com/providers';
+config.network = 'testnet';
 
-const network = 'testnet';
-
-module.exports = {
-  apiUrl,
-  providersUrl,
-  network,
-  ...configs,
-};
+module.exports = config;

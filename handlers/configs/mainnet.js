@@ -1,22 +1,10 @@
-const configs = require('./config');
-const urls = {
-  elasticUrls: ['https://index.elrond.com'],
-  gatewayUrls: ['https://gateway.elrond.com'],
-};
-const apiUrl = 'https://api.elrond.com';
-const providersUrl = 'https://internal-delegation-api.elrond.com/providers';
+const config = require('./config');
 
-configs.buildUrls.call(urls);
-delete configs.buildUrls;
+config.elasticUrls = ['https://index.elrond.com'];
+config.gatewayUrls = ['https://gateway.elrond.com'];
+config.apiUrl = 'https://devnet-api.elrond.com';
+config.providersUrl = 'https://devnet-delegation.maiarbrowser.com/providers';
+config.delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
+config.network = 'mainnet';
 
-const delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
-
-const network = 'mainnet';
-
-module.exports = {
-  ...configs,
-  apiUrl,
-  providersUrl,
-  delegationContract,
-  network,
-};
+module.exports = config;

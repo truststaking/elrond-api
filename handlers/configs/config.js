@@ -1,3 +1,23 @@
+let elasticUrls;
+let gatewayUrls;
+
+const buildUrls = function () {
+  elasticUrls = this.elasticUrls;
+  gatewayUrls = this.gatewayUrls;
+};
+
+const elasticUrl = () => {
+  return elasticUrls[Math.floor(Math.random() * elasticUrls.length)];
+};
+
+const gatewayUrl = () => {
+  return gatewayUrls[Math.floor(Math.random() * gatewayUrls.length)];
+};
+
+const vmQueryUrl = () => {
+  return gatewayUrl();
+};
+
 const metaChainShard = 4294967295;
 
 const esdtContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u';
@@ -37,6 +57,10 @@ const cache = {
 };
 
 module.exports = {
+  elasticUrl,
+  gatewayUrl,
+  vmQueryUrl,
+  buildUrls,
   metaChainShard,
   esdtContract,
   delegationContract,

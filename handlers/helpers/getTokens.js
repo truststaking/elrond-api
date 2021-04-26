@@ -1,64 +1,46 @@
-const vmQuery = require('./vmQuery');
-const getChunks = require('./getChunks');
-const { batchGetCache, batchPutCache, getCache, putCache } = require('./cache');
+const { axios } = require('./axiosWrapper');
+const { getCache, putCache } = require('./cache');
+
 const getTokenProperties = require('./getTokenProperties');
-const { esdtContract } = require(`../configs/${process.env.CONFIG}`);
+const batchProcess = require('./batchProcess');
+const { gatewayUrl } = require(`../configs/${process.env.CONFIG}`);
 
 const getTokens = async (args) => {
-  let skipCache = false;
+  let { skipCache } = args || {};
+  const key = 'getTokens';
 
-  if (args && args.skipCache) {
-    skipCache = args.skipCache;
+  if (!skipCache) {
+    const cached = await getCache({ key });
+
+    if (cached) {
+      return cached;
+    }
   }
 
-  const key = 'tokens';
-  const cached = await getCache({ key });
+  let {
+    data: {
+      data: { tokens: tokensIdentifiers },
+    },
+  } = await axios.get(`${gatewayUrl()}/network/esdts`);
 
-  if (cached && !skipCache) {
-    return cached;
-  }
-
-  const [allESDTTokensEncoded] = await vmQuery({
-    contract: esdtContract,
-    func: 'getAllESDTTokens',
+  let tokens = await batchProcess({
+    payload: tokensIdentifiers,
+    handler: getTokenProperties,
+    ttl: 3600, // 1h
   });
 
-  const tokensIdentifiers = Buffer.from(allESDTTokensEncoded, 'base64').toString().split('@');
+  const object = {};
 
-  let chunks = getChunks(tokensIdentifiers, 100);
+  tokens.forEach((token) => {
+    object[token.token] = token;
+  });
 
-  const cachedChunks = await Promise.all(
-    chunks.map((keys) => {
-      return batchGetCache({ keys });
-    })
-  );
+  tokens = {
+    object,
+    array: tokens,
+  };
 
-  let tokens = [];
-  const missing = [];
-
-  cachedChunks
-    .reduce((all, chunk) => {
-      return [...all, ...chunk];
-    })
-    .forEach((value, index) => {
-      if (value) {
-        tokens.push(value);
-      } else {
-        missing.push(tokensIdentifiers[index]);
-      }
-    });
-
-  chunks = getChunks(missing);
-
-  for (const keys of chunks) {
-    const values = await Promise.all(keys.map((identifier) => getTokenProperties(identifier)));
-
-    await batchPutCache({ keys, values, ttl: 180 });
-
-    tokens = [...tokens, ...values];
-  }
-
-  await putCache({ key, value: tokens, ttl: 60 });
+  await putCache({ key, value: tokens, ttl: 3600 }); // 1h
 
   return tokens;
 };

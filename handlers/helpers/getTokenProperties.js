@@ -7,8 +7,8 @@ const canBool = (string) => {
   return string.split('-').pop() === 'true';
 };
 
-const getTokenProperties = async (tokenIdentifier) => {
-  const arg = Buffer.from(tokenIdentifier, 'utf8').toString('hex');
+const getTokenProperties = async (token) => {
+  const arg = Buffer.from(token, 'utf8').toString('hex');
 
   const tokenPropertiesEncoded = await vmQuery({
     contract: esdtContract,
@@ -17,15 +17,16 @@ const getTokenProperties = async (tokenIdentifier) => {
   });
 
   const tokenProperties = tokenPropertiesEncoded.map((encoded, index) =>
-    Buffer.from(encoded, 'base64').toString(index === 1 ? 'hex' : undefined)
+    Buffer.from(encoded, 'base64').toString(index === 2 ? 'hex' : undefined)
   );
 
   const [
-    tokenName,
-    ownerAddress,
-    mintedValue,
-    burntValue,
-    numDecimals,
+    name,
+    type,
+    owner,
+    minted,
+    burnt,
+    decimals,
     isPaused,
     canUpgrade,
     canMint,
@@ -34,15 +35,20 @@ const getTokenProperties = async (tokenIdentifier) => {
     canPause,
     canFreeze,
     canWipe,
+    canAddSpecialRoles,
+    canTransferNFTCreateRole,
+    NFTCreateStopped,
+    wiped,
   ] = tokenProperties;
 
-  return {
-    tokenIdentifier,
-    tokenName,
-    ownerAddress: bech32.encode(ownerAddress),
-    mintedValue,
-    burntValue,
-    numDecimals: parseInt(numDecimals.split('-').pop()),
+  const tokenProps = {
+    token,
+    name,
+    type,
+    owner: bech32.encode(owner),
+    minted,
+    burnt,
+    decimals: parseInt(decimals.split('-').pop()),
     isPaused: canBool(isPaused),
     canUpgrade: canBool(canUpgrade),
     canMint: canBool(canMint),
@@ -51,7 +57,20 @@ const getTokenProperties = async (tokenIdentifier) => {
     canPause: canBool(canPause),
     canFreeze: canBool(canFreeze),
     canWipe: canBool(canWipe),
+    canAddSpecialRoles: canBool(canAddSpecialRoles),
+    canTransferNFTCreateRole: canBool(canTransferNFTCreateRole),
+    NFTCreateStopped: canBool(NFTCreateStopped),
+    wiped: wiped.split('-').pop(),
   };
+
+  if (type === 'FungibleESDT') {
+    delete tokenProps.canAddSpecialRoles;
+    delete tokenProps.canTransferNFTCreateRole;
+    delete tokenProps.NFTCreateStopped;
+    delete tokenProps.wiped;
+  }
+
+  return tokenProps;
 };
 
 module.exports = getTokenProperties;

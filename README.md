@@ -2,10 +2,17 @@ REST API facade facilitating the interactions with the Elrond blockchain.
 
 ## Quick start
 
-1. run `npm install` in the project directory
-2. optionally make edits to `config.js`
-3. Make sure you create a `.env` file in project root and specify the network config file that you want to use `CONFIG=<<config_filename>>`
+1. Run `npm install` in the project directory
+2. Optionally make edits to `config.js`
+3. Make sure you create a `.env` file in project root and specify the config information
 
+## .env Example content
+```
+CONFIG=mainnet/testnet/devnet
+PrivateElastic=true/false
+PrivateElasticUsername="username"
+PrivateElasticPassword="password"
+```
 ## Available Scripts
 
 ​

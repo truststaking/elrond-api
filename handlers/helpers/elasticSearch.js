@@ -36,6 +36,21 @@ const buildQuery = (query = {}) => {
   return query;
 };
 
+const getAuthHeaders = () => {
+  const token = Buffer.from(
+    `${process.env.PrivateElasticUsername}:${process.env.PrivateElasticPassword}`
+  ).toString('base64');
+  return 'Basic ' + token;
+};
+
+const isPrivate = () => {
+  if (process.env.PrivateElastic) {
+    return process.env.PrivateElastic;
+  } else {
+    return false;
+  }
+};
+
 const buildSort = (sort = {}) => {
   sort = Object.keys(sort).map((key) => {
     const obj = {};
@@ -70,25 +85,43 @@ const formatItem = ({ document, key }) => {
   return { ...item, ..._source };
 };
 
+const axiosRequestWrapper = async ({ method, URL, data, config = {} }) => {
+  if (isPrivate()) {
+    config = { ...config, headers: { ...config.headers, Authorization: getAuthHeaders() } };
+  }
+
+  if (method === 'POST') {
+    return await axios.post(URL, { ...data }, { ...config });
+  } else if (method === 'GET') {
+    return await axios.get(URL, { ...config });
+  }
+};
+
 const getList = async ({ collection, key, query, sort }) => {
   const url = `${elasticUrl()}/${collection}/_search`;
   const { from = 0, size = 25 } = query;
 
   query = buildQuery(query);
   sort = buildSort(sort);
-
   const {
     data: {
       hits: { hits: documents },
     },
-  } = await axios.post(url, { query, sort, from, size });
+  } = await axiosRequestWrapper({
+    method: 'POST',
+    URL: url,
+    data: { query, sort, from, size },
+  });
 
   return documents.map((document) => formatItem({ document, key }));
 };
 
 const getItem = async ({ collection, key, hash }) => {
   const url = `${elasticUrl()}/${collection}/_doc/${hash}`;
-  const { data: document } = await axios.get(url);
+  const { data: document } = await axiosRequestWrapper({
+    method: 'GET',
+    URL: url,
+  });
 
   return formatItem({ document, key });
 };
@@ -99,7 +132,7 @@ const getCount = async ({ collection, query }) => {
 
   const {
     data: { count },
-  } = await axios.post(url, { query });
+  } = await axiosRequestWrapper({ method: 'POST', URL: url, data: { query } });
 
   return count;
 };
@@ -119,7 +152,7 @@ const getBlses = async ({ shard, epoch }) => {
     data: {
       _source: { publicKeys },
     },
-  } = await axios.get(url);
+  } = await axiosRequestWrapper({ method: 'GET', URL: url });
 
   publicKeysCache[key] = publicKeys;
 
@@ -133,7 +166,7 @@ const getBlsIndex = async ({ bls, shard, epoch }) => {
     data: {
       _source: { publicKeys },
     },
-  } = await axios.get(url);
+  } = await axiosRequestWrapper({ method: 'GET', URL: url });
 
   const index = publicKeys.indexOf(bls);
 

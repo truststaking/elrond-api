@@ -14,6 +14,9 @@ const getValidators = require('./getValidators');
 const response = require('./response');
 const vmQuery = require('./vmQuery');
 const padHex = (value) => (value.length % 2 ? '0' + value : value);
+const getAddressTransactions = require('./getAddressTransactions');
+const getAddressHistory = require("./getAddressHistory");
+const denominate = require("./denominate");
 
 module.exports = {
   bech32,
@@ -33,4 +36,7 @@ module.exports = {
   response,
   vmQuery,
   padHex,
+  getAddressTransactions,
+  getAddressHistory,
+  denominate,
 };

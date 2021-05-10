@@ -93,6 +93,8 @@ exports.handler = async ({
         unstakedTokens: undefined,
       };
 
+      console.log('unStakedTokensListEncoded', unStakedTokensListEncoded);
+
       if (unStakedTokensListEncoded) {
         data.unstakedTokens = unStakedTokensListEncoded.reduce((result, value, index, array) => {
           if (index % 2 === 0) {
@@ -132,8 +134,7 @@ exports.handler = async ({
     try {
       const key = 'stake';
 
-      let data = null;
-      // await getCache({ key });
+      let data = await getCache({ key });
 
       if (data) {
         return response({ data, cache: moderate });

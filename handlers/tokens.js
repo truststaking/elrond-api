@@ -23,22 +23,22 @@ exports.handler = async ({
   let object;
 
   // attempt to not reload the nodes sooner than once every 30 seconds
-  if (
-    globalArray &&
-    globalObject &&
-    globalTimestamp &&
-    globalTimestamp + 30 < Math.floor(Date.now() / 1000)
-  ) {
-    array = globalArray;
-    object = globalObject;
-  } else {
-    const tokens = await getTokens();
-    array = tokens.array;
-    object = tokens.object;
-    globalArray = array;
-    globalObject = object;
-    globalTimestamp = Math.floor(Date.now() / 1000);
-  }
+  // if (
+  //   globalArray &&
+  //   globalObject &&
+  //   globalTimestamp &&
+  //   globalTimestamp + 30 < Math.floor(Date.now() / 1000)
+  // ) {
+  //   array = globalArray;
+  //   object = globalObject;
+  // } else {
+  const tokens = await getTokens();
+  array = tokens.array;
+  object = tokens.object;
+  globalArray = array;
+  globalObject = object;
+  globalTimestamp = Math.floor(Date.now() / 1000);
+  // }
 
   if (address) {
     try {

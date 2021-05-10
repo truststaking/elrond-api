@@ -125,8 +125,34 @@ exports.handler = async ({
         return true;
       });
 
-      if (sort && ['name', 'version', 'uptime', 'tempRating'].includes(sort)) {
-        data.sort((a, b) => (a[sort] > b[sort] ? 1 : b[sort] > a[sort] ? -1 : 0));
+      if (
+        sort &&
+        [
+          'name',
+          'version',
+          'uptime',
+          'tempRating',
+          'leaderSuccess',
+          'leaderFailure',
+          'validatorSuccess',
+          'validatorFailure',
+          'validatorIgnoredSignatures',
+        ].includes(sort)
+      ) {
+        data.sort((a, b) => {
+          let asort = a[sort];
+          let bsort = b[sort];
+
+          if (asort && typeof asort === 'string') {
+            asort = asort.toLowerCase();
+          }
+
+          if (bsort && typeof bsort === 'string') {
+            bsort = bsort.toLowerCase();
+          }
+
+          return asort > bsort ? 1 : bsort > asort ? -1 : 0;
+        });
 
         if (order === 'desc') {
           data.reverse();

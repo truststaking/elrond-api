@@ -1,24 +1,33 @@
-const { axios } = require('./helpers');
-
 const {
+  axios,
+  setForwardedHeaders,
   elasticSearch: { getList, getItem, getCount },
   response,
 } = require('./helpers');
 
-const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+const {
+  gatewayUrl,
+  cache: { skip, live },
+} = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
+  // eslint-disable-next-line no-unused-vars
   const { searchOrder, ...rest } = item;
   return { ...rest };
 };
 
-exports.handler = async ({ pathParameters, queryStringParameters }) => {
+exports.handler = async ({
+  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
+  pathParameters,
+  queryStringParameters,
+}) => {
+  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
   try {
     const collection = 'transactions';
     const key = 'txHash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-    let { fields } = query || {};
+
     const keys = [
       'sender',
       'receiver',
@@ -29,6 +38,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       'before',
       'after',
       'condition',
+      'miniBlockHash',
     ];
 
     Object.keys(query).forEach((key) => {
@@ -39,16 +49,19 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     let data;
     let status;
+    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
+        cache = live;
         break;
       }
       case hash !== undefined: {
         try {
           const item = await getItem({ collection, key, hash });
           data = await transformItem(item);
+          cache = live;
         } catch (error) {
           try {
             const {
@@ -97,6 +110,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               status,
               value,
             };
+            cache = skip;
           } catch (error) {
             status = 404;
           }
@@ -115,11 +129,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         for (const item of items) {
           data.push(await transformItem(item));
         }
+
+        cache = live;
         break;
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data, cache });
   } catch (error) {
     console.error('transactions error', error);
     return response({ status: 503 });

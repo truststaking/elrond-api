@@ -1,7 +1,12 @@
 const {
   elasticSearch: { getList, getCount, getBlses, getBlsIndex },
   response,
+  setForwardedHeaders,
 } = require('./helpers');
+
+const {
+  cache: { live },
+} = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   let { key, round, timestamp, blockWasProposed, signersIndexes } = item;
@@ -12,19 +17,24 @@ const transformItem = async (item) => {
   let [shard] = key.split('_');
   shard = parseInt(shard);
 
-  const publicKeys = await getBlses({ shard, epoch });
-  const signers = signersIndexes.map((index) => publicKeys[index]);
+  const blses = await getBlses({ shard, epoch });
+  // const signers = signersIndexes.map((index) => blses[index]);
 
-  return { round, shard, blockWasProposed, signers, timestamp };
+  return { round, shard, blockWasProposed, timestamp }; //signers
 };
 
-exports.handler = async ({ pathParameters, queryStringParameters }) => {
+exports.handler = async ({
+  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
+  pathParameters,
+  queryStringParameters,
+}) => {
+  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+
   try {
     const collection = 'rounds';
     const key = 'key';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-    let { fields } = query || {};
 
     const keys = ['shard', 'from', 'size', 'condition', 'signersIndexes'];
 
@@ -34,8 +44,11 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
       delete query.validator;
 
-      if (index) query.signersIndexes = index;
-      else query.signersIndexes = -1;
+      if (index) {
+        query.signersIndexes = index;
+      } else {
+        query.signersIndexes = -1;
+      }
     }
 
     Object.keys(query).forEach((key) => {
@@ -52,10 +65,12 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     let data;
     let status;
+    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
+        cache = live;
         break;
       }
       default: {
@@ -69,11 +84,13 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         for (const item of items) {
           data.push(await transformItem(item));
         }
+
+        cache = live;
         break;
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data, cache });
   } catch (error) {
     console.error('rounds error', error);
     return response({ status: 503 });

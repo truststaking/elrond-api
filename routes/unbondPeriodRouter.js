@@ -1,9 +1,9 @@
 const express = require('express');
 const router = express.Router();
-const { roundsHandler } = require('../handlers');
+const { unbondPeriodHandler } = require('../handlers');
 const { setForwardedHeaders } = require('../handlers/helpers');
 
-router.get('/rounds', async (req, res) => {
+router.get('/keys/:key/unbond-period', async (req, res) => {
   const {
     params: pathParameters = {},
     query: queryStringParameters = {},
@@ -12,7 +12,7 @@ router.get('/rounds', async (req, res) => {
 
   await setForwardedHeaders(requestHeaders);
 
-  const { statusCode, headers, body } = await roundsHandler({
+  const { statusCode, headers, body } = await unbondPeriodHandler({
     pathParameters,
     queryStringParameters,
   });

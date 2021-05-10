@@ -1,11 +1,18 @@
-const { axios } = require('./helpers');
+const { axios, setForwardedHeaders } = require('./helpers');
 
 const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+
 const { bech32, computeShard, response } = require('./helpers');
 
-exports.handler = async ({ body }) => {
+exports.handler = async ({
+  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
+  body,
+}) => {
+  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+  // TODO: limit body size
+
   try {
-    const { sender, receiver } = body;
+    const { sender, receiver } = JSON.parse(body);
 
     const receiverShard = computeShard(bech32.decode(receiver));
     const senderShard = computeShard(bech32.decode(sender));

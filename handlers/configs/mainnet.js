@@ -1,4 +1,4 @@
-const config = require('./config');
+const config = require('./configNew');
 
 config.elasticUrls = ['https://index.elrond.com'];
 config.gatewayUrls = ['https://gateway.elrond.com'];

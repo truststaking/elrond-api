@@ -1,146 +1,193 @@
-const getAddressTransactions = require('./getAddressTransactions')
+const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
 const e = require('express');
 
 const getAddressHistory = async (query) => {
-
-  
-
-  data = await getAddressTransactions({
+  let data = await getAddressTransactions({
     address: query.address,
     before: query.before,
   });
 
   // return data;
-  wallet = {
+  let wallet = {
     history: {},
-    active: new BigNumber("0"),
-    claimable: new BigNumber("0"),
-    available: new BigNumber("0"),
-    unDelegated: new BigNumber("0"),
-  }
-  for (const transaction of data['transactions'])
-  {
+    staked: new BigNumber('0'),
+    claimable: new BigNumber('0'),
+    available: new BigNumber('0'),
+    unDelegated: new BigNumber('0'),
+    count: data.transactions.length,
+    fees: new BigNumber('0'),
+  };
 
+  for (const transaction of data['transactions']) {
     let entry = null;
 
-
-    if (transaction.receiver !== null)
-    {
-      if (transaction.scResults !== null)
-      {
+    if (transaction.receiver !== null) {
+      wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(transaction.fee)));
+      wallet.available = wallet.available.minus(new BigNumber(Math.abs(transaction.fee)));
+      if (transaction.scResults && transaction.scResults.length > 0) {
+        transaction.scResults.forEach((scTX) => {
+          if (scTX.data === '@ok') {
+            console.log(transaction);
+            wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
+            wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+          }
+        });
+      }
+      if (transaction.scResults !== null) {
         let command = null;
-        if (transaction.data !== null)
-        {
-          command = transaction.data.split('@')[0]
+        if (transaction.data !== null) {
+          command = transaction.data.split('@')[0];
         }
-        let value;
         entry = {
           data: command,
           agency: transaction.receiver,
           txHash: transaction.txHash,
           value: transaction.value,
-          fee: transaction.fee
-        }
-        switch(command)
-        {
+          fee: Math.abs(transaction.fee),
+        };
+        switch (command) {
           case 'delegate':
-            wallet.active = wallet.active.plus(transaction.value);
-            wallet.available = wallet.available.minus(transaction.value);
+            // eslint-disable-next-line no-case-declarations
+            let TmpValueDel = new BigNumber('0');
+            if (transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                TmpValueDel = TmpValueDel.plus(new BigNumber(scTX.value));
+                if (scTX.data === undefined) {
+                  wallet.staked = wallet.staked.plus(new BigNumber(scTX.value));
+                }
+              });
+            }
+            entry.value = TmpValueDel.toFixed();
+            wallet.available = wallet.available.minus(new BigNumber(transaction.value));
             break;
           case 'reDelegateRewards':
-            if (transaction.scResults[0].data === undefined)
-            {
-              value = transaction.scResults[0].value;
+            // eslint-disable-next-line no-case-declarations
+            let TmpValueRe = new BigNumber('0');
+            if (transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                TmpValueRe = TmpValueRe.plus(new BigNumber(scTX.value));
+                if (scTX.data === undefined) {
+                  wallet.staked = wallet.staked.plus(new BigNumber(scTX.value));
+                }
+              });
             }
-            else if (transaction.scResults[1].data === undefined)
-            {
-              value = transaction.scResults[1].value;
-            }
-            else
-            {
-              console.log("error: reDelegateRewards no valid value");
-              break;
-            }
-            entry.value = value;
-            wallet.active = wallet.active.plus(value);
+            entry.value = TmpValueRe.toFixed();
             break;
           case 'claimRewards':
-            if (transaction.scResults[0].data === undefined)
-            {
-              value = transaction.scResults[0].value;
+            // eslint-disable-next-line no-case-declarations
+            let TmpValueClaim = new BigNumber('0');
+            if (transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                TmpValueClaim = TmpValueClaim.plus(new BigNumber(scTX.value));
+                if (scTX.data === undefined) {
+                  wallet.available = wallet.available.plus(new BigNumber(scTX.value));
+                }
+              });
             }
-            else if (transaction.scResults[1].data === undefined)
-            {
-              value = transaction.scResults[1].value;
-            }
-            else
-            {
-              console.log("error: claimRewards no valid value");
-              break;
-            }
-            entry.value = value;
-            wallet.available = wallet.available.plus(value);
+            entry.value = TmpValueClaim.toFixed();
             break;
           case 'unDelegate':
-            wallet.unDelegated = wallet.unDelegated.plus(transaction.value);
-            wallet.active = wallet.active.minus(transaction.value)
+            if (transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data === undefined) {
+                  wallet.unDelegated = wallet.unDelegated.plus(new BigNumber(scTX.value));
+                  wallet.staked = wallet.staked.minus(new BigNumber(scTX.value));
+                }
+              });
+            }
             break;
           case 'withdraw':
-            wallet.available = wallet.available.plus(transaction.value);
-            wallet.unDelegated = wallet.unDelegated.minus(transaction.value);
+            if (transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data === undefined) {
+                  wallet.unDelegated = wallet.unDelegated.minus(new BigNumber(scTX.value));
+                  wallet.available = wallet.available.plus(new BigNumber(scTX.value));
+                }
+              });
+            }
+            break;
+          case 'createNewDelegationContract':
+            wallet.available = wallet.available.minus(new BigNumber(transaction.value));
+            wallet.staked = wallet.staked.plus(new BigNumber(transaction.value));
             break;
           default:
-            console.log("warning: unknown transaction");
+            console.log('warning: unknown transaction');
             break;
         }
-      }
-      else
-      {
+      } else {
         entry = {
           receiver: transaction.receiver,
           txHash: transaction.txHash,
           value: transaction.value,
-          fee: transaction.fee
-        }
-        wallet.available = wallet.available.minus(transaction.value)
+          fee: transaction.fee,
+        };
+        wallet.available = wallet.available.minus(new BigNumber(transaction.value));
       }
-    }
-    else if (transaction.sender !== null && transaction.scResults === null)
-    {
+    } else if (transaction.sender !== null && transaction.scResults === null) {
       entry = {
         sender: transaction.sender,
         txHash: transaction.txHash,
         value: transaction.value,
-        fee: transaction.fee
-      }
-      wallet.available = wallet.available.plus(transaction.value)
+        fee: transaction.fee,
+      };
+      wallet.available = wallet.available.plus(new BigNumber(transaction.value));
+    } else {
+      console.log('warning: unknown transaction');
     }
-    else
-    {
-      console.log("warning: unknown transaction");
+    if (entry !== null) {
+      entry.value = await denominate({
+        input: entry.value,
+        denomination: 18,
+        decimals: 6,
+        addCommas: false,
+      });
+      entry.fee = await denominate({
+        input: entry.fee,
+        denomination: 18,
+        decimals: 6,
+        addCommas: false,
+      });
+      wallet.history[transaction.timestamp] = entry;
     }
-
-    if (transaction.receiver !== null)
-    {
-      wallet.available = wallet.available.minus(transaction.fee)
-    }
-    if (entry !== null)
-    {
-      entry.value = await denominate({input:entry.value, denomination: 18, decimals: 6, addCommas: false});
-      entry.fee = await denominate({input:entry.fee, denomination: 18, decimals: 6, addCommas: false});
-      wallet.history[transaction.timestamp] = entry;   
-    }
-
   }
 
-  wallet.active = await denominate({input:wallet.active, denomination: 18, decimals: 6, addCommas: false});
-  wallet.claimable = await denominate({input:wallet.claimable, denomination: 18, decimals: 6, addCommas: false});
-  wallet.available = await denominate({input:wallet.available, denomination: 18, decimals: 6, addCommas: false});
-  wallet.unDelegated = await denominate({input:wallet.unDelegated, denomination: 18, decimals: 6, addCommas: false});
-  return wallet;
+  wallet.staked = await denominate({
+    input: wallet.staked.toFixed(),
+    denomination: 18,
+    decimals: 6,
+    addCommas: false,
+  });
 
+  wallet.claimable = await denominate({
+    input: wallet.claimable.toFixed(),
+    denomination: 18,
+    decimals: 6,
+    addCommas: false,
+  });
+
+  wallet.available = await denominate({
+    input: wallet.available.toFixed(),
+    denomination: 18,
+    decimals: 6,
+    addCommas: false,
+  });
+
+  wallet.unDelegated = await denominate({
+    input: wallet.unDelegated.toFixed(),
+    denomination: 18,
+    decimals: 6,
+    addCommas: false,
+  });
+
+  wallet.fees = await denominate({
+    input: wallet.fees.toFixed(),
+    denomination: 18,
+    decimals: 6,
+    addCommas: false,
+  });
+  return wallet;
 };
 
 module.exports = getAddressHistory;

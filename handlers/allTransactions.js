@@ -6,10 +6,10 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         let query = queryStringParameters || {};
         let { fields } = query || {};
         const keys = [
+            'address',
             'receiver',
             'sender',
             'before',
-            'after',
             'ord'
         ];
 
@@ -21,6 +21,10 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         let data;
         let status;
+        if (query.before === undefined)
+        {
+          query.before = Math.floor(Date.now() / 1000);
+        }
         data = await getAddressTransactions(query);
         if (data['count'] == -1)
         {

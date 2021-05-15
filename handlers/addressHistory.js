@@ -7,6 +7,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         let { fields } = query || {};
         const keys = [
             'address',
+            'before',
         ];
 
         Object.keys(query).forEach((key) => {
@@ -17,7 +18,11 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
         let data;
         let status;
-        data = await getAddressHistory(query.address);
+        if (query.before === undefined)
+        {
+          query.before = Math.floor(Date.now() / 1000);
+        }
+        data = await getAddressHistory(query);
 
         return response({ status, data, fields });
     } catch (error) {

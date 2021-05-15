@@ -86,44 +86,38 @@ const getTransaction = async (query) =>
 
 const getAddressTransactions = async (query) => {
 
-  let now = Math.floor(Date.now() / 1000);
-  if (query.before === undefined)
-  {
-    query.before = now;
-  }
-
   let transactions = [];
   let count = 0;
+  const queryReceiver = {
+    receiver: query.address,
+    before: query.before,
+    from: '0',
+    size: '10000',
+    status: 'success',
+  }
+  if (query.sender !== undefined)
+  {
+    queryReceiver.sender = query.sender;
+  }
+  let dataReceiver = await getTransaction(queryReceiver);
+  count += dataReceiver['count'];
+  transactions = [...transactions, ...dataReceiver['transactions']]
+
+  const querySender = {
+    sender: query.address,
+    before: query.before,
+    from: '0',
+    size: '10000',
+    status: 'success',
+  }
   if (query.receiver !== undefined)
   {
-    const queryReceiver = {
-      receiver: query.receiver,
-      before: query.before,
-      after: query.after,
-      from: '0',
-      size: '10000',
-      status: 'success',
-    }
-    let dataReceiver = await getTransaction(queryReceiver);
-    count += dataReceiver['count'];
-    transactions = [...transactions, ...dataReceiver['transactions']]
+    querySender.receiver = query.receiver;
   }
+  let dataSender = await getTransaction(querySender)
+  count += dataSender['count']
+  transactions = [...transactions, ...dataSender['transactions']]
 
-  if (query.receiver !== undefined)
-  {
-    const querySender = {
-      sender: query.sender,
-      before: query.before,
-      after: query.after,
-      from: '0',
-      size: '10000',
-      status: 'success',
-    }
-
-    let dataSender = await getTransaction(querySender)
-    count += dataSender['count']
-    transactions = [...transactions, ...dataSender['transactions']]
-  }
   
 
   if (query.ord === undefined || (query.ord !== undefined && query.ord === 'asc'))

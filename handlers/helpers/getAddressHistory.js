@@ -3,9 +3,14 @@ const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
 const e = require('express');
 
-const getAddressHistory = async (address) => {
+const getAddressHistory = async (query) => {
 
-  data = await getAddressTransactions({receiver: address, sender: address});
+  
+
+  data = await getAddressTransactions({
+    address: query.address,
+    before: query.before,
+  });
 
   // return data;
   wallet = {

@@ -24,17 +24,9 @@ const getAddressHistory = async (query) => {
     let entry = null;
 
     if (transaction.receiver !== null) {
-      wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(transaction.fee)));
+      wallet.fees = wallet.fees.plus(Math.abs(new BigNumber(transaction.fee)));
       wallet.available = wallet.available.minus(new BigNumber(Math.abs(transaction.fee)));
-      if (transaction.scResults && transaction.scResults.length > 0) {
-        transaction.scResults.forEach((scTX) => {
-          if (scTX.data === '@ok') {
-            console.log(transaction);
-            wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
-            wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-          }
-        });
-      }
+
       if (transaction.scResults !== null) {
         let command = null;
         if (transaction.data !== null) {
@@ -112,6 +104,51 @@ const getAddressHistory = async (query) => {
             wallet.available = wallet.available.minus(new BigNumber(transaction.value));
             wallet.staked = wallet.staked.plus(new BigNumber(transaction.value));
             break;
+          case 'stake':
+            if (transaction.scResults && transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data === '@ok') {
+                  if (transaction.fee < 0) {
+                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.minus(new BigNumber(Math.abs(scTX.value)));
+                  } else {
+                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+                  }
+                }
+              });
+            }
+            break;
+          case 'unStake':
+            if (transaction.scResults && transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data === '@ok') {
+                  if (transaction.fee < 0) {
+                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+                  } else {
+                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+                  }
+                }
+              });
+            }
+            break;
+          case 'unBond':
+            if (transaction.scResults && transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data === '@ok') {
+                  if (transaction.fee < 0) {
+                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+                  } else {
+                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
+                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
+                  }
+                }
+              });
+            }
+            break;
           default:
             console.log('warning: unknown transaction');
             break;
@@ -153,35 +190,35 @@ const getAddressHistory = async (query) => {
     }
   }
 
-  wallet.staked = await denominate({
+  wallet.staked = denominate({
     input: wallet.staked.toFixed(),
     denomination: 18,
     decimals: 6,
     addCommas: false,
   });
 
-  wallet.claimable = await denominate({
+  wallet.claimable = denominate({
     input: wallet.claimable.toFixed(),
     denomination: 18,
     decimals: 6,
     addCommas: false,
   });
 
-  wallet.available = await denominate({
+  wallet.available = denominate({
     input: wallet.available.toFixed(),
     denomination: 18,
     decimals: 6,
     addCommas: false,
   });
 
-  wallet.unDelegated = await denominate({
+  wallet.unDelegated = denominate({
     input: wallet.unDelegated.toFixed(),
     denomination: 18,
     decimals: 6,
     addCommas: false,
   });
 
-  wallet.fees = await denominate({
+  wallet.fees = denominate({
     input: wallet.fees.toFixed(),
     denomination: 18,
     decimals: 6,

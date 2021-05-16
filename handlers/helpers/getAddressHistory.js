@@ -108,43 +108,8 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults && transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === '@ok') {
-                  if (transaction.fee < 0) {
-                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.minus(new BigNumber(Math.abs(scTX.value)));
-                  } else {
-                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-                  }
-                }
-              });
-            }
-            break;
-          case 'unStake':
-            if (transaction.scResults && transaction.scResults.length > 0) {
-              transaction.scResults.forEach((scTX) => {
-                if (scTX.data === '@ok') {
-                  if (transaction.fee < 0) {
-                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-                  } else {
-                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-                  }
-                }
-              });
-            }
-            break;
-          case 'unBond':
-            if (transaction.scResults && transaction.scResults.length > 0) {
-              transaction.scResults.forEach((scTX) => {
-                if (scTX.data === '@ok') {
-                  if (transaction.fee < 0) {
-                    wallet.fees = wallet.fees.plus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-                  } else {
-                    wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
-                    wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
-                  }
+                  wallet.fees = wallet.fees.minus(new BigNumber(Math.abs(scTX.value)));
+                  wallet.available = wallet.available.plus(new BigNumber(Math.abs(scTX.value)));
                 }
               });
             }

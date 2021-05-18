@@ -1,6 +1,13 @@
 const { getList, getCount } = require('./elasticSearch');
-const decodeBigNumber = require('@elrondnetwork/erdjs');
 const denominate = require('./denominate');
+const bech32 = require('./bech32');
+
+function hexToDec(hex) {
+  return hex
+    .toLowerCase()
+    .split('')
+    .reduce((result, ch) => result * 16 + '0123456789abcdefgh'.indexOf(ch), 0);
+}
 
 const getTransaction = async (query) => {
   const collection = 'transactions';
@@ -25,9 +32,28 @@ const getTransaction = async (query) => {
         for (const scResult of item.scResults) {
           let data =
             scResult.data != null ? Buffer.from(scResult.data, 'base64').toString() : scResult.data;
-          if (data != null) {
-            data = '@' + Buffer.from(data.substr(1), 'hex').toString();
+
+          if (data !== undefined)
+          {
+            var data_list = data.split('@');
+            var data_list_hex = [];
+            if (data_list.length > 1) {
+              data_list.forEach((info, index) => {
+                  if (index == 2 
+                    && Buffer.from(item.data, 'base64').toString().split('@')[0].localeCompare('createNewDelegationContract') == 0)
+                  {
+                    data_list_hex.push(bech32.decode(info));
+                  }
+                  else
+                  {
+                    data_list_hex.push(Buffer.from(info, 'hex').toString());
+                  }
+
+              });
+            }
+            data = data_list_hex.join("@")
           }
+
           scResults.push({
             data: data,
             value: scResult.value,
@@ -40,9 +66,6 @@ const getTransaction = async (query) => {
         sender = item.sender;
       } else {
         receiver = item.receiver;
-      }
-      if (item.txHash == '2733e72a9ca035df1c0c41197cfe574ad25ae3a5ce68abc6fa95ac6ace4835a5') {
-        let a = 10;
       }
       let data = item.data != null ? Buffer.from(item.data, 'base64').toString() : item.data;
       let transaction = {
@@ -57,14 +80,9 @@ const getTransaction = async (query) => {
       };
       if (data != null) {
         let values = data.split('@');
-        if (values[0] == 'unDelegate') {
+        if (values[0] == 'unDelegate' || values[0] == 'unStake') {
           transaction.data = values[0];
-          transaction.value = await denominate({
-            input: decodeBigNumber(Buffer.from(values[1], 'hex')).toFixed(),
-            denomination: 1,
-            decimals: 6,
-            addCommas: false,
-          });
+          transaction.value = denominate({input: hexToDec(values[1]), denomination: 1});
         }
       }
       transactions.push(transaction);

@@ -57,7 +57,7 @@ function format(big, denomination, decimals, showLastNonZeroDecimal, addCommas) 
 }
 
 
-const denominate = ({input, denomination, decimals, showLastNonZeroDecimal = false, addCommas = true}) => {
+const denominate = ({input, denomination = 18, decimals = 6, showLastNonZeroDecimal = false, addCommas = false}) => {
   if (input === '...') {
   return input;
   }

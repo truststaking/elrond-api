@@ -1,6 +1,7 @@
 const { getList, getCount } = require('./elasticSearch');
 const denominate = require('./denominate');
 const bech32 = require('./bech32');
+const BigNumber = require('bignumber.js');
 
 function hexToDec(hex) {
   return hex
@@ -82,7 +83,8 @@ const getTransaction = async (query) => {
         let values = data.split('@');
         if (values[0] == 'unDelegate' || values[0] == 'unStake') {
           transaction.data = values[0];
-          transaction.value = denominate({input: hexToDec(values[1]), denomination: 1});
+          transaction.value = denominate({input: new BigNumber(hexToDec(values[1])).toFixed(), denomination: 0});
+
         }
       }
       transactions.push(transaction);

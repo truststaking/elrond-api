@@ -67,9 +67,13 @@ const getAddressHistory = async (query) => {
               transaction.scResults.forEach((scTX) => {
                 TmpValueRe = TmpValueRe.plus(new BigNumber(scTX.value));
                 if (scTX.data === undefined) {
-                  wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
-                    new BigNumber(scTX.value)
-                  );
+                  if (wallet.staked[transaction.receiver]) {
+                    wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
+                      new BigNumber(scTX.value)
+                    );
+                  } else {
+                    wallet.staked[transaction.receiver] = new BigNumber(scTX.value);
+                  }
                 }
               });
             }
@@ -200,13 +204,27 @@ const getAddressHistory = async (query) => {
     }
   }
 
-  // wallet.staked = denominate({ input: wallet.staked.toFixed() });
+  wallet.staked = Object.keys(wallet.staked).map((address) => {
+    let value = denominate({ input: wallet.staked[address].toFixed() });
+    return { [address]: value };
+  });
 
   wallet.claimable = denominate({ input: wallet.claimable.toFixed() });
 
   wallet.available = denominate({ input: wallet.available.toFixed() });
 
-  // wallet.unDelegated = denominate({ input: wallet.unDelegated.toFixed() });
+  wallet.unDelegated = Object.keys(wallet.unDelegated).map((address) => {
+    let value = denominate({ input: wallet.unDelegated[address].toFixed() });
+    return { [address]: value };
+  });
+
+  wallet.history = Object.keys(wallet.history).map((timestamp) => {
+    const stakedResult = Object.keys(wallet.history[timestamp].staked).map((address) => {
+      let value = denominate({ input: wallet.history[timestamp].staked[address].toFixed() });
+      return { [address]: value };
+    });
+    return { ...wallet.history[timestamp], staked: stakedResult };
+  });
 
   wallet.fees = denominate({ input: wallet.fees.toFixed() });
   return wallet;

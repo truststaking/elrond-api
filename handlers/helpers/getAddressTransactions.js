@@ -34,25 +34,26 @@ const getTransaction = async (query) => {
           let data =
             scResult.data != null ? Buffer.from(scResult.data, 'base64').toString() : scResult.data;
 
-          if (data !== undefined)
-          {
+          if (data !== undefined) {
             var data_list = data.split('@');
             var data_list_hex = [];
             if (data_list.length > 1) {
               data_list.forEach((info, index) => {
-                  if (index == 2 
-                    && Buffer.from(item.data, 'base64').toString().split('@')[0].localeCompare('createNewDelegationContract') == 0)
-                  {
-                    data_list_hex.push(bech32.decode(info));
-                  }
-                  else
-                  {
-                    data_list_hex.push(Buffer.from(info, 'hex').toString());
-                  }
-
+                if (
+                  index == 2 &&
+                  Buffer.from(item.data, 'base64')
+                    .toString()
+                    .split('@')[0]
+                    .localeCompare('createNewDelegationContract') == 0
+                ) {
+                  console.log(bech32.encode(info));
+                  data_list_hex.push(bech32.encode(info));
+                } else {
+                  data_list_hex.push(Buffer.from(info, 'hex').toString());
+                }
               });
             }
-            data = data_list_hex.join("@")
+            data = data_list_hex.join('@');
           }
 
           scResults.push({
@@ -83,8 +84,10 @@ const getTransaction = async (query) => {
         let values = data.split('@');
         if (values[0] == 'unDelegate' || values[0] == 'unStake') {
           transaction.data = values[0];
-          transaction.value = denominate({input: new BigNumber(hexToDec(values[1])).toFixed(), denomination: 0});
-
+          transaction.value = denominate({
+            input: new BigNumber(hexToDec(values[1])).toFixed(),
+            denomination: 0,
+          });
         }
       }
       transactions.push(transaction);

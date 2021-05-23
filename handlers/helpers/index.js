@@ -17,6 +17,7 @@ const padHex = (value) => (value.length % 2 ? '0' + value : value);
 const getAddressTransactions = require('./getAddressTransactions');
 const getAddressHistory = require("./getAddressHistory");
 const denominate = require("./denominate");
+const getRewardsHistory = require('./getRewardsHistory');
 
 module.exports = {
   bech32,
@@ -39,4 +40,5 @@ module.exports = {
   getAddressTransactions,
   getAddressHistory,
   denominate,
+  getRewardsHistory,
 };

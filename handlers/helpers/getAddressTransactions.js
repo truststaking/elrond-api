@@ -46,7 +46,6 @@ const getTransaction = async (query) => {
                     .split('@')[0]
                     .localeCompare('createNewDelegationContract') == 0
                 ) {
-                  console.log(bech32.encode(info));
                   data_list_hex.push(bech32.encode(info));
                 } else {
                   data_list_hex.push(Buffer.from(info, 'hex').toString());

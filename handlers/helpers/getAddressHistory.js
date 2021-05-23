@@ -221,14 +221,12 @@ const getAddressHistory = async (query) => {
       entry.fees = denominate({ input: wallet.fees.toFixed() });
 
 
-      entry.staked = Object.keys(entry.staked).map((address) => {
-        let value = denominate({ input: new BigNumber(entry.staked[address]).toFixed() });
-        return { [address]: value };
+      Object.keys(entry.staked).map(function(address, value) {
+        entry.staked[address] = denominate({ input: new BigNumber(entry.staked[address]).toFixed() });
       });
 
-      entry.unDelegated = Object.keys(entry.unDelegated).map((address) => {
-        let value = denominate({ input: new BigNumber(entry.unDelegated[address]).toFixed() });
-        return { [address]: value };
+      Object.keys(entry.unDelegated).map(function(address, value) {
+        entry.unDelegated[address] = denominate({ input: new BigNumber(entry.unDelegated[address]).toFixed() });
       });
 
 
@@ -238,28 +236,18 @@ const getAddressHistory = async (query) => {
     }
   }
 
-  wallet.staked = Object.keys(wallet.staked).map((address) => {
-    let value = denominate({ input: wallet.staked[address].toFixed() });
-    return { [address]: value };
+  Object.keys(wallet.staked).map(function(address, value) {
+    wallet.staked[address] = denominate({ input: value.toFixed() });
   });
 
   wallet.claimable = denominate({ input: wallet.claimable.toFixed() });
 
   wallet.available = denominate({ input: wallet.available.toFixed() });
 
-  wallet.unDelegated = Object.keys(wallet.unDelegated).map((address) => {
-    let value = denominate({ input: wallet.unDelegated[address].toFixed() });
-    return { [address]: value };
+  Object.keys(wallet.unDelegated).map(function(address, value) {
+    wallet.unDelegated[address] = denominate({ input: wallet.unDelegated[address].toFixed() });
   });
-
-  wallet.history = Object.keys(wallet.history).map((timestamp) => {
-    const stakedResult = Object.keys(wallet.history[timestamp].staked).map((address) => {
-      let value = wallet.history[timestamp].staked[address]
-      return { [address]: value };
-    });
-    return { ...wallet.history[timestamp], staked: stakedResult };
-  });
-
+  
   wallet.fees = denominate({ input: wallet.fees.toFixed() });
   return wallet;
 };

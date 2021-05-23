@@ -18,6 +18,7 @@ const tokensRouter = require('./tokensRouter');
 const transactionsRouter = require('./transactionsRouter');
 const allTransactionsRouter = require('./allTransactionsRouter');
 const addressHistoryRouter = require('./addressHistoryRouter');
+const rewardsHistoryRouter = require('./rewardsHistoryRouter');
 
 module.exports = {
   indexRouter,
@@ -40,4 +41,5 @@ module.exports = {
   transactionsRouter,
   allTransactionsRouter,
   addressHistoryRouter,
+  rewardsHistoryRouter,
 };

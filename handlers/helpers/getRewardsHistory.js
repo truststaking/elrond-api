@@ -41,11 +41,11 @@ const calculateReward = async (epoch, amount, agency) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
-  console.log(Buffer.from(epoch.toString()).toString('hex'));
+  console.log('epoch: ' + epoch.toString() + " -hex:" + BytesValue.fromHex(Buffer.from(epoch.toString()).toString('hex')));
 
   let response = await delegationContract.runQuery(provider, {
     func: new ContractFunction('getRewardData'),
-    args: [BytesValue.fromHex(Buffer.from(epoch.toString()).toString('hex'))],
+    args: [BytesValue.fromHex('4EFCB')], //BytesValue.fromHex(Buffer.from(epoch.toString())
   });
 
   console.log(response);
@@ -66,26 +66,36 @@ const getRewardsHistory = async (query) => {
   };
   let data = await getAddressHistory(inner_query);
 
-  Object.keys(data.history).forEach(function (key) {
-    if (data.history[key].staked[query.agency]) {
-      rewardsHistory[getEpoch(key)] = data.history[key].staked[query.agency];
+  Object.keys(data.history).forEach(function (epoch) {
+    Object.keys(data.history[epoch]).forEach(function (timestamp) {
+    if (data.history[epoch][timestamp].staked[query.agency]) {
+      if (!(epoch in rewardsHistory))
+      {
+        rewardsHistory[epoch] = {};
+      }
+      rewardsHistory[epoch][query.agency] = data.history[epoch][timestamp].staked[query.agency];
     }
+    });
   });
-  let rewardsHistoryFull = {};
-  for (let key in rewardsHistory) {
-    // console.log(key);
-    await calculateReward(key, rewardsHistory[key], query.agency);
-    let last_key = parseInt(key);
+  let epochs = Object.keys(rewardsHistory)
+  epochs = epochs.slice(0, epochs.length - 1)
+  for (let epoch of epochs) {
+    let staked = query.agency in rewardsHistory[epoch] ? rewardsHistory[epoch][query.agency] : 0;
+    let last_epoch = parseInt(epoch);
     let i = 0;
-    // do {
-    //   let epoch = last_key + i;
-    //   console.log('\ti: ' + i.toString());
-    //   if (epoch >= Phase3.epoch) {
-    //     let reward = await calculateReward(epoch, rewardsHistory[key], query.agency);
-    //     rewardsHistoryFull[epoch] = (rewardsHistory[last_key], reward);
-    //   }
-    //   i++;
-    // } while (!(last_key + i in rewardsHistory));
+    do {
+      let current_epoch = last_epoch + i;
+      console.log('\ti: ' + i.toString());
+      if (current_epoch >= Phase3.epoch && staked != 0) {
+        let reward = await calculateReward(current_epoch, staked, query.agency);
+        if (!(current_epoch in rewardsHistory))
+        {
+          rewardsHistory[current_epoch] = {};
+        }
+        rewardsHistory[current_epoch][query.agency] = (rewardsHistory[last_epoch][query.agency], reward);
+      }
+      i++;
+    } while (!(last_epoch + i in rewardsHistory));
   }
   return rewardsHistory;
 };

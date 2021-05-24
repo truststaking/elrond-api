@@ -2,6 +2,33 @@ const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
 
+const Phase3 = {
+  timestamp: 1617633000,
+  epoch: 249,
+};
+
+const getEpoch = (timestamp) => {
+  var diff;
+  if (timestamp >= Phase3.timestamp) {
+    diff = timestamp - Phase3.timestamp;
+    return Phase3.epoch + Math.floor(diff / (60 * 60 * 24));
+  } else {
+    diff = Phase3.timestamp - timestamp;
+    return Phase3.epoch - Math.floor(diff / (60 * 60 * 24));
+  }
+};
+
+const getTimestampByEpoch = (epoch) => {
+  var diff;
+  if (epoch >= Phase3.epoch) {
+    diff = epoch - Phase3.epoch;
+    return diff * (60 * 60 * 24) + Phase3.timestamp;
+  } else {
+    diff = Phase3.epoch - epoch;
+    return Phase3.timestamp - diff * (60 * 60 * 24);
+  }
+};
+
 const getAddressHistory = async (query) => {
   let data = await getAddressTransactions({
     address: query.address,
@@ -17,13 +44,14 @@ const getAddressHistory = async (query) => {
     unDelegated: {},
     count: data.transactions.length,
     fees: new BigNumber('0'),
+    epochHistoryStaked: {},
   };
 
   for (const transaction of data['transactions']) {
     let entry = null;
+    const epochTX = getEpoch(transaction.timestamp);
     let fee = transaction.fee ? new BigNumber(transaction.fee) : transaction.fee;
     if (transaction.receiver !== null) {
-
       if (transaction.scResults !== null) {
         let command = null;
         if (transaction.data !== null) {
@@ -47,8 +75,28 @@ const getAddressHistory = async (query) => {
                     wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
                       new BigNumber(scTX.value)
                     );
+                    if (!wallet.epochHistoryStaked[epochTX]) {
+                      wallet.epochHistoryStaked[epochTX] = {
+                        staked: { [transaction.receiver]: new BigNumber(scTX.value) },
+                      };
+                    } else {
+                      if (!wallet.epochHistoryStaked[epochTX].staked[transaction.receiver]) {
+                        wallet.epochHistoryStaked[epochTX].staked[
+                          transaction.receiver
+                        ] = new BigNumber(scTX.value);
+                      } else {
+                        wallet.epochHistoryStaked[epochTX].staked[
+                          transaction.receiver
+                        ] = wallet.epochHistoryStaked[epochTX].staked[transaction.receiver].plus(
+                          new BigNumber(scTX.value)
+                        );
+                      }
+                    }
                   } else {
                     wallet.staked[transaction.receiver] = new BigNumber(scTX.value);
+                    wallet.epochHistoryStaked[epochTX] = {
+                      staked: { [transaction.receiver]: new BigNumber(scTX.value) },
+                    };
                   }
                 }
               });
@@ -67,6 +115,23 @@ const getAddressHistory = async (query) => {
                     wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
                       new BigNumber(scTX.value)
                     );
+                    if (!wallet.epochHistoryStaked[epochTX]) {
+                      wallet.epochHistoryStaked[epochTX] = {
+                        staked: { [transaction.receiver]: new BigNumber(scTX.value) },
+                      };
+                    } else {
+                      if (!wallet.epochHistoryStaked[epochTX].staked[transaction.receiver]) {
+                        wallet.epochHistoryStaked[epochTX].staked[
+                          transaction.receiver
+                        ] = new BigNumber(scTX.value);
+                      } else {
+                        wallet.epochHistoryStaked[epochTX].staked[
+                          transaction.receiver
+                        ] = wallet.epochHistoryStaked[epochTX].staked[transaction.receiver].plus(
+                          new BigNumber(scTX.value)
+                        );
+                      }
+                    }
                   } else {
                     wallet.staked[transaction.receiver] = new BigNumber(scTX.value);
                   }
@@ -94,6 +159,11 @@ const getAddressHistory = async (query) => {
                 if (scTX.data === undefined) {
                   wallet.unDelegated = wallet.unDelegated.plus(new BigNumber(scTX.value));
                   wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
+                    new BigNumber(scTX.value)
+                  );
+                  wallet.epochHistoryStaked[epochTX].staked[
+                    transaction.receiver
+                  ] = wallet.epochHistoryStaked[epochTX].staked[transaction.receiver].minus(
                     new BigNumber(scTX.value)
                   );
                 }
@@ -130,8 +200,7 @@ const getAddressHistory = async (query) => {
                   // else {
                   //   fee = fee.minus(new BigNumber(scTX.value));
                   // }
-                  fee = new BigNumber("57000000000000");
-
+                  fee = new BigNumber('57000000000000');
                 } else if (scTX.data === undefined) {
                   wallet.available = wallet.available.minus(new BigNumber(scTX.value));
                   if (!(transaction.receiver in wallet.staked)) {
@@ -149,12 +218,11 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults && transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === '@ok') {
-                  fee = new BigNumber("89000000000000");
+                  fee = new BigNumber('89000000000000');
                   // eslint-disable-next-line no-case-declarations
                   let value = new BigNumber(transaction.value);
 
-                  if (value.gt(wallet.staked[transaction.receiver].toFixed()))
-                  {
+                  if (value.gt(wallet.staked[transaction.receiver].toFixed())) {
                     value = wallet.staked[transaction.receiver];
                     transaction.value = value;
                   }
@@ -165,7 +233,9 @@ const getAddressHistory = async (query) => {
                       transaction.receiver
                     ].plus(value.toFixed());
                   }
-                  wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(value.toFixed());
+                  wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
+                    value.toFixed()
+                  );
                 }
               });
             }
@@ -175,10 +245,11 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults && transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === '@ok') {
-                  fee = new BigNumber("59000000000000");
-                }
-                else if (scTX.data === '') {
-                  wallet.unDelegated[transaction.receiver] = wallet.unDelegated[transaction.receiver].minus(new BigNumber(scTX.value));
+                  fee = new BigNumber('59000000000000');
+                } else if (scTX.data === '') {
+                  wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
+                    transaction.receiver
+                  ].minus(new BigNumber(scTX.value));
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 }
               });
@@ -218,25 +289,30 @@ const getAddressHistory = async (query) => {
       entry.claimable = denominate({ input: wallet.claimable.toFixed() });
       entry.available = denominate({ input: wallet.available.toFixed() });
       entry.unDelegated = JSON.parse(JSON.stringify(wallet.unDelegated));
+      entry.epoch = epochTX;
       entry.fees = denominate({ input: wallet.fees.toFixed() });
 
-
-      Object.keys(entry.staked).map(function(address, value) {
-        entry.staked[address] = denominate({ input: new BigNumber(entry.staked[address]).toFixed() });
+      Object.keys(entry.staked).forEach(function (address, value) {
+        entry.staked[address] = denominate({
+          input: new BigNumber(entry.staked[address]).toFixed(),
+        });
       });
 
-      Object.keys(entry.unDelegated).map(function(address, value) {
-        entry.unDelegated[address] = denominate({ input: new BigNumber(entry.unDelegated[address]).toFixed() });
+      Object.keys(entry.unDelegated).forEach(function (address, value) {
+        entry.unDelegated[address] = denominate({
+          input: new BigNumber(entry.unDelegated[address]).toFixed(),
+        });
       });
 
-
-
-
-      wallet.history[transaction.timestamp] = entry;
+      if (!wallet.history[epochTX]) {
+        wallet.history[epochTX] = { [transaction.timestamp]: entry };
+      } else {
+        wallet.history[epochTX] = { [transaction.timestamp]: entry, ...wallet.history[epochTX] };
+      }
     }
   }
 
-  Object.keys(wallet.staked).map(function(address, value) {
+  Object.keys(wallet.staked).forEach(function (address, value) {
     wallet.staked[address] = denominate({ input: value.toFixed() });
   });
 
@@ -244,10 +320,16 @@ const getAddressHistory = async (query) => {
 
   wallet.available = denominate({ input: wallet.available.toFixed() });
 
-  Object.keys(wallet.unDelegated).map(function(address, value) {
+  Object.keys(wallet.unDelegated).forEach(function (address) {
     wallet.unDelegated[address] = denominate({ input: wallet.unDelegated[address].toFixed() });
   });
-  
+  Object.keys(wallet.epochHistoryStaked).forEach(function (epoch) {
+    Object.keys(wallet.epochHistoryStaked[epoch].staked).forEach((address) => {
+      wallet.epochHistoryStaked[epoch].staked[address] = denominate({
+        input: wallet.epochHistoryStaked[epoch].staked[address].toFixed(),
+      });
+    });
+  });
   wallet.fees = denominate({ input: wallet.fees.toFixed() });
   return wallet;
 };

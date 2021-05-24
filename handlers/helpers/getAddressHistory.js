@@ -6,7 +6,6 @@ const Phase3 = {
   timestamp: 1617633000,
   epoch: 249,
 };
-
 const getEpoch = (timestamp) => {
   var diff;
   if (timestamp >= Phase3.timestamp) {

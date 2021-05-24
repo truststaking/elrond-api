@@ -2,8 +2,8 @@ const getAddressHistory = require('./getAddressHistory');
 const {
   ContractFunction,
   ProxyProvider,
-  Address,
   BytesValue,
+  Address,
   SmartContract,
 } = require('@elrondnetwork/erdjs');
 
@@ -13,6 +13,7 @@ const Phase3 = {
 };
 
 const mainnet_proxy = new ProxyProvider('https://gateway.elrond.com');
+
 
 const getEpoch = (timestamp) => {
   var diff;
@@ -36,19 +37,46 @@ const getTimestampByEpoch = (epoch) => {
   }
 };
 
+function DecimalHexTwosComplement(decimal) {
+  var size = 8;
+
+  if (decimal >= 0) {
+    var hexadecimal = decimal.toString(16);
+
+    while (hexadecimal.length % size != 0) {
+      hexadecimal = '' + 0 + hexadecimal;
+    }
+
+    return hexadecimal;
+  } else {
+    hexadecimal = Math.abs(decimal).toString(16);
+    while (hexadecimal.length % size != 0) {
+      hexadecimal = '' + 0 + hexadecimal;
+    }
+
+    var output = '';
+    for (let i = 0; i < hexadecimal.length; i++) {
+      output += (0x0f - parseInt(hexadecimal[i], 16)).toString(16);
+    }
+
+    output = (0x01 + parseInt(output, 16)).toString(16);
+    return output;
+  }
+}
 const calculateReward = async (epoch, amount, agency) => {
-  let res = getTimestampByEpoch(epoch);
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
-  console.log('epoch: ' + epoch.toString() + " -hex:" + BytesValue.fromHex(Buffer.from(epoch.toString()).toString('hex')));
+  let response;
+  if (epoch) {
+    response = await delegationContract.runQuery(provider, {
+      func: new ContractFunction('getRewardData'),
+      args: [BytesValue.fromHex(DecimalHexTwosComplement(epoch))],
+    });
+  } else {
+    console.log('Error');
+  }
 
-  let response = await delegationContract.runQuery(provider, {
-    func: new ContractFunction('getRewardData'),
-    args: [BytesValue.fromHex('4EFCB')], //BytesValue.fromHex(Buffer.from(epoch.toString())
-  });
-
-  console.log(response);
   return response;
 };
 
@@ -68,17 +96,16 @@ const getRewardsHistory = async (query) => {
 
   Object.keys(data.history).forEach(function (epoch) {
     Object.keys(data.history[epoch]).forEach(function (timestamp) {
-    if (data.history[epoch][timestamp].staked[query.agency]) {
-      if (!(epoch in rewardsHistory))
-      {
-        rewardsHistory[epoch] = {};
+      if (data.history[epoch][timestamp].staked[query.agency]) {
+        if (!(epoch in rewardsHistory)) {
+          rewardsHistory[epoch] = {};
+        }
+        rewardsHistory[epoch][query.agency] = data.history[epoch][timestamp].staked[query.agency];
       }
-      rewardsHistory[epoch][query.agency] = data.history[epoch][timestamp].staked[query.agency];
-    }
     });
   });
-  let epochs = Object.keys(rewardsHistory)
-  epochs = epochs.slice(0, epochs.length - 1)
+  let epochs = Object.keys(rewardsHistory);
+  epochs = epochs.slice(0, epochs.length - 1);
   for (let epoch of epochs) {
     let staked = query.agency in rewardsHistory[epoch] ? rewardsHistory[epoch][query.agency] : 0;
     let last_epoch = parseInt(epoch);
@@ -87,12 +114,13 @@ const getRewardsHistory = async (query) => {
       let current_epoch = last_epoch + i;
       console.log('\ti: ' + i.toString());
       if (current_epoch >= Phase3.epoch && staked != 0) {
+        console.log(current_epoch);
         let reward = await calculateReward(current_epoch, staked, query.agency);
-        if (!(current_epoch in rewardsHistory))
-        {
+        if (!(current_epoch in rewardsHistory)) {
           rewardsHistory[current_epoch] = {};
         }
-        rewardsHistory[current_epoch][query.agency] = (rewardsHistory[last_epoch][query.agency], reward);
+        rewardsHistory[current_epoch][query.agency] =
+          (rewardsHistory[last_epoch][query.agency], reward);
       }
       i++;
     } while (!(last_epoch + i in rewardsHistory));

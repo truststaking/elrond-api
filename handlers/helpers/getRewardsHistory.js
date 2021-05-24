@@ -6,6 +6,8 @@ const {
   Address,
   SmartContract,
 } = require('@elrondnetwork/erdjs');
+const BigNumber = require('bignumber.js');
+const denominate = require('./denominate');
 
 const Phase3 = {
   timestamp: 1617633000,
@@ -63,21 +65,40 @@ function DecimalHexTwosComplement(decimal) {
     return output;
   }
 }
+function hexToDec(hex) {
+  return hex
+    .toLowerCase()
+    .split('')
+    .reduce((result, ch) => result * 16 + '0123456789abcdefgh'.indexOf(ch), 0);
+}
+
 const calculateReward = async (epoch, amount, agency) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
   let response;
+  let reward = 0;
   if (epoch) {
     response = await delegationContract.runQuery(provider, {
       func: new ContractFunction('getRewardData'),
       args: [BytesValue.fromHex(DecimalHexTwosComplement(epoch))],
     });
+    if (response.returnCode.text == 'ok')
+    {
+      let agency_reward = {
+        rewardDistributed: new BigNumber(hexToDec(Buffer.from(response.returnData[0], 'base64').toString('hex'))).toFixed(),
+        totalActiveStake: new BigNumber(hexToDec(Buffer.from(response.returnData[1], 'base64').toString('hex'))).toFixed(),
+        serviceFee: new BigNumber(hexToDec(Buffer.from(response.returnData[2], 'base64').toString('hex'))).toFixed(),
+      }
+      var contribution = new BigNumber(amount);
+      contribution = contribution / agency_reward.totalActiveStake;
+      reward = agency_reward.rewardDistributed * (100 - agency_reward.serviceFee / 100) / 100 * contribution;
+    }
   } else {
     console.log('Error');
   }
 
-  return response;
+  return denominate({input: reward});
 };
 
 const getRewardsHistory = async (query) => {
@@ -105,6 +126,7 @@ const getRewardsHistory = async (query) => {
     });
   });
   let epochs = Object.keys(rewardsHistory);
+  let latest_epoch = Math.max(parseInt(epochs[epochs.length - 1]),Phase3.epoch);
   epochs = epochs.slice(0, epochs.length - 1);
   for (let epoch of epochs) {
     let staked = query.agency in rewardsHistory[epoch] ? rewardsHistory[epoch][query.agency] : 0;
@@ -119,12 +141,24 @@ const getRewardsHistory = async (query) => {
         if (!(current_epoch in rewardsHistory)) {
           rewardsHistory[current_epoch] = {};
         }
-        rewardsHistory[current_epoch][query.agency] =
-          (rewardsHistory[last_epoch][query.agency], reward);
+        rewardsHistory[current_epoch][query.agency] = (staked, reward);
       }
       i++;
     } while (!(last_epoch + i in rewardsHistory));
   }
+  let last_staked = rewardsHistory[latest_epoch][query.agency];
+  if (last_staked)
+  {
+    let now = getEpoch(Math.floor(Date.now() / 1000));
+    for (let epoch = latest_epoch; epoch <= now; ++epoch){
+      let reward = await calculateReward(epoch, last_staked, query.agency);
+        if (!(epoch in rewardsHistory)) {
+          rewardsHistory[epoch] = {};
+        }
+        rewardsHistory[epoch][query.agency] = (last_staked, reward);
+    }
+  }
+
   return rewardsHistory;
 };
 

@@ -291,11 +291,11 @@ const getAddressHistory = async (query) => {
       entry.epoch = epochTX;
       entry.fees = denominate({ input: wallet.fees.toFixed() });
 
-      Object.keys(entry.staked).forEach(function (address, value) {
-        entry.staked[address] = denominate({
-          input: new BigNumber(entry.staked[address]).toFixed(),
-        });
-      });
+      // Object.keys(entry.staked).forEach(function (address, value) {
+      //   entry.staked[address] = denominate({
+      //     input: new BigNumber(entry.staked[address]).toFixed(),
+      //   });
+      // });
 
       Object.keys(entry.unDelegated).forEach(function (address, value) {
         entry.unDelegated[address] = denominate({
@@ -311,9 +311,9 @@ const getAddressHistory = async (query) => {
     }
   }
 
-  Object.keys(wallet.staked).forEach(function (address, value) {
-    wallet.staked[address] = denominate({ input: value.toFixed() });
-  });
+  // Object.keys(wallet.staked).forEach(function (address, value) {
+  //   wallet.staked[address] = denominate({ input: value.toFixed() });
+  // });
 
   wallet.claimable = denominate({ input: wallet.claimable.toFixed() });
 

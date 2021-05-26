@@ -7,7 +7,7 @@ const { statuses } = require(`./handlers/configs/${process.env.CONFIG}`);
 const { prewarmHandler } = require('./handlers');
 
 const app = express();
-const port = 3000;
+const port = 8000;
 
 app.use(metricsRequestMiddleware);
 

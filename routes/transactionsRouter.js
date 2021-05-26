@@ -1,16 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { transactionsHandler, transactionsCreateHandler } = require('../handlers');
-const { setForwardedHeaders } = require('../handlers/helpers');
 
 router.get(['/transactions', '/transactions/:hash'], async (req, res) => {
-  const {
-    params: pathParameters = {},
-    query: queryStringParameters = {},
-    headers: requestHeaders = {},
-  } = req;
-
-  await setForwardedHeaders(requestHeaders);
+  const { params: pathParameters = {}, query: queryStringParameters = {} } = req;
 
   const { statusCode, headers, body } = await transactionsHandler({
     pathParameters,
@@ -21,11 +14,11 @@ router.get(['/transactions', '/transactions/:hash'], async (req, res) => {
 });
 
 router.post('/transactions', async (req, res) => {
-  const { body: payload, headers: requestHeaders = {} } = req;
+  const { body: payload } = req;
 
-  await setForwardedHeaders(requestHeaders);
-
-  const { statusCode, headers, body } = await transactionsCreateHandler({ body: payload });
+  const { statusCode, headers, body } = await transactionsCreateHandler({
+    body: JSON.stringify(payload),
+  });
 
   res.status(statusCode).set(headers).json(body);
 });

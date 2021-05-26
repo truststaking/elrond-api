@@ -6,11 +6,7 @@ const {
   response,
 } = require('./helpers');
 
-const {
-  cache: { moderate: cache },
-  delegationManagerContract,
-  network,
-} = require(`./configs/${process.env.CONFIG}`);
+const { delegationManagerContract, network } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async () => {
   try {
@@ -19,7 +15,7 @@ exports.handler = async () => {
     const cached = await getCache({ key });
 
     if (cached) {
-      return response({ data: cached, cache });
+      return response({ data: cached });
     }
 
     const [providers, configsBase64] = await Promise.all([
@@ -61,7 +57,7 @@ exports.handler = async () => {
 
     await putCache({ key, value: data, ttl: 600 }); // 10m
 
-    return response({ data, cache });
+    return response({ data });
   } catch (error) {
     if (network === 'mainnet') {
       console.error('delegation error', error);
@@ -75,7 +71,7 @@ exports.handler = async () => {
         minDelegation: '0',
       };
 
-      return response({ data, cache });
+      return response({ data });
     }
   }
 };

@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { proxyhandler } = require('../handlers');
-const { setForwardedHeaders } = require('../handlers/helpers');
 
 router.get(
   [
@@ -28,9 +27,7 @@ router.get(
     '/hyperblock/by-hash/:hash',
   ],
   async (req, res) => {
-    const { headers: requestHeaders = {}, body: payload, path } = req;
-
-    await setForwardedHeaders(requestHeaders);
+    const { body: payload, path } = req;
 
     const { statusCode, headers, body } = await proxyhandler({
       httpMethod: 'GET',
@@ -54,9 +51,7 @@ router.post(
     '/vm-values/query',
   ],
   async (req, res) => {
-    const { headers: requestHeaders = {}, body: payload, path } = req;
-
-    await setForwardedHeaders(requestHeaders);
+    const { body: payload, path } = req;
 
     const { statusCode, headers, body } = await proxyhandler({
       httpMethod: 'POST',

@@ -1,30 +1,38 @@
-const { axios, response } = require('./helpers');
+const axios = require('axios');
 
-const {
-  network,
-  cache: { skip },
-} = require(`./configs/${process.env.CONFIG}`);
+const { response } = require('./helpers');
+
+const { network, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async ({ httpMethod, body, path }) => {
-  if (!['mainnet', 'internal'].includes(network)) {
-    throw new Error('move to gateway hostname');
-  }
+  // if (!['mainnet', 'internal'].includes(network)) {
+  //   throw new Error('move to gateway hostname');
+  // }
 
   try {
     const { data } = await axios({
       method: httpMethod.toLowerCase(),
       url: gatewayUrl() + path,
       data: body,
+      ...axiosConfig,
     });
 
-    return response({ data, cache: skip });
+    return response({ data });
   } catch (error) {
-    const {
-      response: { status, data },
-    } = error;
+    let status = 200;
+    let data;
 
-    return response({ status, data, cache: skip });
+    if (error.response) {
+      status = error.response.status;
+      data = error.response.data;
+    } else if (error.request) {
+      status = 500;
+    } else {
+      status = 503;
+    }
+
+    return response({ status, data });
   }
 };

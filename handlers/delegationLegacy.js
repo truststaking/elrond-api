@@ -5,10 +5,7 @@ const numberDecode = (encoded) => {
   return BigInt(hex ? '0x' + hex : hex).toString();
 };
 
-const {
-  cache: { moderate: cache },
-  delegationContract,
-} = require(`./configs/${process.env.CONFIG}`);
+const { delegationContract } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async ({ pathParameters }) => {
   try {
@@ -53,7 +50,7 @@ exports.handler = async ({ pathParameters }) => {
         claimableRewards,
       };
 
-      return response({ data, cache });
+      return response({ data });
     } else {
       const [totalStakeByTypeEncoded, numUsersEncoded] = await Promise.all([
         vmQuery({
@@ -85,7 +82,7 @@ exports.handler = async ({ pathParameters }) => {
         numUsers,
       };
 
-      return response({ data, cache });
+      return response({ data });
     }
   } catch (error) {
     console.error('delegation error', error);

@@ -1,10 +1,12 @@
-const { axios, response } = require('./helpers');
+const axios = require('axios');
+
+const { response } = require('./helpers');
 
 const {
   gatewayUrl,
   elasticUrl,
   metaChainShard,
-  cache: { live },
+  axiosConfig,
 } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async () => {
@@ -38,11 +40,11 @@ exports.handler = async () => {
         data: { count: transactions },
       },
     ] = await Promise.all([
-      axios.get(`${gatewayUrl()}/network/config`),
-      axios.get(`${gatewayUrl()}/network/status/${metaChainShard}`),
-      axios.get(`${elasticUrl()}/blocks/_count`),
-      axios.get(`${elasticUrl()}/accounts/_count`),
-      axios.get(`${elasticUrl()}/transactions/_count`),
+      axios.get(`${gatewayUrl()}/network/config`, axiosConfig),
+      axios.get(`${gatewayUrl()}/network/status/${metaChainShard}`, axiosConfig),
+      axios.get(`${elasticUrl()}/blocks/_count`, axiosConfig),
+      axios.get(`${elasticUrl()}/accounts/_count`, axiosConfig),
+      axios.get(`${elasticUrl()}/transactions/_count`, axiosConfig),
     ]);
 
     return response({
@@ -56,7 +58,6 @@ exports.handler = async () => {
         roundsPassed,
         roundsPerEpoch,
       },
-      cache: live,
     });
   } catch (error) {
     console.error('stats error', error);

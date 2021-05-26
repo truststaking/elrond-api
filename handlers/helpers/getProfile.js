@@ -1,11 +1,14 @@
-const { axios } = require('./axiosWrapper');
+const axios = require('axios');
+
+const { axiosConfig } = require(`../configs/${process.env.CONFIG}`);
 
 const getProfile = async (identity) => {
   let value;
 
   try {
     const { status, data } = await axios.get(
-      `https://keybase.io/_/api/1.0/user/lookup.json?username=${identity}`
+      `https://keybase.io/_/api/1.0/user/lookup.json?username=${identity}`,
+      axiosConfig
     );
 
     if (status === 200 && data.status.code === 0) {

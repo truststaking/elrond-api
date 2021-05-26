@@ -2,7 +2,14 @@ const asyncPool = require('tiny-async-pool');
 
 const { batchGetCache, batchPutCache, hashKey } = require('./cache');
 
-const { processTtl, poolLimit, network } = require(`../configs/${process.env.CONFIG}`);
+const getChunks = require('./getChunks');
+
+const {
+  processTtl,
+  poolLimit,
+  network,
+  processLimit,
+} = require(`../configs/${process.env.CONFIG}`);
 
 const batchProcess = async ({ payload, handler, ttl = processTtl, skipCache = false }) => {
   if (!handler.name) {
@@ -22,32 +29,39 @@ const batchProcess = async ({ payload, handler, ttl = processTtl, skipCache = fa
     .map((element, index) => (element === null ? index : false))
     .filter((element) => element !== false);
 
-  let values;
+  let output = [];
 
-  if (missing.length) {
-    values = await asyncPool(
-      poolLimit,
-      missing.map((index) => payload[index]),
-      handler
-    );
+  const chunks = getChunks(missing, processLimit);
 
-    const params = {
-      keys: keys.filter((key, index) => missing.includes(index)),
-      values,
-      ttls: values.map((value) => (value ? ttl : Math.min(ttl, processTtl))),
-    };
+  let counter = 0;
 
-    await batchPutCache(params);
+  for (const chunk of chunks) {
+    let values;
+
+    counter++;
+    console.log('chunk ', counter, ' of ', chunks.length);
+
+    if (chunk.length) {
+      values = await asyncPool(
+        poolLimit,
+        chunk.map((value) => payload[value]),
+        handler
+      );
+
+      const params = {
+        keys: keys.filter((key, index) => chunk.includes(index)),
+        values,
+        ttls: values.map((value) => (value ? ttl : Math.min(ttl, processTtl))),
+      };
+
+      await batchPutCache(params);
+    }
+
+    output = output.concat(values);
   }
 
-  //   console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -');
-  //   console.log('cached', JSON.stringify(cached));
-  //   console.log('missing', JSON.stringify(missing));
-  //   console.log('values', JSON.stringify(values));
-  //   console.log(' - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -');
-
   return keys.map((key, index) =>
-    missing.includes(index) ? values[missing.indexOf(index)] : cached[index]
+    missing.includes(index) ? output[missing.indexOf(index)] : cached[index]
   );
 };
 

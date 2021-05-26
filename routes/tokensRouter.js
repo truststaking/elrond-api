@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const { tokensHandler } = require('../handlers');
-const { setForwardedHeaders } = require('../handlers/helpers');
 
 router.get(
   [
@@ -11,13 +10,7 @@ router.get(
     '/accounts/:hash/tokens/:identifier',
   ],
   async (req, res) => {
-    const {
-      params: pathParameters = {},
-      query: queryStringParameters = {},
-      headers: requestHeaders = {},
-    } = req;
-
-    await setForwardedHeaders(requestHeaders);
+    const { params: pathParameters = {}, query: queryStringParameters = {} } = req;
 
     const { statusCode, headers, body } = await tokensHandler({
       pathParameters,

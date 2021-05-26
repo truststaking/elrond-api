@@ -1,12 +1,7 @@
 const {
-  setForwardedHeaders,
   elasticSearch: { getList, getItem, getCount, getBlses, getBlsIndex },
   response,
 } = require('./helpers');
-
-const {
-  cache: { live, final },
-} = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
@@ -20,13 +15,7 @@ const transformItem = async (item) => {
   return { shard, epoch, proposer, validators, ...rest };
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'blocks';
     const key = 'hash';
@@ -65,18 +54,15 @@ exports.handler = async ({
 
     let data;
     let status;
-    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
-        cache = live;
         break;
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
         data = await transformItem(item);
-        cache = final;
         break;
       }
       default: {
@@ -91,12 +77,11 @@ exports.handler = async ({
           data.push(await transformItem(item));
         }
 
-        cache = live;
         break;
       }
     }
 
-    return response({ status, data, cache });
+    return response({ status, data });
   } catch (error) {
     console.error('blocks error', error);
     return response({ status: 503 });

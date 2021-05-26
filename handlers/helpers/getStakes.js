@@ -6,12 +6,16 @@ const { getCache, putCache } = require('./cache');
 const { auctionContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getStakedTopup = async (address) => {
-  const response = await vmQuery({
-    contract: auctionContract,
-    caller: auctionContract,
-    func: 'getTotalStakedTopUpStakedBlsKeys',
-    args: [bech32.decode(address)],
-  });
+  let response;
+
+  if (address) {
+    response = await vmQuery({
+      contract: auctionContract,
+      caller: auctionContract,
+      func: 'getTotalStakedTopUpStakedBlsKeys',
+      args: [bech32.decode(address)],
+    });
+  }
 
   if (!response) {
     return {

@@ -1,4 +1,3 @@
-
 const confirmKeybase = require('./confirmKeybase');
 const batchProcess = require('./batchProcess');
 const getHeartbeat = require('./getHeartbeat');
@@ -98,6 +97,8 @@ const getNodes = async (args) => {
   let addresses = nodes
     .filter(({ type }) => type === 'validator')
     .map(({ owner, provider }) => (provider ? provider : owner));
+
+  addresses = addresses.filter((el) => el != undefined);
 
   addresses = [...new Set(addresses)];
 

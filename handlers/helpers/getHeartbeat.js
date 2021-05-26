@@ -1,6 +1,6 @@
-const { axios } = require('./axiosWrapper');
+const axios = require('axios');
 
-const { gatewayUrl } = require(`../configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`../configs/${process.env.CONFIG}`);
 
 const getIssues = (node, version) => {
   const issues = [];
@@ -38,9 +38,9 @@ const getHeartbeat = async () => {
       },
     },
   ] = await Promise.all([
-    axios.get(`${gatewayUrl()}/node/heartbeatstatus`),
-    axios.get(`${gatewayUrl()}/validator/statistics`),
-    axios.get(`${gatewayUrl()}/network/config`),
+    axios.get(`${gatewayUrl()}/node/heartbeatstatus`, axiosConfig),
+    axios.get(`${gatewayUrl()}/validator/statistics`, axiosConfig),
+    axios.get(`${gatewayUrl()}/network/config`, axiosConfig),
   ]);
 
   const value = [];

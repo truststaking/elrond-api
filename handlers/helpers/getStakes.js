@@ -76,9 +76,11 @@ const getStakes = async ({ addresses, skipCache }) => {
   const value = [];
 
   owners.forEach(({ stake, topUp, locked, blses }) => {
-    blses.forEach((bls) => {
-      value.push({ bls, stake, topUp, locked });
-    });
+    if (blses) {
+      blses.forEach((bls) => {
+        value.push({ bls, stake, topUp, locked });
+      });
+    }
   });
 
   await putCache({ key, value, ttl: 3600 }); // 1h

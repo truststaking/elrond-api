@@ -1,24 +1,13 @@
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
-  setForwardedHeaders,
 } = require('./helpers');
-
-const {
-  cache: { live, final },
-} = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   return { ...item };
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'miniblocks';
     const key = 'miniBlockHash';
@@ -35,18 +24,15 @@ exports.handler = async ({
 
     let data;
     let status;
-    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
-        cache = live;
         break;
       }
       case hash !== undefined: {
         const item = await getItem({ collection, key, hash });
         data = await transformItem(item);
-        cache = final;
         break;
       }
       default: {
@@ -61,12 +47,11 @@ exports.handler = async ({
           data.push(await transformItem(item));
         }
 
-        cache = live;
         break;
       }
     }
 
-    return response({ status, data, cache });
+    return response({ status, data });
   } catch (error) {
     console.error('miniblocks error', error);
     return response({ status: 503 });

@@ -7,13 +7,14 @@
     "test-api-response": "newman run handlers/tests/postman_collection.json",
     "test-handlers": "set CONFIG=internal && jest --verbose ./tests",
     "start": "node index.js",
-    "start-dev": "nodemon index.js"
+    "start-dev": "nodemon index.js",
+    "start-chronos": "set CHRONO=true  & nodemon index.js",
+    "prewarm": "node prewarm.js"
   },
   "author": "",
   "private": true,
   "dependencies": {
     "@sendgrid/mail": "^7.4.4",
-    "aws-sdk": "^2.903.0",
     "axios": "^0.21.1",
     "bech32": "^1.1.4",
     "body-parser": "^1.19.0",
@@ -22,10 +23,12 @@
     "csrf": "^3.1.0",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
+    "express-prom-bundle": "^6.3.6",
     "html-to-text": "^7.1.1",
     "https": "^1.0.0",
     "moment": "^2.29.1",
     "node-object-hash": "^2.3.1",
+    "prom-client": "^13.1.0",
     "redis": "^3.1.1",
     "tiny-async-pool": "^1.2.0",
     "yup": "^0.32.9"

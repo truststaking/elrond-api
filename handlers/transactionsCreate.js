@@ -1,14 +1,10 @@
-const { axios, setForwardedHeaders } = require('./helpers');
+const axios = require('axios');
 
-const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 const { bech32, computeShard, response } = require('./helpers');
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  body,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+exports.handler = async ({ body }) => {
   // TODO: limit body size
 
   try {
@@ -25,6 +21,7 @@ exports.handler = async ({
       method: 'post',
       url: `${gatewayUrl()}/transaction/send`,
       data: body,
+      ...axiosConfig,
     });
 
     // TODO: pending alignment

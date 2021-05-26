@@ -1,10 +1,9 @@
-const { axios, setForwardedHeaders, bech32, vmQuery, response } = require('./helpers');
+const { axios, bech32, vmQuery, response } = require('./helpers');
 
 const {
   gatewayUrl,
   delegationContract,
   delegationContractShardId,
-  cache: { live },
 } = require(`./configs/${process.env.CONFIG}`);
 
 const decode = (value) => {
@@ -12,12 +11,7 @@ const decode = (value) => {
   return BigInt(hex ? '0x' + hex : hex).toString();
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters }) => {
   try {
     const { hash } = pathParameters || {};
     const publicKey = bech32.decode(hash);

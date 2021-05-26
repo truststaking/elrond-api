@@ -5,11 +5,7 @@ const {
   response,
 } = require('./helpers');
 
-const {
-  stakingContract,
-  auctionContract,
-  cache: { moderate, skip },
-} = require(`./configs/${process.env.CONFIG}`);
+const { stakingContract, auctionContract } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async () => {
   try {
@@ -43,9 +39,9 @@ exports.handler = async () => {
 
     let data = queue;
 
-    return response({ data, cache: moderate });
+    return response({ data });
   } catch (error) {
     console.error('error', error);
-    return response({ data: [], cache: skip });
+    return response({ data: [] });
   }
 };

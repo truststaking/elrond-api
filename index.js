@@ -2,12 +2,14 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-
+const { metricsApp, metricsRequestMiddleware, metricsPort } = require('./metrics');
 const { statuses } = require(`./handlers/configs/${process.env.CONFIG}`);
 const { prewarmHandler } = require('./handlers');
 
 const app = express();
-const port = 8000;
+const port = 3000;
+
+app.use(metricsRequestMiddleware);
 
 app.use(bodyParser.json());
 
@@ -34,7 +36,15 @@ app.use((req, res) => {
   res.status(405).json({ error: statuses[405] });
 });
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`API running at http://localhost:${port}`);
-  setInterval(prewarmHandler, 60000);
+
+  if (process.env.CHRONO) {
+    setInterval(prewarmHandler, 60000);
+  }
 });
+
+server.keepAliveTimeout = 61 * 1000; //61s
+server.headersTimeout = 65 * 1000; //65s `keepAliveTimeout + server's expected response time`
+
+const metricsServer = metricsApp.listen(metricsPort);

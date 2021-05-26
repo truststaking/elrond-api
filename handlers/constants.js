@@ -1,9 +1,8 @@
-const { axios, setForwardedHeaders, response } = require('./helpers');
+const axios = require('axios');
 
-const {
-  gatewayUrl,
-  cache: { final },
-} = require(`./configs/${process.env.CONFIG}`);
+const { response } = require('./helpers');
+
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async () => {
   try {
@@ -19,10 +18,7 @@ exports.handler = async () => {
           },
         },
       },
-    } = await axios({
-      method: 'get',
-      url: `${gatewayUrl()}/network/config`,
-    });
+    } = await axios.get(`${gatewayUrl()}/network/config`, axiosConfig);
 
     return response({
       data: {
@@ -32,7 +28,6 @@ exports.handler = async () => {
         minGasPrice,
         minTransactionVersion,
       },
-      cache: final,
     });
   } catch (error) {
     console.error('constants error', error);

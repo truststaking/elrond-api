@@ -1,17 +1,10 @@
-const { axios, getProviders, getNodes, setForwardedHeaders, response } = require('./helpers');
+const axios = require('axios');
 
-const {
-  providersUrl,
-  cache: { moderate },
-} = require(`./configs/${process.env.CONFIG}`);
+const { getProviders, getNodes, response } = require('./helpers');
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+const { providersUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const { key } = pathParameters || {};
     const { identity } = queryStringParameters || {};
@@ -49,13 +42,13 @@ exports.handler = async ({
         element.locked && element.locked !== '0' ? parseInt(element.locked.slice(0, -18)) : 0;
     });
 
-    const { data } = await axios.get(providersUrl);
+    const { data } = await axios.get(providersUrl, axiosConfig);
 
     providers.forEach((provider) => {
       const found = data.find((element) => provider.provider === element.contract);
 
       if (found) {
-        provider.apr = parseFloat(found.aprValue.toFixed(2));
+        provider.apr = parseFloat(found.aprValue ? found.aprValue.toFixed(2) : 0);
       }
     });
 
@@ -63,7 +56,7 @@ exports.handler = async ({
       const provider = providers.find(({ provider }) => provider === key);
 
       if (provider) {
-        return response({ data: provider, cache: moderate });
+        return response({ data: provider });
       } else {
         return response({ status: 404 });
       }
@@ -82,7 +75,7 @@ exports.handler = async ({
       delete provider.owner;
     });
 
-    return response({ data: providers, cache: moderate });
+    return response({ data: providers });
   } catch (error) {
     console.error('providers error', error);
     return response({ status: 503 });

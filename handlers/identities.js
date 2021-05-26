@@ -1,9 +1,5 @@
 const { getNodes, response, getProfile, batchProcess } = require('./helpers');
 
-const {
-  cache: { moderate },
-} = require(`./configs/${process.env.CONFIG}`);
-
 let globalNodes;
 let globalTimestamp;
 
@@ -144,7 +140,7 @@ exports.handler = async ({ pathParameters }) => {
       const identity = identities.find(({ identity }) => identity === key);
 
       if (identity) {
-        return response({ data: identity, cache: moderate });
+        return response({ data: identity });
       } else {
         return response({ status: 404 });
       }
@@ -156,7 +152,7 @@ exports.handler = async ({ pathParameters }) => {
       identity.rank = index + 1;
     });
 
-    return response({ data: identities, cache: moderate });
+    return response({ data: identities });
   } catch (error) {
     console.error('indentities error', error);
     return response({ status: 503 });

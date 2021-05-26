@@ -2,26 +2,17 @@ const {
   bech32,
   vmQuery,
   response,
-  s3Cache: { putCache, getCache },
-  setForwardedHeaders,
+  cache: { putCache, getCache },
 } = require('./helpers');
 
-const {
-  delegationContract,
-  cache: { moderate },
-} = require(`./configs/${process.env.CONFIG}`);
+const { delegationContract } = require(`./configs/${process.env.CONFIG}`);
 
 const decode = (value) => {
   const hex = Buffer.from(value, 'base64').toString('hex');
   return BigInt(hex ? '0x' + hex : hex).toString();
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters }) => {
   try {
     let address;
 
@@ -71,7 +62,7 @@ exports.handler = async ({
       });
     }
 
-    return response({ data, headers, cache: moderate });
+    return response({ data, headers });
   } catch (error) {
     console.error('waiting-list error', error);
     return response({ status: 503 });

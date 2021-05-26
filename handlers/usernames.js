@@ -4,15 +4,9 @@ const {
   vmQuery,
   response,
   cache: { getCache, putCache },
-  setForwardedHeaders,
 } = require('./helpers');
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters }) => {
   const { username } = pathParameters || {};
   const key = normalizeName(username);
 

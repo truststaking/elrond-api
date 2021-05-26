@@ -1,14 +1,11 @@
+const axios = require('axios');
+
 const {
-  axios,
-  setForwardedHeaders,
   elasticSearch: { getList, getItem, getCount },
   response,
 } = require('./helpers');
 
-const {
-  gatewayUrl,
-  cache: { skip, live },
-} = require(`./configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
@@ -16,12 +13,7 @@ const transformItem = async (item) => {
   return { ...rest };
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'transactions';
     const key = 'txHash';
@@ -54,14 +46,12 @@ exports.handler = async ({
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
-        cache = live;
         break;
       }
       case hash !== undefined: {
         try {
           const item = await getItem({ collection, key, hash });
           data = await transformItem(item);
-          cache = live;
         } catch (error) {
           try {
             const {
@@ -71,6 +61,7 @@ exports.handler = async ({
             } = await axios({
               method: 'get',
               url: `${gatewayUrl()}/transaction/${hash}`,
+              ...axiosConfig,
             });
 
             const {
@@ -110,7 +101,6 @@ exports.handler = async ({
               status,
               value,
             };
-            cache = skip;
           } catch (error) {
             status = 404;
           }
@@ -130,12 +120,11 @@ exports.handler = async ({
           data.push(await transformItem(item));
         }
 
-        cache = live;
         break;
       }
     }
 
-    return response({ status, data, cache });
+    return response({ status, data });
   } catch (error) {
     console.error('transactions error', error);
     return response({ status: 503 });

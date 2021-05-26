@@ -1,7 +1,6 @@
 const {
   axios,
   cache: { getCache, putCache },
-  setForwardedHeaders,
   vmQuery,
   response,
 } = require('./helpers');
@@ -10,17 +9,11 @@ const {
   gatewayUrl,
   delegationContract,
   auctionContract,
-  cache: { moderate },
 } = require(`./configs/${process.env.CONFIG}`);
 
 const locked = 4020000;
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ queryStringParameters }) => {
   const { extract } = queryStringParameters || {};
 
   try {
@@ -29,7 +22,7 @@ exports.handler = async ({
     const cached = await getCache({ key });
 
     if (cached) {
-      return response({ data: cached, extract, cache: moderate });
+      return response({ data: cached, extract });
     }
 
     const [
@@ -71,7 +64,7 @@ exports.handler = async ({
 
     await putCache({ key, value: data, ttl: 600 }); // 10m
 
-    return response({ data, extract, cache: moderate });
+    return response({ data, extract });
   } catch (error) {
     console.error('economics error', error);
     return response({ status: 503 });

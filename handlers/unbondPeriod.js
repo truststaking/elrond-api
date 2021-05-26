@@ -1,16 +1,8 @@
-const { vmQuery, response, setForwardedHeaders } = require('./helpers');
+const { vmQuery, response } = require('./helpers');
 
-const {
-  stakingContract,
-  cache: { live },
-} = require(`./configs/${process.env.CONFIG}`);
+const { stakingContract } = require(`./configs/${process.env.CONFIG}`);
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters }) => {
   try {
     const { key } = pathParameters || {};
     const encoded = await vmQuery({
@@ -29,7 +21,7 @@ exports.handler = async ({
 
     const data = { remainingUnBondPeriod };
 
-    return response({ data, cache: live });
+    return response({ data });
   } catch (error) {
     console.error('unbond period error', error);
     return response({ code: 503 });

@@ -4,10 +4,6 @@ const {
   response,
 } = require('./helpers');
 
-const {
-  cache: { moderate },
-} = require(`./configs/${process.env.CONFIG}`);
-
 exports.handler = async () => {
   try {
     const key = 'shards';
@@ -40,7 +36,7 @@ exports.handler = async () => {
       await putCache({ key, value: data, ttl: 60 }); // 1m
     }
 
-    return response({ data, cache: moderate });
+    return response({ data });
   } catch (error) {
     console.error('shards error', error);
     return response({ status: 503 });

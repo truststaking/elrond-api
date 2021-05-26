@@ -1,15 +1,13 @@
+const axios = require('axios');
+const { axiosConfig } = require('./configs/config');
+
 const {
   bech32: { decode },
   response,
-  axios,
 } = require('./helpers');
 
 const indexUrl = 'https://mex-indexer.elrond.com';
 const weeks = 2;
-
-const {
-  cache: { live: cache },
-} = require(`./configs/${process.env.CONFIG}`);
 
 exports.handler = async ({ pathParameters }) => {
   const { address } = pathParameters || {};
@@ -45,7 +43,10 @@ exports.handler = async ({ pathParameters }) => {
             hits: { hits: mex },
           },
         },
-      ] = await Promise.all([axios.post(snapshotUrl, query), axios.post(mexdUrl, query)]);
+      ] = await Promise.all([
+        axios.post(snapshotUrl, query, axiosConfig),
+        axios.post(mexdUrl, query, axiosConfig),
+      ]);
 
       snapshots = snapshots.map(({ _source }) => _source);
       mex = mex.map(({ _source }) => _source);
@@ -59,7 +60,7 @@ exports.handler = async ({ pathParameters }) => {
           data: {
             hits: { hits: undelegatedHits },
           },
-        } = await axios.post(undelegatedUrl, query);
+        } = await axios.post(undelegatedUrl, query, axiosConfig);
 
         undelegates = undelegatedHits.map(({ _source }) => _source);
       }
@@ -118,7 +119,7 @@ exports.handler = async ({ pathParameters }) => {
       data[week - 1].days.push(sunday);
     }
 
-    return response({ data, cache });
+    return response({ data });
   } catch (error) {
     console.error('mex error', error);
     return response({ status: 503 });

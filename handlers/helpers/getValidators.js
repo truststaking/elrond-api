@@ -14,14 +14,11 @@ const getValidators = async () => {
 
   return {
     totalValidators: nodes.filter(
-      ({ nodeType, peerType }) =>
-        nodeType === 'validator' && ['eligible', 'waiting'].includes(peerType)
+      ({ type, status }) => type === 'validator' && ['eligible', 'waiting'].includes(status)
     ).length,
     activeValidators: nodes.filter(
-      ({ nodeType, peerType, status }) =>
-        nodeType === 'validator' &&
-        ['eligible', 'waiting'].includes(peerType) &&
-        status === 'online'
+      ({ type, status, online }) =>
+        type === 'validator' && ['eligible', 'waiting'].includes(status) && online === true
     ).length,
     queueSize: parseInt(Buffer.from(queueSize, 'base64').toString()),
   };

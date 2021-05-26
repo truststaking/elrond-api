@@ -25,7 +25,7 @@ const getQueue = async () => {
         const nonceHex = Buffer.from(nonceBase64, 'base64').toString('hex');
         const nonce = parseInt(BigInt(nonceHex ? '0x' + nonceHex : nonceHex).toString());
 
-        result.push({ bls, nonce, rewards });
+        result.push({ bls, nonce, rewards, position: index / 3 + 1 });
       }
 
       return result;

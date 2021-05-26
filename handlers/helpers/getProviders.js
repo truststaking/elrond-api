@@ -18,18 +18,22 @@ const getProvidersAddresses = async () => {
     return cached;
   }
 
-  const providersBase64 = await vmQuery({
-    contract: delegationManagerContract,
-    func: 'getAllContractAddresses',
-  });
+  try {
+    const providersBase64 = await vmQuery({
+      contract: delegationManagerContract,
+      func: 'getAllContractAddresses',
+    });
 
-  const value = providersBase64.map((providerBase64) =>
-    bech32.encode(Buffer.from(providerBase64, 'base64').toString('hex'))
-  );
+    const value = providersBase64.map((providerBase64) =>
+      bech32.encode(Buffer.from(providerBase64, 'base64').toString('hex'))
+    );
 
-  await putCache({ key, value, ttl: processTtl });
+    await putCache({ key, value, ttl: processTtl });
 
-  return value;
+    return value;
+  } catch (error) {
+    return false;
+  }
 };
 
 const getProviderConfig = async (address) => {

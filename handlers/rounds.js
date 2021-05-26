@@ -1,12 +1,7 @@
 const {
   elasticSearch: { getList, getCount, getBlses, getBlsIndex },
   response,
-  setForwardedHeaders,
 } = require('./helpers');
-
-const {
-  cache: { live },
-} = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   let { key, round, timestamp, blockWasProposed, signersIndexes } = item;
@@ -23,13 +18,7 @@ const transformItem = async (item) => {
   return { round, shard, blockWasProposed, timestamp }; //signers
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const collection = 'rounds';
     const key = 'key';
@@ -65,12 +54,10 @@ exports.handler = async ({
 
     let data;
     let status;
-    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
         data = await getCount({ collection, query });
-        cache = live;
         break;
       }
       default: {
@@ -85,12 +72,11 @@ exports.handler = async ({
           data.push(await transformItem(item));
         }
 
-        cache = live;
         break;
       }
     }
 
-    return response({ status, data, cache });
+    return response({ status, data });
   } catch (error) {
     console.error('rounds error', error);
     return response({ status: 503 });

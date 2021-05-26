@@ -1,5 +1,6 @@
+const axios = require('axios');
+
 const {
-  axios,
   cache: { getCache, putCache },
   vmQuery,
   response,

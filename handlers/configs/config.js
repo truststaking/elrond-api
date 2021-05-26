@@ -16,7 +16,7 @@ const config = {
   delegationContractShardId: 2,
   auctionContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l',
   stakingContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqllls0lczs7',
-  delegationManagerContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqaqqqqqqqqqqqqqqqqqqqqqqqqalllslmq6y6',
+  delegationManagerContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6',
   genesisTime: 1596117600,
   cacheTtl: 6,
   processTtl: 600,

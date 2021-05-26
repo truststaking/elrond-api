@@ -5,40 +5,48 @@ const bech32 = require('./bech32');
 const { auctionContract, stakingContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getBlsOwner = async (bls) => {
-  const [encodedOwnerBase64] = await vmQuery({
-    contract: stakingContract,
-    caller: auctionContract,
-    func: 'getOwner',
-    args: [bls],
-  });
+  try {
+    const [encodedOwnerBase64] = await vmQuery({
+      contract: stakingContract,
+      caller: auctionContract,
+      func: 'getOwner',
+      args: [bls],
+    });
 
-  return bech32.encode(Buffer.from(encodedOwnerBase64, 'base64').toString('hex'));
+    return bech32.encode(Buffer.from(encodedOwnerBase64, 'base64').toString('hex'));
+  } catch (error) {
+    return false;
+  }
 };
 
 const getOwnerBlses = async (owner) => {
-  const getBlsKeysStatusListEncoded = await vmQuery({
-    contract: auctionContract,
-    caller: auctionContract,
-    func: 'getBlsKeysStatus',
-    args: [bech32.decode(owner)],
-  });
+  try {
+    const getBlsKeysStatusListEncoded = await vmQuery({
+      contract: auctionContract,
+      caller: auctionContract,
+      func: 'getBlsKeysStatus',
+      args: [bech32.decode(owner)],
+    });
 
-  if (!getBlsKeysStatusListEncoded) {
-    return [];
-  }
-
-  return getBlsKeysStatusListEncoded.reduce((result, value, index, array) => {
-    if (index % 2 === 0) {
-      const [blsBase64, statusBase64] = array.slice(index, index + 2);
-
-      const bls = Buffer.from(blsBase64, 'base64').toString('hex');
-      const status = Buffer.from(statusBase64, 'base64').toString();
-
-      result.push({ bls, status });
+    if (!getBlsKeysStatusListEncoded) {
+      return [];
     }
 
-    return result;
-  }, []);
+    return getBlsKeysStatusListEncoded.reduce((result, value, index, array) => {
+      if (index % 2 === 0) {
+        const [blsBase64, statusBase64] = array.slice(index, index + 2);
+
+        const bls = Buffer.from(blsBase64, 'base64').toString('hex');
+        const status = Buffer.from(statusBase64, 'base64').toString();
+
+        result.push({ bls, status });
+      }
+
+      return result;
+    }, []);
+  } catch (error) {
+    return false;
+  }
 };
 
 const getOwners = async ({ blses, skipCache }) => {
@@ -63,11 +71,15 @@ const getOwners = async ({ blses, skipCache }) => {
 
       if (!owners[bls]) {
         const owner = await getBlsOwner(bls);
-        const blses = await getOwnerBlses(owner);
+        if (owner) {
+          const blses = await getOwnerBlses(owner);
 
-        blses.forEach(({ bls }) => {
-          owners[bls] = owner;
-        });
+          if (blses) {
+            blses.forEach(({ bls }) => {
+              owners[bls] = owner;
+            });
+          }
+        }
       }
     }
 

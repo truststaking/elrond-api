@@ -17,7 +17,7 @@ const vmQuery = async ({ contract: scAddress, func: FuncName, caller, args = [] 
 
     return 'ReturnData' in data ? data.ReturnData : data.returnData;
   } catch (error) {
-    console.log('Contracts are currently unavailable!');
+    console.log('Some contracts are currently unavailable for this request!');
     return 'ContractsUnavailable';
   }
 };

@@ -29,7 +29,7 @@ exports.handler = async ({ pathParameters }) => {
         func: 'getFullWaitingList',
       });
 
-      if (fullWaitingListEncoded !== 'ContractsUnavailable') {
+      if (fullWaitingListEncoded && fullWaitingListEncoded !== 'ContractsUnavailable') {
         const fullWaitingList = fullWaitingListEncoded.reduce((result, value, index, array) => {
           if (index % 3 === 0) {
             const [publicKeyEncoded, valueEncoded, nonceEncoded] = array.slice(index, index + 3);

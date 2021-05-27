@@ -29,37 +29,40 @@ exports.handler = async ({ pathParameters }) => {
         func: 'getFullWaitingList',
       });
 
-      const fullWaitingList = fullWaitingListEncoded.reduce((result, value, index, array) => {
-        if (index % 3 === 0) {
-          const [publicKeyEncoded, valueEncoded, nonceEncoded] = array.slice(index, index + 3);
+      if (fullWaitingListEncoded !== 'ContractsUnavailable') {
+        const fullWaitingList = fullWaitingListEncoded.reduce((result, value, index, array) => {
+          if (index % 3 === 0) {
+            const [publicKeyEncoded, valueEncoded, nonceEncoded] = array.slice(index, index + 3);
 
-          const publicKey = Buffer.from(publicKeyEncoded, 'base64').toString('hex');
-          const address = bech32.encode(publicKey);
-          const value = decode(valueEncoded);
-          const nonce = parseInt(decode(nonceEncoded));
+            const publicKey = Buffer.from(publicKeyEncoded, 'base64').toString('hex');
+            const address = bech32.encode(publicKey);
+            const value = decode(valueEncoded);
+            const nonce = parseInt(decode(nonceEncoded));
 
-          result.push({ address, value, nonce });
-        }
+            result.push({ address, value, nonce });
+          }
 
-        return result;
-      }, []);
+          return result;
+        }, []);
 
-      ranks = fullWaitingList.map((element, index) => {
-        element.rank = index + 1;
-        return element;
-      });
+        ranks = fullWaitingList.map((element, index) => {
+          element.rank = index + 1;
+          return element;
+        });
 
-      await putCache({ key: 'waiting-list', value: ranks, ttl: 300 });
-
+        await putCache({ key: 'waiting-list', value: ranks, ttl: 300 });
+      }
       headers = { 'x-cached': 'false' };
     }
 
-    let data = ranks;
+    let data = ranks || false;
 
-    if (address) {
-      data = data.filter((element) => {
-        return element.address === address;
-      });
+    if (ranks) {
+      if (address) {
+        data = data.filter((element) => {
+          return element.address === address;
+        });
+      }
     }
 
     return response({ data, headers });

@@ -10,6 +10,7 @@ const {
   gatewayUrl,
   delegationContract,
   auctionContract,
+  axiosConfig,
 } = require(`./configs/${process.env.CONFIG}`);
 
 const locked = 4020000;
@@ -43,20 +44,25 @@ exports.handler = async ({ queryStringParameters }) => {
       },
       [, totalWaitingStakeBase64],
     ] = await Promise.all([
-      axios.get(`${gatewayUrl()}/address/${auctionContract}`),
-      axios.get(`${gatewayUrl()}/network/economics`),
+      axios.get(`${gatewayUrl()}/address/${auctionContract}`, axiosConfig),
+      axios.get(`${gatewayUrl()}/network/economics`, axiosConfig),
       vmQuery({
         contract: delegationContract,
         func: 'getTotalStakeByType',
       }),
     ]);
 
-    const totalWaitingStakeHex = Buffer.from(totalWaitingStakeBase64, 'base64').toString('hex');
-    let totalWaitingStake = BigInt(
-      totalWaitingStakeHex ? '0x' + totalWaitingStakeHex : totalWaitingStakeHex
-    );
+    let staked;
 
-    const staked = parseInt((BigInt(balance) + totalWaitingStake).toString().slice(0, -18));
+    if (totalWaitingStakeBase64) {
+      const totalWaitingStakeHex = Buffer.from(totalWaitingStakeBase64, 'base64').toString('hex');
+      let totalWaitingStake = BigInt(
+        totalWaitingStakeHex ? '0x' + totalWaitingStakeHex : totalWaitingStakeHex
+      );
+
+      staked = parseInt((BigInt(balance) + totalWaitingStake).toString().slice(0, -18));
+    }
+
     const totalSupply = parseInt(erd_total_supply.slice(0, -18));
 
     const circulatingSupply = totalSupply - locked;

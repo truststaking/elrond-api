@@ -77,25 +77,28 @@ const getNodes = async (args) => {
   console.log('getting providers...');
 
   const providers = await getProviders({ skipCache });
+  if (providers) {
+    nodes.forEach((node) => {
+      if (node.type === 'validator') {
+        const provider = providers.find(({ provider }) => provider === node.owner);
 
-  nodes.forEach((node) => {
-    if (node.type === 'validator') {
-      const provider = providers.find(({ provider }) => provider === node.owner);
+        if (provider) {
+          node.provider = provider.provider;
+          node.owner = provider.owner;
 
-      if (provider) {
-        node.provider = provider.provider;
-        node.owner = provider.owner;
-
-        if (provider.identity) {
-          node.identity = provider.identity;
+          if (provider.identity) {
+            node.identity = provider.identity;
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   let addresses = nodes
     .filter(({ type }) => type === 'validator')
     .map(({ owner, provider }) => (provider ? provider : owner));
+
+  addresses = addresses.filter((el) => el != undefined);
 
   addresses = [...new Set(addresses)];
 

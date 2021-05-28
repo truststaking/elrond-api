@@ -42,7 +42,7 @@ exports.handler = async ({ queryStringParameters }) => {
           },
         },
       },
-      [, totalWaitingStakeBase64],
+      waitingStake,
     ] = await Promise.all([
       axios.get(`${gatewayUrl()}/address/${auctionContract}`, axiosConfig),
       axios.get(`${gatewayUrl()}/network/economics`, axiosConfig),
@@ -54,7 +54,9 @@ exports.handler = async ({ queryStringParameters }) => {
 
     let staked;
 
-    if (totalWaitingStakeBase64) {
+    if (waitingStake && waitingStake !== 'ContractsUnavailable') {
+      const [, totalWaitingStakeBase64] = waitingStake;
+
       const totalWaitingStakeHex = Buffer.from(totalWaitingStakeBase64, 'base64').toString('hex');
       let totalWaitingStake = BigInt(
         totalWaitingStakeHex ? '0x' + totalWaitingStakeHex : totalWaitingStakeHex

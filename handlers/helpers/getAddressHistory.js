@@ -151,15 +151,28 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === undefined) {
-                  wallet.unDelegated = wallet.unDelegated.plus(new BigNumber(scTX.value));
+                  if (!wallet.unDelegated[transaction.receiver]) {
+                    wallet.unDelegated[transaction.receiver] = new BigNumber(0);
+                  }
+                  wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
+                    transaction.receiver
+                  ].plus(new BigNumber(scTX.value));
                   wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
                     new BigNumber(scTX.value)
                   );
-                  wallet.epochHistoryStaked[epochTX].staked[
-                    transaction.receiver
-                  ] = wallet.epochHistoryStaked[epochTX].staked[transaction.receiver].minus(
-                    new BigNumber(scTX.value)
-                  );
+                  if (!wallet.epochHistoryStaked[epochTX]) {
+                    wallet.epochHistoryStaked[epochTX] = {
+                      staked: { [transaction.receiver]: wallet.staked[transaction.receiver] },
+                    };
+                  } else {
+                    if (!wallet.epochHistoryStaked[epochTX].staked[transaction.receiver]) {
+                      wallet.epochHistoryStaked[epochTX].staked[transaction.receiver] =
+                        wallet.staked[transaction.receiver];
+                    } else {
+                      wallet.epochHistoryStaked[epochTX].staked[transaction.receiver] =
+                        wallet.staked[transaction.receiver];
+                    }
+                  }
                 }
               });
             }
@@ -168,7 +181,9 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === undefined) {
-                  wallet.unDelegated = wallet.unDelegated.minus(new BigNumber(scTX.value));
+                  wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
+                    transaction.receiver
+                  ].minus(new BigNumber(scTX.value));
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 }
               });

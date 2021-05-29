@@ -152,22 +152,35 @@ const getRewardsHistory = async (query) => {
   let lastEpochHistory = {};
   for (let epoch = Phase3.epoch - 10; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
-      fullEpochsStakedAmounts[epoch] = data.epochHistoryStaked[epoch];
-      lastEpochHistory = data.epochHistoryStaked[epoch];
+      Object.keys(lastEpochHistory).forEach((SC) => {
+        if (!fullEpochsStakedAmounts[epoch]) {
+          fullEpochsStakedAmounts[epoch] = { staked: {} };
+        }
+        fullEpochsStakedAmounts[epoch].staked = {
+          ...fullEpochsStakedAmounts[epoch].staked,
+          [SC]: lastEpochHistory[SC],
+        };
+      });
+      Object.keys(data.epochHistoryStaked[epoch].staked).forEach((agencySC) => {
+        lastEpochHistory[agencySC] = data.epochHistoryStaked[epoch].staked[agencySC];
+      });
     } else {
-      fullEpochsStakedAmounts[epoch] = lastEpochHistory;
+      Object.keys(lastEpochHistory).forEach((SC) => {
+        if (!fullEpochsStakedAmounts[epoch]) {
+          fullEpochsStakedAmounts[epoch] = { staked: {} };
+        }
+        fullEpochsStakedAmounts[epoch].staked = {
+          ...fullEpochsStakedAmounts[epoch].staked,
+          [SC]: lastEpochHistory[SC],
+        };
+      });
     }
   }
 
   let result = {};
   let total = new BigNumber(0);
   for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
-    if (
-      oneEpoch > Phase3.epoch &&
-      fullEpochsStakedAmounts[oneEpoch] !== undefined &&
-      fullEpochsStakedAmounts[oneEpoch].staked !== undefined
-    ) {
-      console.log(fullEpochsStakedAmounts[oneEpoch]);
+    if (oneEpoch > Phase3.epoch && fullEpochsStakedAmounts[oneEpoch].staked !== undefined) {
       for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
         let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
         let rewardPerSC = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);

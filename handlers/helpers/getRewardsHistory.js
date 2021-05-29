@@ -94,25 +94,38 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       };
       agency_reward['epoch'] = epoch;
       agency_reward['staked'] = amount;
-      let ownerProfit =
-        parseFloat(agency_reward.serviceFee / 10000) * parseFloat(agency_reward.rewardDistributed);
+      let ownerProfit = new BigNumber(agency_reward.serviceFee)
+        .dividedBy(10000)
+        .multipliedBy(new BigNumber(agency_reward.rewardDistributed));
       agency_reward['ownerProfit'] = denominate({ input: ownerProfit.toFixed() });
-      let toBeDistributed = parseFloat(agency_reward.rewardDistributed) - parseFloat(ownerProfit);
+      let toBeDistributed = new BigNumber(agency_reward.rewardDistributed).minus(
+        new BigNumber(ownerProfit)
+      );
       agency_reward['toBeDistributed'] = denominate({ input: toBeDistributed });
-      let reward = parseFloat(toBeDistributed) * parseFloat(agency_reward['staked']);
-      reward /= parseFloat(agency_reward.totalActiveStake);
-      if (isOwner)
-      {
-        reward += parseFloat(ownerProfit) / Math.pow(10, 18);
+      let reward = new BigNumber(toBeDistributed).multipliedBy(
+        new BigNumber(agency_reward['staked'])
+      );
+      // eslint-disable-next-line no-undef
+      reward = new BigNumber(reward).dividedBy(new BigNumber(agency_reward.totalActiveStake));
+      if (isOwner) {
+        reward = reward.plus(new BigNumber(ownerProfit) / new BigNumber(Math.pow(10, 18)));
       }
-
-
+      agency_reward['APROwner'] = new BigNumber(agency_reward.rewardDistributed)
+        .multipliedBy(36500)
+        .dividedBy(new BigNumber(agency_reward.totalActiveStake))
+        .toFixed();
+      agency_reward['APRDelegator'] = new BigNumber(agency_reward['APROwner'])
+        .minus(
+          new BigNumber(agency_reward['APROwner']).multipliedBy(
+            new BigNumber(agency_reward.serviceFee).dividedBy(10000)
+          )
+        )
+        .toFixed();
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
-      return reward;
-    }
-    else
-    {
+      console.log(agency_reward);
+      return reward.toFixed();
+    } else {
       console.log(response.returnCode.text);
       return 0;
     }
@@ -126,7 +139,7 @@ const getRewardsHistory = async (query) => {
   if (query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
   }
-  let isOwner = (query.isOwner == 'true') || false;
+  let isOwner = query.isOwner == 'true' || false;
   let inner_query = {
     address: query.address,
     receiver: query.agency,
@@ -147,26 +160,33 @@ const getRewardsHistory = async (query) => {
   }
 
   let result = {};
-  let total = 0;
+  let total = new BigNumber(0);
   for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
-    if (oneEpoch > Phase3.epoch) {
+    if (
+      oneEpoch > Phase3.epoch &&
+      fullEpochsStakedAmounts[oneEpoch] !== undefined &&
+      fullEpochsStakedAmounts[oneEpoch].staked !== undefined
+    ) {
+      console.log(fullEpochsStakedAmounts[oneEpoch]);
       for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
         let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
         let rewardPerSC = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);
-        total += rewardPerSC;
+        total = total.plus(new BigNumber(rewardPerSC));
         console.log(oneEpoch, savedStaked, rewardPerSC, agencySC);
-        result[oneEpoch] = {
-          staked: {
-            [agencySC]: {
-              totalStaked: savedStaked,
-              totalReward: rewardPerSC,
-            },
+        if (!result[oneEpoch]) {
+          result[oneEpoch] = { staked: {} };
+        }
+        result[oneEpoch].staked = {
+          ...result[oneEpoch].staked,
+          [agencySC]: {
+            totalStaked: savedStaked,
+            totalReward: rewardPerSC,
           },
         };
       }
     }
   }
-  console.log("total rewards:" + total.toString());
+  console.log('total rewards:' + parseFloat(total.toFixed()));
   return result;
 };
 

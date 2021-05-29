@@ -76,18 +76,15 @@ const getAddressHistory = async (query) => {
                     );
                     if (!wallet.epochHistoryStaked[epochTX]) {
                       wallet.epochHistoryStaked[epochTX] = {
-                        staked: { [transaction.receiver]: new BigNumber(scTX.value) },
+                        staked: { [transaction.receiver]: wallet.staked[transaction.receiver] },
                       };
                     } else {
                       if (!wallet.epochHistoryStaked[epochTX].staked[transaction.receiver]) {
                         wallet.epochHistoryStaked[epochTX].staked[transaction.receiver] =
                           wallet.staked[transaction.receiver];
                       } else {
-                        wallet.epochHistoryStaked[epochTX].staked[
-                          transaction.receiver
-                        ] = wallet.epochHistoryStaked[epochTX].staked[transaction.receiver].plus(
-                          new BigNumber(scTX.value)
-                        );
+                        wallet.epochHistoryStaked[epochTX].staked[transaction.receiver] =
+                          wallet.staked[transaction.receiver];
                       }
                     }
                   } else {

@@ -16,7 +16,6 @@ const Phase3 = {
 
 const mainnet_proxy = new ProxyProvider('https://gateway.elrond.com');
 
-
 const getEpoch = (timestamp) => {
   var diff;
   if (timestamp >= Phase3.timestamp) {
@@ -76,34 +75,47 @@ const calculateReward = async (epoch, amount, agency) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
-  let response;
-  let reward = 0;
   if (epoch) {
-    response = await delegationContract.runQuery(provider, {
+    let response = await delegationContract.runQuery(provider, {
       func: new ContractFunction('getRewardData'),
       args: [BytesValue.fromHex(DecimalHexTwosComplement(epoch))],
     });
-    if (response.returnCode.text == 'ok')
-    {
+    if (response.returnCode.text == 'ok') {
       let agency_reward = {
-        rewardDistributed: new BigNumber(hexToDec(Buffer.from(response.returnData[0], 'base64').toString('hex'))).toFixed(),
-        totalActiveStake: new BigNumber(hexToDec(Buffer.from(response.returnData[1], 'base64').toString('hex'))).toFixed(),
-        serviceFee: new BigNumber(hexToDec(Buffer.from(response.returnData[2], 'base64').toString('hex'))).toFixed(),
-      }
-      var contribution = new BigNumber(amount);
-      contribution = contribution / agency_reward.totalActiveStake;
-      reward = agency_reward.rewardDistributed * (100 - agency_reward.serviceFee / 100) / 100 * contribution;
+        rewardDistributed: new BigNumber(
+          hexToDec(Buffer.from(response.returnData[0], 'base64').toString('hex'))
+        ).toFixed(),
+        totalActiveStake: new BigNumber(
+          hexToDec(Buffer.from(response.returnData[1], 'base64').toString('hex'))
+        ).toFixed(),
+        serviceFee: new BigNumber(
+          hexToDec(Buffer.from(response.returnData[2], 'base64').toString('hex'))
+        ).toFixed(),
+      };
+      agency_reward['epoch'] = epoch;
+      agency_reward['staked'] = amount;
+      let ownerProfit =
+        parseFloat(agency_reward.serviceFee / 10000) * parseFloat(agency_reward.rewardDistributed);
+      agency_reward['ownerProfit'] = denominate({ input: ownerProfit.toFixed() });
+      let toBeDistributed = parseFloat(agency_reward.rewardDistributed) - parseFloat(ownerProfit);
+      agency_reward['toBeDistributed'] = denominate({ input: toBeDistributed });
+      let reward = parseFloat(toBeDistributed) * parseFloat(agency_reward['staked']);
+      reward /= parseFloat(agency_reward.totalActiveStake);
+      reward += ownerProfit;
+
+      agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
+      agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
+      agency_reward['reward'] = denominate({ input: reward });
+      console.log(agency_reward);
+      return denominate({ input: reward, denomination: 18 });
     }
   } else {
     console.log('Error');
+    return 0;
   }
-
-  return denominate({input: reward});
 };
 
 const getRewardsHistory = async (query) => {
-  var rewardsHistory = {};
-
   if (query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
   }
@@ -113,53 +125,40 @@ const getRewardsHistory = async (query) => {
     receiver: query.agency,
     before: query.stop,
   };
-  let data = await getAddressHistory(inner_query);
 
-  Object.keys(data.history).forEach(function (epoch) {
-    Object.keys(data.history[epoch]).forEach(function (timestamp) {
-      if (data.history[epoch][timestamp].staked[query.agency]) {
-        if (!(epoch in rewardsHistory)) {
-          rewardsHistory[epoch] = {};
-        }
-        rewardsHistory[epoch][query.agency] = data.history[epoch][timestamp].staked[query.agency];
-      }
-    });
-  });
-  let epochs = Object.keys(rewardsHistory);
-  let latest_epoch = Math.max(parseInt(epochs[epochs.length - 1]),Phase3.epoch);
-  epochs = epochs.slice(0, epochs.length - 1);
-  for (let epoch of epochs) {
-    let staked = query.agency in rewardsHistory[epoch] ? rewardsHistory[epoch][query.agency] : 0;
-    let last_epoch = parseInt(epoch);
-    let i = 0;
-    do {
-      let current_epoch = last_epoch + i;
-      console.log('\ti: ' + i.toString());
-      if (current_epoch >= Phase3.epoch && staked != 0) {
-        console.log(current_epoch);
-        let reward = await calculateReward(current_epoch, staked, query.agency);
-        if (!(current_epoch in rewardsHistory)) {
-          rewardsHistory[current_epoch] = {};
-        }
-        rewardsHistory[current_epoch][query.agency] = (staked, reward);
-      }
-      i++;
-    } while (!(last_epoch + i in rewardsHistory));
-  }
-  let last_staked = rewardsHistory[latest_epoch][query.agency];
-  if (last_staked)
-  {
-    let now = getEpoch(Math.floor(Date.now() / 1000));
-    for (let epoch = latest_epoch; epoch <= now; ++epoch){
-      let reward = await calculateReward(epoch, last_staked, query.agency);
-        if (!(epoch in rewardsHistory)) {
-          rewardsHistory[epoch] = {};
-        }
-        rewardsHistory[epoch][query.agency] = (last_staked, reward);
+  let data = await getAddressHistory(inner_query);
+  let fullEpochsStakedAmounts = {};
+  let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
+  let lastEpochHistory = {};
+  for (let epoch = Phase3.epoch - 10; epoch <= todayEpoch - 1; epoch++) {
+    if (epoch in data.epochHistoryStaked) {
+      fullEpochsStakedAmounts[epoch] = data.epochHistoryStaked[epoch];
+      lastEpochHistory = data.epochHistoryStaked[epoch];
+    } else {
+      fullEpochsStakedAmounts[epoch] = lastEpochHistory;
     }
   }
 
-  return rewardsHistory;
+  let result = {};
+  for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
+    if (oneEpoch > Phase3.epoch) {
+      for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
+        let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
+        let rewardPerSC = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC);
+        console.log(oneEpoch, savedStaked, rewardPerSC, agencySC);
+        result[oneEpoch] = {
+          staked: {
+            [agencySC]: {
+              totalStaked: savedStaked,
+              totalReward: rewardPerSC,
+            },
+          },
+        };
+      }
+    }
+  }
+
+  return result;
 };
 
 module.exports = getRewardsHistory;

@@ -101,13 +101,16 @@ const calculateReward = async (epoch, amount, agency) => {
       agency_reward['toBeDistributed'] = denominate({ input: toBeDistributed });
       let reward = parseFloat(toBeDistributed) * parseFloat(agency_reward['staked']);
       reward /= parseFloat(agency_reward.totalActiveStake);
-      reward += ownerProfit;
+      // reward += parseFloat(ownerProfit);
 
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
-      agency_reward['reward'] = denominate({ input: reward });
+      agency_reward['reward'] = reward < 10 ? reward : denominate({ input: reward });
       console.log(agency_reward);
-      return denominate({ input: reward, denomination: 18 });
+      if (reward < 10) {
+        return reward;
+      }
+      return denominate({ input: reward.toFixed(), denomination: 18 });
     }
   } else {
     console.log('Error');

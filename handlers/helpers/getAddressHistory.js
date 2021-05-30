@@ -1,6 +1,7 @@
 const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
+const e = require('cors');
 
 const Phase3 = {
   timestamp: 1617633000,
@@ -17,6 +18,12 @@ const getEpoch = (timestamp) => {
   }
 };
 
+function hexToDec(hex) {
+  return hex
+    .toLowerCase()
+    .split('')
+    .reduce((result, ch) => result * 16 + '0123456789abcdefgh'.indexOf(ch), 0);
+}
 const getTimestampByEpoch = (epoch) => {
   var diff;
   if (epoch >= Phase3.epoch) {
@@ -72,7 +79,7 @@ const getAddressHistory = async (query) => {
                 if (scTX.data === undefined) {
                   if (wallet.staked[transaction.receiver]) {
                     wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
-                      new BigNumber(scTX.value)
+                      new BigNumber(transaction.value)
                     );
                     if (!wallet.epochHistoryStaked[epochTX]) {
                       wallet.epochHistoryStaked[epochTX] = {
@@ -88,10 +95,17 @@ const getAddressHistory = async (query) => {
                       }
                     }
                   } else {
-                    wallet.staked[transaction.receiver] = new BigNumber(scTX.value);
-                    wallet.epochHistoryStaked[epochTX] = {
-                      staked: { [transaction.receiver]: new BigNumber(scTX.value) },
-                    };
+                    wallet.staked[transaction.receiver] = new BigNumber(transaction.value);
+                    if (!wallet.epochHistoryStaked[epochTX]) {
+                      wallet.epochHistoryStaked[epochTX] = {
+                        staked: { [transaction.receiver]: new BigNumber(transaction.value) },
+                      };
+                    } else {
+                      wallet.epochHistoryStaked[epochTX].staked = {
+                        ...wallet.epochHistoryStaked[epochTX].staked,
+                        [transaction.receiver]: new BigNumber(transaction.value),
+                      };
+                    }
                   }
                 }
               });
@@ -147,15 +161,15 @@ const getAddressHistory = async (query) => {
           case 'unDelegate':
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
-                if (scTX.data === undefined) {
+                if (scTX.data == '@ok' && scTX.value > 0) {
                   if (!wallet.unDelegated[transaction.receiver]) {
                     wallet.unDelegated[transaction.receiver] = new BigNumber(0);
                   }
                   wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
                     transaction.receiver
-                  ].plus(new BigNumber(scTX.value));
+                  ].plus(transaction.value);
                   wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
-                    new BigNumber(scTX.value)
+                    transaction.value
                   );
                   if (!wallet.epochHistoryStaked[epochTX]) {
                     wallet.epochHistoryStaked[epochTX] = {
@@ -172,107 +186,156 @@ const getAddressHistory = async (query) => {
                   }
                 }
               });
+              if (
+                denominate({
+                  input: wallet.staked[transaction.receiver],
+                  denomination: 18,
+                }) === '0'
+              ) {
+                delete wallet.staked[transaction.receiver];
+              }
             }
             break;
           case 'withdraw':
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
-                if (scTX.data === undefined) {
+                if (scTX.data === undefined && scTX.value > 0) {
                   wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
                     transaction.receiver
                   ].minus(new BigNumber(scTX.value));
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 }
               });
+              if (wallet.staked[transaction.receiver] <= 0) {
+                delete wallet.staked[transaction.receiver];
+              }
+
+              if (wallet.unDelegated[transaction.receiver] <= 0) {
+                delete wallet.unDelegated[transaction.receiver];
+              }
             }
             break;
           case 'createNewDelegationContract':
+            var agency = '';
             transaction.scResults.forEach((scTX) => {
               if (scTX.data !== undefined) {
-                //find agency
+                agency = scTX.data.split('@')[2];
                 wallet.available = wallet.available.plus(new BigNumber(scTX.value));
               }
             });
             wallet.epochHistoryStaked[epochTX] = {
               staked: {
-                erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzhllllsp9wvyl: new BigNumber(
-                  transaction.value
-                ),
+                [agency]: new BigNumber(transaction.value),
               },
             };
             wallet.available = wallet.available.minus(new BigNumber(transaction.value));
             wallet.staked = {
-              erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzhllllsp9wvyl: new BigNumber(
-                transaction.value
-              ),
+              [agency]: new BigNumber(transaction.value),
             };
-            //update wallet.staked[agency] -> agency will be taken from scTX data
             break;
           case 'stake':
             if (transaction.scResults && transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 if (scTX.data === '@ok') {
-                  // if (fee < 0) {
-                  //   fee = fee.plus(new BigNumber(scTX.value));
-                  // }
-                  // else {
-                  //   fee = fee.minus(new BigNumber(scTX.value));
-                  // }
                   fee = new BigNumber('57000000000000');
-                } else if (scTX.data === undefined) {
-                  wallet.available = wallet.available.minus(new BigNumber(scTX.value));
-                  if (!(transaction.receiver in wallet.staked)) {
-                    wallet.staked[transaction.receiver] = new BigNumber(scTX.value);
+                }
+              });
+              wallet.available = wallet.available.minus(new BigNumber(transaction.value));
+              if (!(transaction.receiver in wallet.staked)) {
+                wallet.staked[transaction.receiver] = new BigNumber(transaction.value);
+              } else {
+                wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
+                  new BigNumber(transaction.value)
+                );
+              }
+            }
+            break;
+          case 'unStake':
+            if (transaction.scResults && transaction.scResults.length > 0) {
+              transaction.scResults.forEach((scTX) => {
+                if (
+                  scTX.data === '@ok' &&
+                  transaction.receiver ==
+                  'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+                ) {
+                  fee = new BigNumber('89000000000000');
+                  var value = new BigNumber(transaction.value);
+                  if (!(transaction.receiver in wallet.unDelegated)) {
+                    console.log(transaction);
+                    wallet.unDelegated[transaction.receiver] = value;
                   } else {
-                    wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].plus(
-                      new BigNumber(scTX.value)
+                    wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
+                      transaction.receiver
+                    ].plus(value);
+                  }
+                  if (wallet.staked[transaction.receiver]) {
+                    wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
+                      value
                     );
                   }
                 }
               });
+              if (
+                transaction.receiver ==
+                'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+              ) {
+                let sizeData = transaction.data.split('@');
+                let nodesUnstaked = sizeData.length;
+                if (wallet.staked[transaction.receiver]) {
+                  wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
+                    new BigNumber(2500000000000000000000).multipliedBy(nodesUnstaked)
+                  );
+                }
+              }
+              if (
+                denominate({
+                  input: wallet.staked[transaction.receiver],
+                  denomination: 18,
+                }) === '0'
+              ){
+                delete wallet.staked[transaction.receiver];
+              }
+            }
+
+            break;
+          case 'unBond':
+            if (transaction.scResults && transaction.scResults.length > 0) {
+              // console.log(transaction);
+              transaction.scResults.forEach((scTX) => {
+                if (scTX.data && scTX.data.includes('@ok')) {
+                  let sizeData = scTX.data.split('@');
+                  if (sizeData.length > 2) {
+                    console.log(new BigNumber(hexToDec(sizeData[2])).toFixed());
+                    wallet.available = wallet.available.plus(new BigNumber(hexToDec(sizeData[2])));
+                  }
+                  fee = new BigNumber('59000000000000');
+                } else if (
+                  scTX.data === '' &&
+                  transaction.receiver ==
+                  'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+                ) {
+                  wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
+                    transaction.receiver
+                  ].minus(new BigNumber(scTX.value));
+                  wallet.available = wallet.available.plus(new BigNumber(scTX.value));
+                } else if (
+                  scTX.data == undefined &&
+                  transaction.receiver ==
+                  'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                ) {
+                  console.log(scTX.value);
+                  wallet.available = wallet.available.plus(new BigNumber(scTX.value));
+                }
+              });
+              if (
+                denominate({
+                  input: wallet.unDelegated[transaction.receiver],
+                  denomination: 18,
+                }) === '0'
+              )
+                delete wallet.unDelegated[transaction.receiver];
             }
             break;
-          // case 'unStake':
-          //   if (transaction.scResults && transaction.scResults.length > 0) {
-          //     transaction.scResults.forEach((scTX) => {
-          //       if (scTX.data === '@ok') {
-          //         fee = new BigNumber('89000000000000');
-          //         // eslint-disable-next-line no-case-declarations
-          //         let value = new BigNumber(transaction.value);
-
-          //         // if (value.gt(wallet.staked[transaction.receiver].toFixed())) {
-          //         //   value = wallet.staked[transaction.receiver];
-          //         //   transaction.value = value;
-          //         // }
-          //         if (!(transaction.receiver in wallet.unDelegated)) {
-          //           wallet.unDelegated[transaction.receiver] = value;
-          //         } else {
-          //           wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
-          //             transaction.receiver
-          //           ].plus(value.toFixed());
-          //         }
-          //         wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
-          //           value.toFixed()
-          //         );
-          //       }
-          //     });
-          //   }
-          //   break;
-          // case 'unBond':
-          //   console.log(transaction);
-          //   if (transaction.scResults && transaction.scResults.length > 0) {
-          //     transaction.scResults.forEach((scTX) => {
-          //       if (scTX.data === '@ok') {
-          //         fee = new BigNumber('59000000000000');
-          //       } else if (scTX.data === '') {
-          //         wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
-          //           transaction.receiver
-          //         ].minus(new BigNumber(scTX.value));
-          //         wallet.available = wallet.available.plus(new BigNumber(scTX.value));
-          //       }
-          //     });
-          //   }
-          //   break;
 
           default:
             console.log('warning: unknown transaction: ' + command);
@@ -330,8 +393,8 @@ const getAddressHistory = async (query) => {
     }
   }
 
-  Object.keys(wallet.staked).forEach(function (address, value) {
-    wallet.staked[address] = denominate({ input: value.toFixed() });
+  Object.keys(wallet.staked).forEach(function (address) {
+    wallet.staked[address] = denominate({ input: wallet.staked[address].toFixed() });
   });
 
   wallet.claimable = denominate({ input: wallet.claimable.toFixed() });

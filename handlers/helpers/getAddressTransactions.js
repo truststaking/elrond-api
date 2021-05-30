@@ -83,10 +83,8 @@ const getTransaction = async (query) => {
         let values = data.split('@');
         if (values[0] == 'unDelegate' || values[0] == 'unStake') {
           transaction.data = values[0];
-          transaction.value = denominate({
-            input: new BigNumber(hexToDec(values[1])).toFixed(),
-            denomination: 0,
-          });
+          transaction.value = hexToDec(values[1]);
+          console.log(transaction.value);
         }
       }
       transactions.push(transaction);

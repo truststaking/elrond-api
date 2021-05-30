@@ -123,11 +123,15 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
         .toFixed();
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
-      console.log(agency_reward);
-      return reward.toFixed();
+      agency_reward['reward'] = reward.toFixed();
+      // console.log(agency_reward);
+      return agency_reward;
     } else {
-      console.log(response.returnCode.text);
-      return 0;
+      // console.log(response.returnCode.text);
+      return {
+        staked: amount,
+        reward: 0,
+      };
     }
   } else {
     console.log('Error');
@@ -139,7 +143,7 @@ const getRewardsHistory = async (query) => {
   if (query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
   }
-  let isOwner = query.isOwner == 'true' || false;
+  let isOwner = query.isOwner == 'true' || true;
   let inner_query = {
     address: query.address,
     receiver: query.agency,
@@ -150,16 +154,20 @@ const getRewardsHistory = async (query) => {
   let fullEpochsStakedAmounts = {};
   let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
   let lastEpochHistory = {};
-  for (let epoch = Phase3.epoch - 10; epoch <= todayEpoch; epoch++) {
+  for (let epoch = Phase3.epoch - 15; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
       Object.keys(lastEpochHistory).forEach((SC) => {
         if (!fullEpochsStakedAmounts[epoch]) {
           fullEpochsStakedAmounts[epoch] = { staked: {} };
         }
-        fullEpochsStakedAmounts[epoch].staked = {
-          ...fullEpochsStakedAmounts[epoch].staked,
-          [SC]: lastEpochHistory[SC],
-        };
+        if (lastEpochHistory[SC] > 0) {
+          fullEpochsStakedAmounts[epoch].staked = {
+            ...fullEpochsStakedAmounts[epoch].staked,
+            [SC]: lastEpochHistory[SC],
+          };
+        } else {
+          delete lastEpochHistory[SC];
+        }
       });
       Object.keys(data.epochHistoryStaked[epoch].staked).forEach((agencySC) => {
         lastEpochHistory[agencySC] = data.epochHistoryStaked[epoch].staked[agencySC];
@@ -169,10 +177,15 @@ const getRewardsHistory = async (query) => {
         if (!fullEpochsStakedAmounts[epoch]) {
           fullEpochsStakedAmounts[epoch] = { staked: {} };
         }
-        fullEpochsStakedAmounts[epoch].staked = {
-          ...fullEpochsStakedAmounts[epoch].staked,
-          [SC]: lastEpochHistory[SC],
-        };
+
+        if (lastEpochHistory[SC] > 0) {
+          fullEpochsStakedAmounts[epoch].staked = {
+            ...fullEpochsStakedAmounts[epoch].staked,
+            [SC]: lastEpochHistory[SC],
+          };
+        } else {
+          delete lastEpochHistory[SC];
+        }
       });
     }
   }
@@ -183,18 +196,15 @@ const getRewardsHistory = async (query) => {
     if (oneEpoch > Phase3.epoch && fullEpochsStakedAmounts[oneEpoch].staked !== undefined) {
       for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
         let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
-        let rewardPerSC = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);
-        total = total.plus(new BigNumber(rewardPerSC));
-        console.log(oneEpoch, savedStaked, rewardPerSC, agencySC);
+        let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);
+        total = total.plus(new BigNumber(agencyInfo['reward']));
+        console.log(oneEpoch, savedStaked, agencyInfo, agencySC);
         if (!result[oneEpoch]) {
           result[oneEpoch] = { staked: {} };
         }
         result[oneEpoch].staked = {
           ...result[oneEpoch].staked,
-          [agencySC]: {
-            totalStaked: savedStaked,
-            totalReward: rewardPerSC,
-          },
+          [agencySC]: agencyInfo,
         };
       }
     }

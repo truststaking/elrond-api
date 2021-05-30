@@ -10,7 +10,6 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             'agency',
             'start',
             'end',
-            'isOwner'
         ];
 
         Object.keys(query).forEach((key) => {

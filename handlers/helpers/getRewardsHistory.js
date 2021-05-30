@@ -8,7 +8,7 @@ const {
 } = require('@elrondnetwork/erdjs');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
-
+const bech32 = require('./bech32');
 const Phase3 = {
   timestamp: 1617633000,
   epoch: 249,
@@ -139,11 +139,27 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
   }
 };
 
+const isOwner = async(agency, address) => {
+  let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
+  let delegationContract = new SmartContract({ address: new Address(agency) });
+  let reply = false;
+  let response = await delegationContract.runQuery(provider, {
+    func: new ContractFunction('getContractConfig'),
+    args: [],
+  });
+  if (response.returnCode.text === 'ok') {
+    reply = bech32.encode(Buffer.from(response.returnData[0], 'base64').toString('hex')) == address;
+  } else {
+    console.log('Error');
+  }
+  return reply;
+}
+
 const getRewardsHistory = async (query) => {
   if (query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
   }
-  let isOwner = query.isOwner == 'true' || true;
+
   let inner_query = {
     address: query.address,
     receiver: query.agency,
@@ -191,12 +207,16 @@ const getRewardsHistory = async (query) => {
   }
 
   let result = {};
+  let providers = {};
   let total = {};
   for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
     if (oneEpoch > Phase3.epoch && fullEpochsStakedAmounts[oneEpoch].staked !== undefined) {
       for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
         let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
-        let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);
+        if (!providers[agencySC]) {
+          providers[agencySC] = await isOwner(agencySC, query.address);
+        }
+        let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, providers[agencySC]);
         if (!total[agencySC]) {
           total[agencySC] = new BigNumber(agencyInfo['reward']);
         }
@@ -216,11 +236,13 @@ const getRewardsHistory = async (query) => {
       }
     }
   }
+  let full_total = new BigNumber(0);
   Object.keys(total).forEach(function (scAddress) {
+    full_total = full_total.plus(total[scAddress]);
     total[scAddress] = parseFloat(total[scAddress].toFixed())
   });
 
-  return {rewards_per_epoch: result, total_result: total};
+  return {rewards_per_epoch: result, total_per_provider: total, total: parseFloat(full_total.toFixed())};
 };
 
 module.exports = getRewardsHistory;

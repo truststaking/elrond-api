@@ -191,13 +191,20 @@ const getRewardsHistory = async (query) => {
   }
 
   let result = {};
-  let total = new BigNumber(0);
+  let total = {};
   for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
     if (oneEpoch > Phase3.epoch && fullEpochsStakedAmounts[oneEpoch].staked !== undefined) {
       for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
         let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
         let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, isOwner);
-        total = total.plus(new BigNumber(agencyInfo['reward']));
+        if (!total[agencySC]) {
+          total[agencySC] = new BigNumber(agencyInfo['reward']);
+        }
+        else
+        {
+          total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
+        }
+
         console.log(oneEpoch, savedStaked, agencyInfo, agencySC);
         if (!result[oneEpoch]) {
           result[oneEpoch] = { staked: {} };
@@ -209,8 +216,11 @@ const getRewardsHistory = async (query) => {
       }
     }
   }
-  console.log('total rewards:' + parseFloat(total.toFixed()));
-  return result;
+  Object.keys(total).forEach(function (scAddress) {
+    total[scAddress] = parseFloat(total[scAddress].toFixed())
+  });
+
+  return {rewards_per_epoch: result, total_result: total};
 };
 
 module.exports = getRewardsHistory;

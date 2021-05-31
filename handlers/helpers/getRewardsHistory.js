@@ -64,6 +64,7 @@ function DecimalHexTwosComplement(decimal) {
     return output;
   }
 }
+
 function hexToDec(hex) {
   return hex
     .toLowerCase()
@@ -124,13 +125,19 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
       agency_reward['reward'] = reward.toFixed();
-      // console.log(agency_reward);
       return agency_reward;
     } else {
-      // console.log(response.returnCode.text);
       return {
         staked: amount,
         reward: 0,
+        APRDelegator: 0,
+        APROwner: 0,
+        epoch,
+        ownerProfit: 0,
+        rewardDistributed: 0,
+        serviceFee: 0,
+        toBeDistributed: 0,
+        totalActiveStake: 0,
       };
     }
   } else {
@@ -139,7 +146,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
   }
 };
 
-const isOwner = async(agency, address) => {
+const isOwner = async (agency, address) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
   let reply = false;
@@ -153,7 +160,7 @@ const isOwner = async(agency, address) => {
     console.log('Error');
   }
   return reply;
-}
+};
 
 const getRewardsHistory = async (query) => {
   if (query.start < Phase3.timestamp) {
@@ -162,7 +169,6 @@ const getRewardsHistory = async (query) => {
 
   let inner_query = {
     address: query.address,
-    receiver: query.agency,
     before: query.stop,
   };
 
@@ -216,18 +222,35 @@ const getRewardsHistory = async (query) => {
         if (!providers[agencySC]) {
           providers[agencySC] = await isOwner(agencySC, query.address);
         }
-        let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, providers[agencySC]);
+        let agencyInfo = await calculateReward(
+          parseInt(oneEpoch),
+          savedStaked,
+          agencySC,
+          providers[agencySC]
+        );
         if (!total[agencySC]) {
           total[agencySC] = new BigNumber(agencyInfo['reward']);
-        }
-        else
-        {
+        } else {
           total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
         }
 
-        console.log(oneEpoch, savedStaked, agencyInfo, agencySC);
         if (!result[oneEpoch]) {
-          result[oneEpoch] = { staked: {} };
+          var date = new Date(getTimestampByEpoch(oneEpoch) * 1000);
+          result[oneEpoch] = {
+            staked: {},
+            unixTimestamp: getTimestampByEpoch(oneEpoch),
+            dateTime:
+              '' +
+              date.getDate() +
+              '/' +
+              (date.getMonth() + 1) +
+              '/' +
+              date.getFullYear() +
+              ' ' +
+              date.getHours() +
+              ':' +
+              date.getMinutes(),
+          };
         }
         result[oneEpoch].staked = {
           ...result[oneEpoch].staked,
@@ -239,10 +262,14 @@ const getRewardsHistory = async (query) => {
   let full_total = new BigNumber(0);
   Object.keys(total).forEach(function (scAddress) {
     full_total = full_total.plus(total[scAddress]);
-    total[scAddress] = parseFloat(total[scAddress].toFixed())
+    total[scAddress] = parseFloat(total[scAddress].toFixed());
   });
 
-  return {rewards_per_epoch: result, total_per_provider: total, total: parseFloat(full_total.toFixed())};
+  return {
+    rewards_per_epoch: result,
+    total_per_provider: total,
+    total: parseFloat(full_total.toFixed()),
+  };
 };
 
 module.exports = getRewardsHistory;

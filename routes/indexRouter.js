@@ -11,8 +11,8 @@ router.get('/', async (req, res) => {
 
   await setForwardedHeaders(requestHeaders);
 
-router.get('/', async (req, res) => {
-  res.redirect('https://api-docs.elrond.com');
+  router.get('/', async (req, res) => {
+    res.redirect('https://api-docs.elrond.com');
+  });
 });
-
 module.exports = router;

@@ -18,7 +18,10 @@ const getTokenProperties = require('./getTokenProperties');
 const getTokens = require('./getTokens');
 const getValidators = require('./getValidators');
 const response = require('./response');
+const getRewardsHistory = require('./getRewardsHistory');
 const vmQuery = require('./vmQuery');
+const { setForwardedHeaders } = require('./axiosWrapper');
+
 const padHex = (value) => (value.length % 2 ? '0' + value : value);
 
 module.exports = {
@@ -29,6 +32,7 @@ module.exports = {
   computeShard,
   confirmKeybase,
   dns,
+  setForwardedHeaders,
   elasticSearch,
   getChunks,
   getHeartbeat,
@@ -44,4 +48,5 @@ module.exports = {
   response,
   vmQuery,
   padHex,
+  getRewardsHistory,
 };

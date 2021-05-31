@@ -16,6 +16,8 @@ const proxyRouter = require('./proxyRouter');
 const queueRouter = require('./queueRouter');
 const roundsRouter = require('./roundsRouter');
 const shardsRouter = require('./shardsRouter');
+const rewardsHistoryRouter = require('./rewardsHistoryRouter');
+const addressHistoryRouter = require('./addressHistoryRouter');
 const stakeRouter = require('./stakeRouter');
 const statsRouter = require('./statsRouter');
 const tokensRouter = require('./tokensRouter');
@@ -46,6 +48,8 @@ module.exports = {
   stakeRouter,
   statsRouter,
   tokensRouter,
+  rewardsHistoryRouter,
+  addressHistoryRouter,
   transactionsRouter,
   unbondPeriodRouter,
   usernamesRouter,

@@ -1,44 +1,31 @@
-const { axios, setForwardedHeaders, getTokens, response } = require('./helpers');
+const axios = require('axios');
 
-const {
-  gatewayUrl,
-  cache: { moderate, live },
-} = require(`./configs/${process.env.CONFIG}`);
+const { getTokens, response } = require('./helpers');
 
-let globalArray;
-let globalObject;
-let globalTimestamp;
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
+const queryFilter = ({ array, type, search }) => {
+  let tokens = array.filter(({ type: tokenType, token, name }) => {
+    if (search) {
+      const tokenMatches = token.toLowerCase().includes(search.toLowerCase());
+      const nameMatches = name.toLowerCase().includes(search.toLowerCase());
 
+      if (!tokenMatches && !nameMatches) return false;
+    }
+
+    if (type && tokenType !== type) return false;
+
+    return true;
+  });
+
+  return tokens;
+};
+
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   const { hash: address, identifier } = pathParameters || {};
-  const { from = 0, size = 25, search = false } = queryStringParameters || {};
+  const { from = 0, size = 25, search = false, type } = queryStringParameters || {};
 
-  let array;
-  let object;
-
-  // attempt to not reload the nodes sooner than once every 30 seconds
-  if (
-    globalArray &&
-    globalObject &&
-    globalTimestamp &&
-    globalTimestamp + 30 < Math.floor(Date.now() / 1000)
-  ) {
-    array = globalArray;
-    object = globalObject;
-  } else {
-    const tokens = await getTokens();
-    array = tokens.array;
-    object = tokens.object;
-    globalArray = array;
-    globalObject = object;
-    globalTimestamp = Math.floor(Date.now() / 1000);
-  }
+  const { array, object } = await getTokens();
 
   if (address) {
     try {
@@ -48,7 +35,7 @@ exports.handler = async ({
         data: {
           data: { esdts },
         },
-      } = await axios.get(`${gatewayUrl()}/address/${address}/esdt`);
+      } = await axios.get(`${gatewayUrl()}/address/${address}/esdt`, axiosConfig);
 
       const addressTokens = {};
 
@@ -62,45 +49,39 @@ exports.handler = async ({
 
       Object.keys(esdts).forEach((key) => {
         const { tokenIdentifier: identifier, ...rest } = esdts[key];
+
         filtered.push({ ...object[addressTokens[key]], identifier, ...rest });
       });
 
+      const tokens = queryFilter({ array: filtered, type, search });
+
       switch (true) {
         case identifier && identifier !== 'count': {
-          const token = filtered.find(({ token }) => token === identifier);
+          const token = tokens.find(({ token }) => token === identifier);
           results = token ? { data: token } : { status: 404 };
           break;
         }
         case identifier && identifier === 'count': {
-          results = { data: filtered.length };
+          results = { data: tokens.length };
           break;
         }
         default: {
           const endIndex = parseInt(from) + parseInt(size);
-          results = { data: filtered.slice(parseInt(from), endIndex) };
+          results = { data: tokens.slice(parseInt(from), endIndex) };
           break;
         }
       }
 
-      return response({ ...results, cache: live });
+      return response({ ...results });
     } catch (error) {
       console.error('address tokens', error);
-      return response({ data: [], cache: live });
+      return response({ data: [] });
     }
   } else {
     try {
       let results;
 
-      let fungible = array.filter(({ type }) => type === 'FungibleESDT');
-
-      if (search) {
-        fungible = fungible.filter(({ token, name }) => {
-          const tokenMatches = token.toLowerCase().includes(search.toLowerCase());
-          const nameMatches = name.toLowerCase().includes(search.toLowerCase());
-
-          return tokenMatches || nameMatches;
-        });
-      }
+      const tokens = queryFilter({ array, type, search });
 
       switch (true) {
         case identifier && identifier !== 'count': {
@@ -108,17 +89,17 @@ exports.handler = async ({
           break;
         }
         case identifier && identifier === 'count': {
-          results = { data: fungible.length };
+          results = { data: tokens.length };
           break;
         }
         default: {
           const endIndex = parseInt(from) + parseInt(size);
-          results = { data: fungible.slice(parseInt(from), endIndex) };
+          results = { data: tokens.slice(parseInt(from), endIndex) };
           break;
         }
       }
 
-      return response({ ...results, cache: moderate });
+      return response({ ...results });
     } catch (error) {
       console.error('tokens error', error);
       return response({ status: 503 });

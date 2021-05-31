@@ -43,7 +43,11 @@ const transformItem = (item, fields) => {
   return item;
 };
 
-const response = ({ status = 200, data, fields, headers = {}, extract = false }) => {
+const response = ({ status = 200, data, headers = {}, cache, fields, extract = false }) => {
+  if (cache) {
+    throw new Error('cache value NOT required');
+  }
+
   if (!data && statuses[status]) {
     if (status >= 400) {
       data = {

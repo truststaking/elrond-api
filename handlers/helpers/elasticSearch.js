@@ -1,5 +1,6 @@
-const { axios } = require('./axiosWrapper');
-const { elasticUrl } = require(`../configs/${process.env.CONFIG}`);
+const axios = require('axios');
+
+const { elasticUrl, axiosConfig } = require(`../configs/${process.env.CONFIG}`);
 
 const buildQuery = (query = {}) => {
   delete query.from;
@@ -111,6 +112,7 @@ const getList = async ({ collection, key, query, sort }) => {
     method: 'POST',
     URL: url,
     data: { query, sort, from, size },
+    config: axiosConfig,
   });
 
   return documents.map((document) => formatItem({ document, key }));
@@ -121,6 +123,7 @@ const getItem = async ({ collection, key, hash }) => {
   const { data: document } = await axiosRequestWrapper({
     method: 'GET',
     URL: url,
+    config: axiosConfig,
   });
 
   return formatItem({ document, key });
@@ -132,7 +135,7 @@ const getCount = async ({ collection, query }) => {
 
   const {
     data: { count },
-  } = await axiosRequestWrapper({ method: 'POST', URL: url, data: { query } });
+  } = await axiosRequestWrapper({ method: 'POST', URL: url, data: { query }, config: axiosConfig });
 
   return count;
 };
@@ -152,7 +155,7 @@ const getBlses = async ({ shard, epoch }) => {
     data: {
       _source: { publicKeys },
     },
-  } = await axiosRequestWrapper({ method: 'GET', URL: url });
+  } = await axiosRequestWrapper({ method: 'GET', URL: url, config: axiosConfig });
 
   publicKeysCache[key] = publicKeys;
 
@@ -166,7 +169,7 @@ const getBlsIndex = async ({ bls, shard, epoch }) => {
     data: {
       _source: { publicKeys },
     },
-  } = await axiosRequestWrapper({ method: 'GET', URL: url });
+  } = await axiosRequestWrapper({ method: 'GET', URL: url, config: axiosConfig });
 
   const index = publicKeys.indexOf(bls);
 

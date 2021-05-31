@@ -18,18 +18,22 @@ const getProvidersAddresses = async () => {
     return cached;
   }
 
-  const providersBase64 = await vmQuery({
-    contract: delegationManagerContract,
-    func: 'getAllContractAddresses',
-  });
+  try {
+    const providersBase64 = await vmQuery({
+      contract: delegationManagerContract,
+      func: 'getAllContractAddresses',
+    });
 
-  const value = providersBase64.map((providerBase64) =>
-    bech32.encode(Buffer.from(providerBase64, 'base64').toString('hex'))
-  );
+    const value = providersBase64.map((providerBase64) =>
+      bech32.encode(Buffer.from(providerBase64, 'base64').toString('hex'))
+    );
 
-  await putCache({ key, value, ttl: processTtl });
+    await putCache({ key, value, ttl: processTtl });
 
-  return value;
+    return value;
+  } catch (error) {
+    return false;
+  }
 };
 
 const getProviderConfig = async (address) => {
@@ -139,67 +143,69 @@ const getProviders = async (args) => {
   }
 
   const providers = await getProvidersAddresses();
+  if (providers) {
+    const [configs, metadatas, numUsers, cumulatedRewards] = await Promise.all([
+      batchProcess({
+        payload: providers,
+        handler: getProviderConfig,
+        ttl: 900, // 15m
+      }),
+      batchProcess({
+        payload: providers,
+        handler: getProviderMetadata,
+        ttl: 900, // 15m
+      }),
+      batchProcess({
+        payload: providers,
+        handler: getNumUsers,
+        ttl: 3600, // 1h
+      }),
+      batchProcess({
+        payload: providers,
+        handler: getCumulatedRewards,
+        ttl: 3600, // 1h
+      }),
+    ]);
 
-  const [configs, metadatas, numUsers, cumulatedRewards] = await Promise.all([
-    batchProcess({
-      payload: providers,
-      handler: getProviderConfig,
-      ttl: 900, // 15m
-    }),
-    batchProcess({
-      payload: providers,
-      handler: getProviderMetadata,
-      ttl: 900, // 15m
-    }),
-    batchProcess({
-      payload: providers,
-      handler: getNumUsers,
-      ttl: 3600, // 1h
-    }),
-    batchProcess({
-      payload: providers,
-      handler: getCumulatedRewards,
-      ttl: 3600, // 1h
-    }),
-  ]);
+    const payload = metadatas
+      .map(({ identity }, index) => {
+        return { identity, network, key: providers[index] };
+      })
+      .filter(({ identity }) => !!identity);
 
-  const payload = metadatas
-    .map(({ identity }, index) => {
-      return { identity, network, key: providers[index] };
-    })
-    .filter(({ identity }) => !!identity);
+    const confirmations = await batchProcess({
+      payload,
+      handler: confirmKeybase,
+      ttl: 604800, // 7d
+    });
 
-  const confirmations = await batchProcess({
-    payload,
-    handler: confirmKeybase,
-    ttl: 604800, // 7d
-  });
+    const value = providers.map((provider, index) => {
+      if (configs[index].serviceFee) {
+        configs[index].serviceFee = parseFloat(configs[index].serviceFee);
+      }
 
-  const value = providers.map((provider, index) => {
-    if (configs[index].serviceFee) {
-      configs[index].serviceFee = parseFloat(configs[index].serviceFee);
-    }
+      configs[index].apr = 'N/A';
 
-    configs[index].apr = 'N/A';
+      return {
+        provider,
+        ...configs[index],
+        numUsers: numUsers[index],
+        cumulatedRewards: cumulatedRewards[index],
+      };
+    });
 
-    return {
-      provider,
-      ...configs[index],
-      numUsers: numUsers[index],
-      cumulatedRewards: cumulatedRewards[index],
-    };
-  });
+    payload.forEach(({ identity, key }, index) => {
+      if (confirmations[index]) {
+        const found = value.find(({ provider }) => provider === key);
+        found.identity = identity;
+      }
+    });
 
-  payload.forEach(({ identity, key }, index) => {
-    if (confirmations[index]) {
-      const found = value.find(({ provider }) => provider === key);
-      found.identity = identity;
-    }
-  });
+    await putCache({ key, value, ttl: 3600 }); // 1h
 
-  await putCache({ key, value, ttl: 3600 }); // 1h
-
-  return value;
+    return value;
+  }
+  return false;
 };
 
 module.exports = getProviders;

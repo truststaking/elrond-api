@@ -1,19 +1,6 @@
-const { getNodes, response, setForwardedHeaders } = require('./helpers');
+const { getNodes, response } = require('./helpers');
 
-const {
-  cache: { moderate },
-} = require(`./configs/${process.env.CONFIG}`);
-
-let globalNodes;
-let globalTimestamp;
-
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ pathParameters, queryStringParameters }) => {
   try {
     const { hash } = pathParameters || {};
     const {
@@ -35,16 +22,7 @@ exports.handler = async ({
     let results;
     let nodes;
 
-    // attempt to not reload the nodes sooner than once every 30 seconds
-    if (globalNodes && globalTimestamp && globalTimestamp + 30 < Math.floor(Date.now() / 1000)) {
-      // console.log('global cache');
-      nodes = globalNodes;
-    } else {
-      // console.log('new fetch', globalTimestamp, Math.floor(Date.now() / 1000));
-      nodes = await getNodes();
-      globalNodes = nodes;
-      globalTimestamp = Math.floor(Date.now() / 1000);
-    }
+    nodes = await getNodes();
 
     if (hash && !['count', 'versions'].includes(hash)) {
       const node = nodes.find(({ bls }) => bls === hash);
@@ -125,8 +103,35 @@ exports.handler = async ({
         return true;
       });
 
-      if (sort && ['name', 'version', 'uptime', 'tempRating'].includes(sort)) {
-        data.sort((a, b) => (a[sort] > b[sort] ? 1 : b[sort] > a[sort] ? -1 : 0));
+      if (
+        sort &&
+        [
+          'name',
+          'version',
+          'uptime',
+          'tempRating',
+          'leaderSuccess',
+          'leaderFailure',
+          'validatorSuccess',
+          'validatorFailure',
+          'validatorIgnoredSignatures',
+          'position',
+        ].includes(sort)
+      ) {
+        data.sort((a, b) => {
+          let asort = a[sort];
+          let bsort = b[sort];
+
+          if (asort && typeof asort === 'string') {
+            asort = asort.toLowerCase();
+          }
+
+          if (bsort && typeof bsort === 'string') {
+            bsort = bsort.toLowerCase();
+          }
+
+          return asort > bsort ? 1 : bsort > asort ? -1 : 0;
+        });
 
         if (order === 'desc') {
           data.reverse();
@@ -141,7 +146,7 @@ exports.handler = async ({
       }
     }
 
-    return response({ ...results, cache: moderate });
+    return response({ ...results });
   } catch (error) {
     console.error('nodes error', error);
     return response({ status: 503 });

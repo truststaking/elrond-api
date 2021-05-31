@@ -6,14 +6,9 @@ const {
   response,
   cache: { getCache, putCache },
   bech32,
-  setForwardedHeaders,
 } = require('./helpers');
 
-const {
-  auctionContract,
-  gatewayUrl,
-  cache: { live, moderate },
-} = require(`./configs/${process.env.CONFIG}`);
+const { auctionContract, gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 let roundsPerEpoch, roundDuration, roundsPassed;
 
@@ -34,8 +29,8 @@ const getNetworkConfig = async () => {
       },
     },
   ] = await Promise.all([
-    axios.get(`${gatewayUrl()}/network/config`),
-    axios.get(`${gatewayUrl()}/network/status/4294967295`),
+    axios.get(`${gatewayUrl()}/network/config`, axiosConfig),
+    axios.get(`${gatewayUrl()}/network/status/4294967295`, axiosConfig),
   ]);
 
   roundsPassed = erd_rounds_passed_in_current_epoch;
@@ -60,10 +55,7 @@ const getExpires = ({ epochs, roundsPassed, roundsPerEpoch, roundDuration }) => 
   return now + fullEpochs + lastEpoch;
 };
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  pathParameters,
-}) => {
+exports.handler = async ({ pathParameters }) => {
   let address;
 
   if (pathParameters && pathParameters.hash) {
@@ -71,8 +63,6 @@ exports.handler = async ({
   }
 
   if (address) {
-    await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
     try {
       const [totalStakedEncoded, unStakedTokensListEncoded] = await Promise.all([
         vmQuery({
@@ -92,6 +82,8 @@ exports.handler = async ({
         totalStaked: Buffer.from(totalStakedEncoded[0], 'base64').toString('ascii'),
         unstakedTokens: undefined,
       };
+
+      console.log('unStakedTokensListEncoded', unStakedTokensListEncoded);
 
       if (unStakedTokensListEncoded) {
         data.unstakedTokens = unStakedTokensListEncoded.reduce((result, value, index, array) => {
@@ -120,41 +112,47 @@ exports.handler = async ({
         }
       }
 
-      return response({ data, cache: live });
+      return response({ data });
     } catch (error) {
       console.error('stake error', error);
 
       const data = { totalStaked: '0' };
 
-      return response({ data, cache: live });
+      return response({ data });
     }
   } else {
     try {
       const key = 'stake';
 
-      let data = null;
-      // await getCache({ key });
+      let data = await getCache({ key });
 
       if (data) {
-        return response({ data, cache: moderate });
+        return response({ data });
       } else {
         const [
           validators,
           {
             data: {
               data: {
-                metrics: { erd_total_staked_value: totalStaked },
+                metrics: {
+                  erd_total_base_staked_value: totalBaseStaked,
+                  erd_total_top_up_value: totalTopUp,
+                },
               },
             },
           },
-        ] = await Promise.all([getValidators(), axios.get(`${gatewayUrl()}/network/economics`)]);
+        ] = await Promise.all([
+          getValidators(),
+          axios.get(`${gatewayUrl()}/network/economics`, axiosConfig),
+        ]);
 
+        const totalStaked = BigInt(BigInt(totalBaseStaked) + BigInt(totalTopUp)).toString();
         data = { ...validators, totalStaked };
 
         await putCache({ key, value: data, ttl: 600 }); // 10m
       }
 
-      return response({ data, cache: moderate });
+      return response({ data });
     } catch (error) {
       console.error('stake', error);
       return response({ status: 503 });

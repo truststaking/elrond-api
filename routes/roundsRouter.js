@@ -1,16 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const { roundsHandler } = require('../handlers');
-const { setForwardedHeaders } = require('../handlers/helpers');
 
-router.get(['/rounds', '/rounds/:hash'], async (req, res) => {
-  const {
-    params: pathParameters = {},
-    query: queryStringParameters = {},
-    headers: requestHeaders = {},
-  } = req;
-
-  await setForwardedHeaders(requestHeaders);
+router.get('/rounds', async (req, res) => {
+  const { params: pathParameters = {}, query: queryStringParameters = {} } = req;
 
   const { statusCode, headers, body } = await roundsHandler({
     pathParameters,

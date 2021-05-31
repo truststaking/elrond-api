@@ -11,7 +11,6 @@ const config = {
     return config.gatewayUrl();
   },
   metaChainShard: 4294967295,
-  walletBucket: 'http://wallet.elrond.com.s3-website.us-east-1.amazonaws.com',
   esdtContract: 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqzllls8a5w6u',
   delegationContract: 'erd1qqqqqqqqqqqqqpgqp699jngundfqw07d8jzkepucvpzush6k3wvqyc44rx',
   delegationContractShardId: 2,
@@ -22,6 +21,7 @@ const config = {
   cacheTtl: 6,
   processTtl: 600,
   poolLimit: 10,
+  processLimit: 500,
   redisUrl: '',
   statuses: {
     201: 'Created',
@@ -36,11 +36,9 @@ const config = {
     500: 'Internal Server Error',
     503: 'Service Unavailable',
   },
-  cache: {
-    skip: 0, // no cache
-    live: 3, // 3 seconds (half a round)
-    moderate: 300, // 5 minutes
-    final: 3600, // 1 hour (we don't expect this to ever change)
+  axiosConfig: {
+    maxRedirects: 0,
+    timeout: 3000,
   },
 };
 

@@ -10,6 +10,8 @@ const { getCache, putCache } = require('./cache');
 const { network } = require(`../configs/${process.env.CONFIG}`);
 
 const getNodes = async (args) => {
+  console.log('getNodes start');
+
   const { skipCache } = args || {};
 
   const key = 'nodes';
@@ -25,16 +27,21 @@ const getNodes = async (args) => {
   const nodes = await getHeartbeat({ skipCache });
   const queue = await getQueue({ skipCache });
 
-  queue.forEach(({ bls }) => {
+  console.log('fetching data...');
+
+  queue.forEach(({ bls, position }) => {
     const node = nodes.find((node) => node.bls === bls);
 
     if (node) {
       node.type = 'validator';
       node.status = 'queued';
+      node.position = position;
     } else {
-      nodes.push({ bls, type: 'validator', status: 'queued' });
+      nodes.push({ bls, position, type: 'validator', status: 'queued' });
     }
   });
+
+  console.log('confirming keybase...');
 
   const payload = nodes
     .filter(({ identity }) => !!identity)
@@ -57,6 +64,8 @@ const getNodes = async (args) => {
     }
   });
 
+  console.log('getting owners...');
+
   const blses = nodes.filter(({ type }) => type === 'validator').map(({ bls }) => bls);
   const owners = await getOwners({ blses, skipCache });
 
@@ -65,28 +74,35 @@ const getNodes = async (args) => {
     node.owner = owners[index];
   });
 
+  console.log('getting providers...');
+
   const providers = await getProviders({ skipCache });
+  if (providers) {
+    nodes.forEach((node) => {
+      if (node.type === 'validator') {
+        const provider = providers.find(({ provider }) => provider === node.owner);
 
-  nodes.forEach((node) => {
-    if (node.type === 'validator') {
-      const provider = providers.find(({ provider }) => provider === node.owner);
+        if (provider) {
+          node.provider = provider.provider;
+          node.owner = provider.owner;
 
-      if (provider) {
-        node.provider = provider.provider;
-        node.owner = provider.owner;
-
-        if (provider.identity) {
-          node.identity = provider.identity;
+          if (provider.identity) {
+            node.identity = provider.identity;
+          }
         }
       }
-    }
-  });
+    });
+  }
 
   let addresses = nodes
     .filter(({ type }) => type === 'validator')
     .map(({ owner, provider }) => (provider ? provider : owner));
 
+  addresses = addresses.filter((el) => el != undefined);
+
   addresses = [...new Set(addresses)];
+
+  console.log('getting stakes...');
 
   const stakes = await getStakes({ addresses, skipCache });
 
@@ -103,6 +119,8 @@ const getNodes = async (args) => {
   });
 
   await putCache({ key, value: nodes, ttl: 3600 }); //1h
+
+  console.log('getNodes end');
 
   return nodes;
 };

@@ -12,10 +12,10 @@ const transformItem = async (item) => {
   let [shard] = key.split('_');
   shard = parseInt(shard);
 
-  const publicKeys = await getBlses({ shard, epoch });
-  const signers = signersIndexes.map((index) => publicKeys[index]);
+  const blses = await getBlses({ shard, epoch });
+  // const signers = signersIndexes.map((index) => blses[index]);
 
-  return { round, shard, blockWasProposed, signers, timestamp };
+  return { round, shard, blockWasProposed, timestamp }; //signers
 };
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
@@ -24,7 +24,6 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'key';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-    let { fields } = query || {};
 
     const keys = ['shard', 'from', 'size', 'condition', 'signersIndexes'];
 
@@ -34,8 +33,11 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
       delete query.validator;
 
-      if (index) query.signersIndexes = index;
-      else query.signersIndexes = -1;
+      if (index) {
+        query.signersIndexes = index;
+      } else {
+        query.signersIndexes = -1;
+      }
     }
 
     Object.keys(query).forEach((key) => {
@@ -73,7 +75,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data });
   } catch (error) {
     console.error('rounds error', error);
     return response({ status: 503 });

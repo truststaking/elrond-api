@@ -7,10 +7,10 @@ const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
   let { shardId: shard, epoch, proposer, validators, searchOrder, ...rest } = item;
 
-  const publicKeys = await getBlses({ shard, epoch });
+  const blses = await getBlses({ shard, epoch });
 
-  proposer = publicKeys[proposer];
-  validators = validators.map((index) => publicKeys[index]);
+  proposer = blses[proposer];
+  validators = validators.map((index) => blses[index]);
 
   return { shard, epoch, proposer, validators, ...rest };
 };
@@ -21,7 +21,6 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'hash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-    let { fields } = query || {};
 
     const keys = ['shard', 'from', 'size', 'proposer', 'validators', 'condition'];
 
@@ -81,7 +80,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data });
   } catch (error) {
     console.error('blocks error', error);
     return response({ status: 503 });

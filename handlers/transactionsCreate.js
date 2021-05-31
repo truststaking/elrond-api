@@ -1,11 +1,14 @@
-const { axios } = require('./helpers');
+const axios = require('axios');
 
-const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
+
 const { bech32, computeShard, response } = require('./helpers');
 
 exports.handler = async ({ body }) => {
+  // TODO: limit body size
+
   try {
-    const { sender, receiver } = body;
+    const { sender, receiver } = JSON.parse(body);
 
     const receiverShard = computeShard(bech32.decode(receiver));
     const senderShard = computeShard(bech32.decode(sender));
@@ -18,6 +21,7 @@ exports.handler = async ({ body }) => {
       method: 'post',
       url: `${gatewayUrl()}/transaction/send`,
       data: body,
+      ...axiosConfig,
     });
 
     // TODO: pending alignment

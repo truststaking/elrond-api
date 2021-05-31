@@ -1,13 +1,14 @@
-const { axios } = require('./helpers');
+const axios = require('axios');
 
 const {
   elasticSearch: { getList, getItem, getCount },
   response,
 } = require('./helpers');
 
-const { gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
+  // eslint-disable-next-line no-unused-vars
   const { searchOrder, ...rest } = item;
   return { ...rest };
 };
@@ -18,7 +19,6 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'txHash';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-    let { fields } = query || {};
     const keys = [
       'sender',
       'receiver',
@@ -29,6 +29,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       'before',
       'after',
       'condition',
+      'miniBlockHash',
     ];
 
     Object.keys(query).forEach((key) => {
@@ -39,6 +40,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
 
     let data;
     let status;
+    let cache;
 
     switch (true) {
       case hash !== undefined && hash === 'count': {
@@ -58,6 +60,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             } = await axios({
               method: 'get',
               url: `${gatewayUrl()}/transaction/${hash}`,
+              ...axiosConfig,
             });
 
             const {
@@ -119,7 +122,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data });
   } catch (error) {
     console.error('transactions error', error);
     return response({ status: 503 });

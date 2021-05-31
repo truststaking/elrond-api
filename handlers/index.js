@@ -5,11 +5,14 @@ const { handler: deferredHandler } = require('./deferred');
 const { handler: delegationHandler } = require('./delegation');
 const { handler: delegationLegacyHandler } = require('./delegationLegacy');
 const { handler: economicsHandler } = require('./economics');
+const { handler: identitiesHandler } = require('./identities');
 const { handler: keysHandler } = require('./keys');
+const { handler: mexHandler } = require('./mex');
 const { handler: miniblocksHandler } = require('./miniblocks');
 const { handler: nodesHandler } = require('./nodes');
-const { handler: prewarmHandler } = require('./prewarm');
 const { handler: providersHandler } = require('./providers');
+const { handler: proxyhandler } = require('./proxy');
+const { handler: queueHandler } = require('./queue');
 const { handler: roundsHandler } = require('./rounds');
 const { handler: shardsHandler } = require('./shards');
 const { handler: stakeHandler } = require('./stake');
@@ -17,9 +20,9 @@ const { handler: statsHandler } = require('./stats');
 const { handler: tokensHandler } = require('./tokens');
 const { handler: transactionsHandler } = require('./transactions');
 const { handler: transactionsCreateHandler } = require('./transactionsCreate');
-const { handler: allTransactionsHandler } = require('./allTransactions');
-const { handler: addressHistory } = require('./addressHistory');
-const { handler: rewardsHistory } = require('./rewardsHistory');
+const { handler: unbondPeriodHandler } = require('./unbondPeriod');
+const { handler: usernamesHandler } = require('./usernames');
+const { handler: waitingListHandler } = require('./waitingList');
 
 module.exports = {
   accountsHandler,
@@ -29,11 +32,14 @@ module.exports = {
   delegationHandler,
   delegationLegacyHandler,
   economicsHandler,
+  identitiesHandler,
   keysHandler,
+  mexHandler,
   miniblocksHandler,
   nodesHandler,
-  prewarmHandler,
   providersHandler,
+  proxyhandler,
+  queueHandler,
   roundsHandler,
   shardsHandler,
   stakeHandler,
@@ -41,7 +47,7 @@ module.exports = {
   tokensHandler,
   transactionsHandler,
   transactionsCreateHandler,
-  allTransactionsHandler,
-  addressHistory,
-  rewardsHistory,
+  unbondPeriodHandler,
+  usernamesHandler,
+  waitingListHandler,
 };

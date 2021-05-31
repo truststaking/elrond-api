@@ -1,11 +1,11 @@
-const { axios } = require('./helpers');
+const axios = require('axios');
 
 const {
   elasticSearch: { getList, getCount },
   response,
 } = require('./helpers');
 
-const { elasticUrl, gatewayUrl } = require(`./configs/${process.env.CONFIG}`);
+const { elasticUrl, gatewayUrl, axiosConfig } = require(`./configs/${process.env.CONFIG}`);
 
 const transformItem = async (item) => {
   // eslint-disable-next-line no-unused-vars
@@ -19,8 +19,6 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
     const key = 'address';
     const { hash } = pathParameters || {};
     let query = queryStringParameters || {};
-
-    let { fields } = query || {};
 
     const keys = ['from', 'size', 'condition'];
 
@@ -52,13 +50,18 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
               },
             },
           ] = await Promise.all([
-            axios.post(`${elasticUrl()}/transactions/_count`, {
-              query: {
-                bool: { should: [{ match: { sender: hash } }, { match: { receiver: hash } }] },
+            axios.post(
+              `${elasticUrl()}/transactions/_count`,
+              {
+                query: {
+                  bool: { should: [{ match: { sender: hash } }, { match: { receiver: hash } }] },
+                },
               },
-            }),
-            axios.get(`${gatewayUrl()}/address/${hash}`),
+              axiosConfig
+            ),
+            axios.get(`${gatewayUrl()}/address/${hash}`, axiosConfig),
           ]);
+
           data = { address, nonce, balance, code, codeHash, rootHash, txCount };
         } catch (error) {
           status = 404;
@@ -80,7 +83,7 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
       }
     }
 
-    return response({ status, data, fields });
+    return response({ status, data });
   } catch (error) {
     console.error('accounts error', error);
     return response({ status: 503 });

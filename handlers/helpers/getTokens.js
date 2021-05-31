@@ -1,11 +1,14 @@
-const { axios } = require('./axiosWrapper');
+const axios = require('axios');
+
 const { getCache, putCache } = require('./cache');
 
 const getTokenProperties = require('./getTokenProperties');
 const batchProcess = require('./batchProcess');
-const { gatewayUrl } = require(`../configs/${process.env.CONFIG}`);
+const { gatewayUrl, axiosConfig } = require(`../configs/${process.env.CONFIG}`);
 
 const getTokens = async (args) => {
+  console.log('getTokens start');
+
   let { skipCache } = args || {};
   const key = 'getTokens';
 
@@ -21,7 +24,7 @@ const getTokens = async (args) => {
     data: {
       data: { tokens: tokensIdentifiers },
     },
-  } = await axios.get(`${gatewayUrl()}/network/esdts`);
+  } = await axios.get(`${gatewayUrl()}/network/esdts`, axiosConfig);
 
   let tokens = await batchProcess({
     payload: tokensIdentifiers,
@@ -41,6 +44,8 @@ const getTokens = async (args) => {
   };
 
   await putCache({ key, value: tokens, ttl: 3600 }); // 1h
+
+  console.log('getTokens end');
 
   return tokens;
 };

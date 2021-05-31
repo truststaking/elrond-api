@@ -10,7 +10,7 @@ const { redisUrl, cacheTtl, network } = require(`../configs/${process.env.CONFIG
 const client = redis.createClient(redisUrl);
 
 client.on('error', (error) => {
-  // console.error('redis error', error);
+  console.error('redis error', error);
 });
 
 const asyncSet = promisify(client.set).bind(client);

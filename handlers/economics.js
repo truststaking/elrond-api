@@ -1,7 +1,7 @@
+const axios = require('axios');
+
 const {
-  axios,
   cache: { getCache, putCache },
-  setForwardedHeaders,
   vmQuery,
   response,
 } = require('./helpers');
@@ -10,17 +10,12 @@ const {
   gatewayUrl,
   delegationContract,
   auctionContract,
-  cache: { moderate },
+  axiosConfig,
 } = require(`./configs/${process.env.CONFIG}`);
 
 const locked = 4020000;
 
-exports.handler = async ({
-  requestContext: { identity: { userAgent = undefined, caller = undefined } = {} } = {},
-  queryStringParameters,
-}) => {
-  await setForwardedHeaders({ ['user-agent']: userAgent, ['x-forwarded-for']: caller });
-
+exports.handler = async ({ queryStringParameters }) => {
   const { extract } = queryStringParameters || {};
 
   try {
@@ -29,7 +24,7 @@ exports.handler = async ({
     const cached = await getCache({ key });
 
     if (cached) {
-      return response({ data: cached, extract, cache: moderate });
+      return response({ data: cached, extract });
     }
 
     const [
@@ -47,22 +42,29 @@ exports.handler = async ({
           },
         },
       },
-      [, totalWaitingStakeBase64],
+      waitingStake,
     ] = await Promise.all([
-      axios.get(`${gatewayUrl()}/address/${auctionContract}`),
-      axios.get(`${gatewayUrl()}/network/economics`),
+      axios.get(`${gatewayUrl()}/address/${auctionContract}`, axiosConfig),
+      axios.get(`${gatewayUrl()}/network/economics`, axiosConfig),
       vmQuery({
         contract: delegationContract,
         func: 'getTotalStakeByType',
       }),
     ]);
 
-    const totalWaitingStakeHex = Buffer.from(totalWaitingStakeBase64, 'base64').toString('hex');
-    let totalWaitingStake = BigInt(
-      totalWaitingStakeHex ? '0x' + totalWaitingStakeHex : totalWaitingStakeHex
-    );
+    let staked;
 
-    const staked = parseInt((BigInt(balance) + totalWaitingStake).toString().slice(0, -18));
+    if (waitingStake && waitingStake !== 'ContractsUnavailable') {
+      const [, totalWaitingStakeBase64] = waitingStake;
+
+      const totalWaitingStakeHex = Buffer.from(totalWaitingStakeBase64, 'base64').toString('hex');
+      let totalWaitingStake = BigInt(
+        totalWaitingStakeHex ? '0x' + totalWaitingStakeHex : totalWaitingStakeHex
+      );
+
+      staked = parseInt((BigInt(balance) + totalWaitingStake).toString().slice(0, -18));
+    }
+
     const totalSupply = parseInt(erd_total_supply.slice(0, -18));
 
     const circulatingSupply = totalSupply - locked;
@@ -71,7 +73,7 @@ exports.handler = async ({
 
     await putCache({ key, value: data, ttl: 600 }); // 10m
 
-    return response({ data, extract, cache: moderate });
+    return response({ data, extract });
   } catch (error) {
     console.error('economics error', error);
     return response({ status: 503 });

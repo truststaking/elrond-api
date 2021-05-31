@@ -6,12 +6,16 @@ const { getCache, putCache } = require('./cache');
 const { auctionContract } = require(`../configs/${process.env.CONFIG}`);
 
 const getStakedTopup = async (address) => {
-  const response = await vmQuery({
-    contract: auctionContract,
-    caller: auctionContract,
-    func: 'getTotalStakedTopUpStakedBlsKeys',
-    args: [bech32.decode(address)],
-  });
+  let response;
+
+  if (address) {
+    response = await vmQuery({
+      contract: auctionContract,
+      caller: auctionContract,
+      func: 'getTotalStakedTopUpStakedBlsKeys',
+      args: [bech32.decode(address)],
+    });
+  }
 
   if (!response) {
     return {
@@ -76,9 +80,11 @@ const getStakes = async ({ addresses, skipCache }) => {
   const value = [];
 
   owners.forEach(({ stake, topUp, locked, blses }) => {
-    blses.forEach((bls) => {
-      value.push({ bls, stake, topUp, locked });
-    });
+    if (blses) {
+      blses.forEach((bls) => {
+        value.push({ bls, stake, topUp, locked });
+      });
+    }
   });
 
   await putCache({ key, value, ttl: 3600 }); // 1h

@@ -139,7 +139,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
   }
 };
 
-const isOwner = async(agency, address) => {
+const isOwner = async (agency, address) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
   let reply = false;
@@ -153,7 +153,7 @@ const isOwner = async(agency, address) => {
     console.log('Error');
   }
   return reply;
-}
+};
 
 const getRewardsHistory = async (query) => {
   if (!query.start || query.start < Phase3.timestamp) {
@@ -216,16 +216,19 @@ const getRewardsHistory = async (query) => {
         if (!providers[agencySC]) {
           providers[agencySC] = await isOwner(agencySC, query.address);
         }
-        let agencyInfo = await calculateReward(parseInt(oneEpoch), savedStaked, agencySC, providers[agencySC]);
+        let agencyInfo = await calculateReward(
+          parseInt(oneEpoch),
+          savedStaked,
+          agencySC,
+          providers[agencySC]
+        );
         if (!total[agencySC]) {
           total[agencySC] = new BigNumber(agencyInfo['reward']);
-        }
-        else
-        {
+        } else {
           total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
         }
 
-        console.log(oneEpoch, savedStaked, agencyInfo, agencySC);
+        // console.log(oneEpoch, savedStaked, agencyInfo, agencySC);
         if (!result[oneEpoch]) {
           result[oneEpoch] = { staked: {} };
         }
@@ -239,10 +242,14 @@ const getRewardsHistory = async (query) => {
   let full_total = new BigNumber(0);
   Object.keys(total).forEach(function (scAddress) {
     full_total = full_total.plus(total[scAddress]);
-    total[scAddress] = parseFloat(total[scAddress].toFixed())
+    total[scAddress] = parseFloat(total[scAddress].toFixed());
   });
 
-  return {rewards_per_epoch: result, total_per_provider: total, total: parseFloat(full_total.toFixed())};
+  return {
+    rewards_per_epoch: result,
+    total_per_provider: total,
+    total: parseFloat(full_total.toFixed()),
+  };
 };
 
 module.exports = getRewardsHistory;

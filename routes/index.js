@@ -19,6 +19,7 @@ const transactionsRouter = require('./transactionsRouter');
 const allTransactionsRouter = require('./allTransactionsRouter');
 const addressHistoryRouter = require('./addressHistoryRouter');
 const rewardsHistoryRouter = require('./rewardsHistoryRouter');
+const agenciesAvgAprRouter = require('./agenciesAvgAprRouter');
 
 module.exports = {
   indexRouter,
@@ -42,4 +43,5 @@ module.exports = {
   allTransactionsRouter,
   addressHistoryRouter,
   rewardsHistoryRouter,
+  agenciesAvgAprRouter
 };

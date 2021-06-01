@@ -156,7 +156,7 @@ const isOwner = async(agency, address) => {
 }
 
 const getRewardsHistory = async (query) => {
-  if (query.start < Phase3.timestamp) {
+  if (!query.start || query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
   }
 

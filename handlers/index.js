@@ -20,6 +20,7 @@ const { handler: transactionsCreateHandler } = require('./transactionsCreate');
 const { handler: allTransactionsHandler } = require('./allTransactions');
 const { handler: addressHistory } = require('./addressHistory');
 const { handler: rewardsHistory } = require('./rewardsHistory');
+const { handler: agenciesAvgApr } = require('./agenciesAvgApr');
 
 module.exports = {
   accountsHandler,
@@ -44,4 +45,5 @@ module.exports = {
   allTransactionsHandler,
   addressHistory,
   rewardsHistory,
+  agenciesAvgApr,
 };

@@ -8,13 +8,12 @@ const {
 } = require('@elrondnetwork/erdjs');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
+const axios = require('axios');
 const bech32 = require('./bech32');
 const Phase3 = {
   timestamp: 1617633000,
   epoch: 249,
 };
-
-const mainnet_proxy = new ProxyProvider('https://gateway.elrond.com');
 
 const getEpoch = (timestamp) => {
   var diff;
@@ -106,7 +105,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       let reward = new BigNumber(toBeDistributed).multipliedBy(
         new BigNumber(agency_reward['staked'])
       );
-      // eslint-disable-next-line no-undef
+
       reward = new BigNumber(reward).dividedBy(new BigNumber(agency_reward.totalActiveStake));
       if (isOwner) {
         reward = reward.plus(new BigNumber(ownerProfit) / new BigNumber(Math.pow(10, 18)));
@@ -125,11 +124,51 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
       agency_reward['reward'] = reward.toFixed();
+      const timestamp = getTimestampByEpoch(epoch);
+      agency_reward['unix'] = timestamp * 1000;
+      const { data: price } = await axios.get(
+        `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
+      );
+      agency_reward['USD'] = price;
+      agency_reward['eGLDinUSD'] = (
+        parseFloat(price) * parseFloat(agency_reward['reward'])
+      ).toFixed(2);
+      var date = new Date(getTimestampByEpoch(epoch) * 1000);
+      agency_reward['date'] =
+        '' +
+        date.getDate() +
+        '/' +
+        (date.getMonth() + 1) +
+        '/' +
+        date.getFullYear() +
+        ' ' +
+        date.getHours() +
+        ':' +
+        date.getMinutes();
       return agency_reward;
     } else {
+      const timestamp = getTimestampByEpoch(epoch);
+      const { data: price } = await axios.get(
+        `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
+      );
+      var dateTime = new Date(getTimestampByEpoch(epoch) * 1000);
       return {
         staked: amount,
         reward: 0,
+        unix: timestamp * 1000,
+        date:
+          '' +
+          dateTime.getDate() +
+          '/' +
+          (dateTime.getMonth() + 1) +
+          '/' +
+          dateTime.getFullYear() +
+          ' ' +
+          dateTime.getHours() +
+          ':' +
+          dateTime.getMinutes(),
+        USD: price,
+        eGLDinUSD: 0,
         APRDelegator: 0,
         APROwner: 0,
         epoch,
@@ -176,6 +215,9 @@ const getRewardsHistory = async (query) => {
   let fullEpochsStakedAmounts = {};
   let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
   let lastEpochHistory = {};
+  let result = {};
+  let providers = {};
+  let total = {};
   for (let epoch = Phase3.epoch - 15; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
       Object.keys(lastEpochHistory).forEach((SC) => {
@@ -194,6 +236,33 @@ const getRewardsHistory = async (query) => {
       Object.keys(data.epochHistoryStaked[epoch].staked).forEach((agencySC) => {
         lastEpochHistory[agencySC] = data.epochHistoryStaked[epoch].staked[agencySC];
       });
+      if (epoch > Phase3.epoch && fullEpochsStakedAmounts[epoch].staked !== undefined) {
+        for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
+          let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
+          if (!providers[agencySC]) {
+            providers[agencySC] = await isOwner(agencySC, query.address);
+          }
+          let agencyInfo = await calculateReward(
+            parseInt(epoch),
+            savedStaked,
+            agencySC,
+            providers[agencySC]
+          );
+          if (!total[agencySC]) {
+            total[agencySC] = new BigNumber(agencyInfo['reward']);
+          } else {
+            total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
+          }
+
+          if (!result[agencySC]) {
+            result[agencySC] = [];
+          }
+
+          result[agencySC].push({
+            ...agencyInfo,
+          });
+        }
+      }
     } else {
       Object.keys(lastEpochHistory).forEach((SC) => {
         if (!fullEpochsStakedAmounts[epoch]) {
@@ -209,56 +278,36 @@ const getRewardsHistory = async (query) => {
           delete lastEpochHistory[SC];
         }
       });
-    }
-  }
+      if (epoch > Phase3.epoch && fullEpochsStakedAmounts[epoch].staked !== undefined) {
+        for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
+          let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
+          if (!providers[agencySC]) {
+            providers[agencySC] = await isOwner(agencySC, query.address);
+          }
+          let agencyInfo = await calculateReward(
+            parseInt(epoch),
+            savedStaked,
+            agencySC,
+            providers[agencySC]
+          );
+          if (!total[agencySC]) {
+            total[agencySC] = new BigNumber(agencyInfo['reward']);
+          } else {
+            total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
+          }
 
-  let result = {};
-  let providers = {};
-  let total = {};
-  for (let oneEpoch of Object.keys(fullEpochsStakedAmounts)) {
-    if (oneEpoch > Phase3.epoch && fullEpochsStakedAmounts[oneEpoch].staked !== undefined) {
-      for (let agencySC of Object.keys(fullEpochsStakedAmounts[oneEpoch].staked)) {
-        let savedStaked = fullEpochsStakedAmounts[oneEpoch].staked[agencySC];
-        if (!providers[agencySC]) {
-          providers[agencySC] = await isOwner(agencySC, query.address);
-        }
-        let agencyInfo = await calculateReward(
-          parseInt(oneEpoch),
-          savedStaked,
-          agencySC,
-          providers[agencySC]
-        );
-        if (!total[agencySC]) {
-          total[agencySC] = new BigNumber(agencyInfo['reward']);
-        } else {
-          total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
-        }
+          if (!result[agencySC]) {
+            result[agencySC] = [];
+          }
 
-        if (!result[oneEpoch]) {
-          var date = new Date(getTimestampByEpoch(oneEpoch) * 1000);
-          result[oneEpoch] = {
-            staked: {},
-            unixTimestamp: getTimestampByEpoch(oneEpoch),
-            dateTime:
-              '' +
-              date.getDate() +
-              '/' +
-              (date.getMonth() + 1) +
-              '/' +
-              date.getFullYear() +
-              ' ' +
-              date.getHours() +
-              ':' +
-              date.getMinutes(),
-          };
+          result[agencySC].push({
+            ...agencyInfo,
+          });
         }
-        result[oneEpoch].staked = {
-          ...result[oneEpoch].staked,
-          [agencySC]: agencyInfo,
-        };
       }
     }
   }
+
   let full_total = new BigNumber(0);
   Object.keys(total).forEach(function (scAddress) {
     full_total = full_total.plus(total[scAddress]);

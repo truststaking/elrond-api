@@ -2,6 +2,7 @@ const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
 const e = require('cors');
+const genesis = require('./genesis.json');
 
 const Phase3 = {
   timestamp: 1617633000,
@@ -53,6 +54,13 @@ const getAddressHistory = async (query) => {
     epochHistoryStaked: {},
   };
 
+  if (query.address in genesis) {
+    wallet.available = wallet.available.plus( new BigNumber(genesis[query.address].balance))
+    if (genesis[query.address].delegation.address != '') {
+      wallet.staked[genesis[query.address].delegation.address] = new BigNumber(genesis[query.address].delegation.value);
+    }
+
+  }
   for (const transaction of data['transactions']) {
     let entry = null;
     const epochTX = getEpoch(transaction.timestamp);
@@ -151,8 +159,11 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 TmpValueClaim = TmpValueClaim.plus(new BigNumber(scTX.value));
-                if (scTX.data === undefined) {
+                if ((scTX.data === undefined && scTX.value.charAt(0) != '-') 
+                   || (scTX.data == '')) {
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
+                } else if (scTX.data == '@ok' && transaction.fee.charAt(0) == '-') {
+                  fee = fee.plus(new BigNumber(scTX.value));
                 }
               });
             }
@@ -186,14 +197,6 @@ const getAddressHistory = async (query) => {
                   }
                 }
               });
-              if (
-                denominate({
-                  input: wallet.staked[transaction.receiver],
-                  denomination: 18,
-                }) === '0'
-              ) {
-                delete wallet.staked[transaction.receiver];
-              }
             }
             break;
           case 'withdraw':
@@ -206,13 +209,6 @@ const getAddressHistory = async (query) => {
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 }
               });
-              if (wallet.staked[transaction.receiver] <= 0) {
-                delete wallet.staked[transaction.receiver];
-              }
-
-              if (wallet.unDelegated[transaction.receiver] <= 0) {
-                delete wallet.unDelegated[transaction.receiver];
-              }
             }
             break;
           case 'createNewDelegationContract':
@@ -287,14 +283,6 @@ const getAddressHistory = async (query) => {
                   );
                 }
               }
-              if (
-                denominate({
-                  input: wallet.staked[transaction.receiver],
-                  denomination: 18,
-                }) === '0'
-              ){
-                delete wallet.staked[transaction.receiver];
-              }
             }
 
             break;
@@ -327,13 +315,6 @@ const getAddressHistory = async (query) => {
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 }
               });
-              if (
-                denominate({
-                  input: wallet.unDelegated[transaction.receiver],
-                  denomination: 18,
-                }) === '0'
-              )
-                delete wallet.unDelegated[transaction.receiver];
             }
             break;
 
@@ -360,12 +341,14 @@ const getAddressHistory = async (query) => {
       console.log('warning: unknown transaction');
     }
     if (entry !== null) {
-      if (fee != undefined) {
-        wallet.fees = wallet.fees.plus(fee);
-        wallet.available = wallet.available.minus(fee);
+      if (transaction.receiver !== null) {
+        if (fee != undefined) {
+          wallet.fees = wallet.fees.plus(fee);
+          wallet.available = wallet.available.minus(fee);
+        }
+        entry.fee = fee ? await denominate({ input: fee }) : fee;
       }
       entry.value = denominate({ input: entry.value });
-      entry.fee = fee ? await denominate({ input: fee }) : fee;
       entry.staked = JSON.parse(JSON.stringify(wallet.staked));
       entry.claimable = denominate({ input: wallet.claimable.toFixed() });
       entry.available = denominate({ input: wallet.available.toFixed() });
@@ -394,7 +377,11 @@ const getAddressHistory = async (query) => {
   }
 
   Object.keys(wallet.staked).forEach(function (address) {
-    wallet.staked[address] = denominate({ input: wallet.staked[address].toFixed() });
+    if ( wallet.staked[address].lte(new BigNumber(0.0))) {
+      delete wallet.staked[address];
+    } else {
+      wallet.staked[address] = denominate({ input: wallet.staked[address].toFixed() });
+    }
   });
 
   wallet.claimable = denominate({ input: wallet.claimable.toFixed() });
@@ -402,7 +389,12 @@ const getAddressHistory = async (query) => {
   wallet.available = denominate({ input: wallet.available.toFixed() });
 
   Object.keys(wallet.unDelegated).forEach(function (address) {
-    wallet.unDelegated[address] = denominate({ input: wallet.unDelegated[address].toFixed() });
+    if ( wallet.unDelegated[address].lte(new BigNumber(0.0))) {
+      delete wallet.unDelegated[address];
+    } else {
+      wallet.unDelegated[address] = denominate({ input: wallet.unDelegated[address].toFixed() });
+    }
+
   });
   Object.keys(wallet.epochHistoryStaked).forEach(function (epoch) {
     Object.keys(wallet.epochHistoryStaked[epoch].staked).forEach((address) => {

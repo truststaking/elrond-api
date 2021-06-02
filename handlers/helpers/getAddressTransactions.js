@@ -31,6 +31,8 @@ const getTransaction = async (query) => {
       if (item.scResults != null) {
         scResults = [];
         for (const scResult of item.scResults) {
+          if (scResult.receiver === scResult.sender)
+            continue;
           let data =
             scResult.data != null ? Buffer.from(scResult.data, 'base64').toString() : scResult.data;
 

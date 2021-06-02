@@ -24,6 +24,7 @@ const { handler: unbondPeriodHandler } = require('./unbondPeriod');
 const { handler: usernamesHandler } = require('./usernames');
 const { handler: rewardsHistory } = require('./rewardsHistory');
 const { handler: waitingListHandler } = require('./waitingList');
+const { handler: addressHistory } = require('./addressHistory');
 
 module.exports = {
   accountsHandler,
@@ -52,4 +53,5 @@ module.exports = {
   usernamesHandler,
   waitingListHandler,
   rewardsHistory,
+  addressHistory,
 };

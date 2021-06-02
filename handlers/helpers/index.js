@@ -21,6 +21,7 @@ const response = require('./response');
 const getRewardsHistory = require('./getRewardsHistory');
 const vmQuery = require('./vmQuery');
 const { setForwardedHeaders } = require('./axiosWrapper');
+const getAddressHistory = require('./getAddressHistory');
 
 const padHex = (value) => (value.length % 2 ? '0' + value : value);
 
@@ -49,4 +50,5 @@ module.exports = {
   vmQuery,
   padHex,
   getRewardsHistory,
+  getAddressHistory,
 };

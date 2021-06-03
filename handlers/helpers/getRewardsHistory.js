@@ -126,13 +126,6 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['reward'] = reward.toFixed();
       const timestamp = getTimestampByEpoch(epoch);
       agency_reward['unix'] = timestamp * 1000;
-      // const { data: price } = await axios.get(
-      //   `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
-      // );
-      agency_reward['USD'] = 100;
-      agency_reward['eGLDinUSD'] = (parseFloat(100) * parseFloat(agency_reward['reward'])).toFixed(
-        2
-      );
       var date = new Date(getTimestampByEpoch(epoch) * 1000);
       agency_reward['date'] =
         '' +
@@ -148,10 +141,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       return agency_reward;
     } else {
       const timestamp = getTimestampByEpoch(epoch);
-      // const { data: price } = await axios.get(
-      //   `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
-      // );
-      var dateTime = new Date(getTimestampByEpoch(epoch) * 1000);
+      var dateTime = new Date(timestamp * 1000);
       return {
         staked: amount,
         reward: 0,
@@ -167,8 +157,6 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
           dateTime.getHours() +
           ':' +
           dateTime.getMinutes(),
-        USD: 100,
-        eGLDinUSD: 0,
         APRDelegator: 0,
         APROwner: 0,
         epoch,
@@ -236,7 +224,11 @@ const getRewardsHistory = async (query) => {
       Object.keys(data.epochHistoryStaked[epoch].staked).forEach((agencySC) => {
         lastEpochHistory[agencySC] = data.epochHistoryStaked[epoch].staked[agencySC];
       });
-      if (epoch > Phase3.epoch && fullEpochsStakedAmounts[epoch].staked !== undefined) {
+      if (
+        epoch > Phase3.epoch &&
+        fullEpochsStakedAmounts[epoch] &&
+        fullEpochsStakedAmounts[epoch].staked !== undefined
+      ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
           let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
           if (!providers[agencySC]) {
@@ -278,7 +270,11 @@ const getRewardsHistory = async (query) => {
           delete lastEpochHistory[SC];
         }
       });
-      if (epoch > Phase3.epoch && fullEpochsStakedAmounts[epoch].staked !== undefined) {
+      if (
+        epoch > Phase3.epoch &&
+        fullEpochsStakedAmounts[epoch] &&
+        fullEpochsStakedAmounts[epoch].staked !== undefined
+      ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
           let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
           if (!providers[agencySC]) {

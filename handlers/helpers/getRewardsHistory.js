@@ -126,13 +126,13 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['reward'] = reward.toFixed();
       const timestamp = getTimestampByEpoch(epoch);
       agency_reward['unix'] = timestamp * 1000;
-      const { data: price } = await axios.get(
-        `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
+      // const { data: price } = await axios.get(
+      //   `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
+      // );
+      agency_reward['USD'] = 100;
+      agency_reward['eGLDinUSD'] = (parseFloat(100) * parseFloat(agency_reward['reward'])).toFixed(
+        2
       );
-      agency_reward['USD'] = price;
-      agency_reward['eGLDinUSD'] = (
-        parseFloat(price) * parseFloat(agency_reward['reward'])
-      ).toFixed(2);
       var date = new Date(getTimestampByEpoch(epoch) * 1000);
       agency_reward['date'] =
         '' +
@@ -148,9 +148,9 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       return agency_reward;
     } else {
       const timestamp = getTimestampByEpoch(epoch);
-      const { data: price } = await axios.get(
-        `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
-      );
+      // const { data: price } = await axios.get(
+      //   `https://data.elrond.com/closing/quoteshistorical/egld/price/${timestamp}`
+      // );
       var dateTime = new Date(getTimestampByEpoch(epoch) * 1000);
       return {
         staked: amount,
@@ -167,7 +167,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
           dateTime.getHours() +
           ':' +
           dateTime.getMinutes(),
-        USD: price,
+        USD: 100,
         eGLDinUSD: 0,
         APRDelegator: 0,
         APROwner: 0,

@@ -1,5 +1,4 @@
-const { response, getAddressTransactions } = require('./helpers');
-
+const { response, getAddressTransactions, getEpoch } = require('./helpers');
 
 exports.handler = async ({ pathParameters, queryStringParameters }) => {
     try {
@@ -12,14 +11,17 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             'before',
             'ord'
         ];
-
+        let data = {reply:'No address provided'};
+        if (!query.address) {
+            return response({ status: 503, data});
+        }
         Object.keys(query).forEach((key) => {
             if (!keys.includes(key)) {
                 delete query[key];
             }
         });
 
-        let data;
+
         let status;
         if (query.before === undefined)
         {
@@ -30,7 +32,15 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         {
             return response({ data : ['Bad ordering value!']});
         }
-        return response({ status, data, fields });
+        let transactions = {}
+        data['transactions'].forEach(transaction => {
+            let epoch = getEpoch(transaction.timestamp);
+            if (!(epoch in transactions)) {
+                transactions[epoch] = []
+            }
+            transactions[epoch].push(transaction);
+        });
+        return response({ status, data: transactions, fields });
     } catch (error) {
         console.error('transactions error', error);
         return response({ status: 503 });

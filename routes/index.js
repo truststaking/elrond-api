@@ -25,6 +25,7 @@ const transactionsRouter = require('./transactionsRouter');
 const unbondPeriodRouter = require('./unbondPeriodRouter');
 const usernamesRouter = require('./usernamesRouter');
 const waitingListRouter = require('./waitingListRouter');
+const allTransactionsRouter = require('./allTransactionsRouter');
 
 module.exports = {
   indexRouter,
@@ -54,4 +55,5 @@ module.exports = {
   unbondPeriodRouter,
   usernamesRouter,
   waitingListRouter,
+  allTransactionsRouter,
 };

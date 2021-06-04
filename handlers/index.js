@@ -25,6 +25,7 @@ const { handler: usernamesHandler } = require('./usernames');
 const { handler: rewardsHistory } = require('./rewardsHistory');
 const { handler: waitingListHandler } = require('./waitingList');
 const { handler: addressHistory } = require('./addressHistory');
+const { handler: allTransactions } = require('./allTransactions');
 
 module.exports = {
   accountsHandler,
@@ -54,4 +55,5 @@ module.exports = {
   waitingListHandler,
   rewardsHistory,
   addressHistory,
+  allTransactions,
 };

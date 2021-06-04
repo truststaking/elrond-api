@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { allTransactionsHandler } = require('../handlers');
+const { allTransactions } = require('../handlers');
 const { setForwardedHeaders } = require('../handlers/helpers');
 
 router.get(['/allTransactions'], async (req, res) => {
@@ -12,7 +12,7 @@ router.get(['/allTransactions'], async (req, res) => {
   
     await setForwardedHeaders(requestHeaders);
   
-    const { statusCode, headers, body } = await allTransactionsHandler({
+    const { statusCode, headers, body } = await allTransactions({
       pathParameters,
       queryStringParameters,
     });

@@ -37,10 +37,7 @@ const getTimestampByEpoch = (epoch) => {
 };
 
 const getAddressHistory = async (query) => {
-  let data = await getAddressTransactions({
-    address: query.address,
-    before: query.before,
-  });
+  let data = await getAddressTransactions(query);
 
   // return data;
   let wallet = {

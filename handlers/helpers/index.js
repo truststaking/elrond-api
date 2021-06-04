@@ -22,7 +22,7 @@ const getRewardsHistory = require('./getRewardsHistory');
 const vmQuery = require('./vmQuery');
 const { setForwardedHeaders } = require('./axiosWrapper');
 const getAddressHistory = require('./getAddressHistory');
-
+const getAddressTransactions = require('./getAddressTransactions');
 const padHex = (value) => (value.length % 2 ? '0' + value : value);
 
 module.exports = {
@@ -51,4 +51,5 @@ module.exports = {
   padHex,
   getRewardsHistory,
   getAddressHistory,
+  getAddressTransactions,
 };

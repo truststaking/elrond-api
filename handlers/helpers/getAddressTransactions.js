@@ -10,7 +10,7 @@ function hexToDec(hex) {
     .reduce((result, ch) => result * 16 + '0123456789abcdefgh'.indexOf(ch), 0);
 }
 
-const getTransaction = async (query) => {
+const getTransaction = async (query, type) => {
   const collection = 'transactions';
   const key = 'txHash';
   const sort = {
@@ -65,7 +65,7 @@ const getTransaction = async (query) => {
       }
       let sender = null,
         receiver = null;
-      if ('receiver' in query) {
+      if (type == 'receiver') {
         sender = item.sender;
       } else {
         receiver = item.receiver;
@@ -104,33 +104,39 @@ const getTransaction = async (query) => {
 const getAddressTransactions = async (query) => {
   let transactions = [];
   let count = 0;
-  const queryReceiver = {
-    receiver: query.address,
-    before: query.before,
-    from: '0',
-    size: '10000',
-    status: 'success',
-  };
-  if (query.sender !== undefined) {
-    queryReceiver.sender = query.sender;
+  if (query.receiver === undefined)
+  {
+    const queryReceiver = {
+      receiver: query.address,
+      before: query.before,
+      from: '0',
+      size: '10000',
+      status: 'success',
+    };
+    if (query.sender !== undefined) {
+      queryReceiver.sender = query.sender;
+    }
+    let dataReceiver = await getTransaction(queryReceiver, 'receiver');
+    count += dataReceiver['count'];
+    transactions = [...transactions, ...dataReceiver['transactions']];
   }
-  let dataReceiver = await getTransaction(queryReceiver);
-  count += dataReceiver['count'];
-  transactions = [...transactions, ...dataReceiver['transactions']];
 
-  const querySender = {
-    sender: query.address,
-    before: query.before,
-    from: '0',
-    size: '10000',
-    status: 'success',
-  };
-  if (query.receiver !== undefined) {
-    querySender.receiver = query.receiver;
+  if (query.sender === undefined)
+  {
+    const querySender = {
+      sender: query.address,
+      before: query.before,
+      from: '0',
+      size: '10000',
+      status: 'success',
+    };
+    if (query.receiver !== undefined) {
+      querySender.receiver = query.receiver;
+    }
+    let dataSender = await getTransaction(querySender, 'sender');
+    count += dataSender['count'];
+    transactions = [...transactions, ...dataSender['transactions']];
   }
-  let dataSender = await getTransaction(querySender);
-  count += dataSender['count'];
-  transactions = [...transactions, ...dataSender['transactions']];
 
   if (query.ord === undefined || (query.ord !== undefined && query.ord === 'asc')) {
     transactions.sort(function (a, b) {

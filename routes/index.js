@@ -21,6 +21,7 @@ const addressHistoryRouter = require('./addressHistoryRouter');
 const stakeRouter = require('./stakeRouter');
 const statsRouter = require('./statsRouter');
 const tokensRouter = require('./tokensRouter');
+const getProvidersAPR = require('./getProvidersAPR');
 const transactionsRouter = require('./transactionsRouter');
 const unbondPeriodRouter = require('./unbondPeriodRouter');
 const usernamesRouter = require('./usernamesRouter');
@@ -37,6 +38,7 @@ module.exports = {
   delegationRouter,
   economicsRouter,
   identitiesRouter,
+  getProvidersAPR,
   keysRouter,
   mexRouter,
   miniblocksRouter,

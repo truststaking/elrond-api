@@ -209,3 +209,4 @@ const getProviders = async (args) => {
 };
 
 module.exports = getProviders;
+module.exports = getProviderMetadata;

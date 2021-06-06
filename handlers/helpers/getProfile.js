@@ -37,6 +37,7 @@ const getProfile = async (identity) => {
     }
   } catch (error) {
     value = false;
+    console.log(error);
   }
 
   return value;

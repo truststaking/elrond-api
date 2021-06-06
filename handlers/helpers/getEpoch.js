@@ -17,12 +17,12 @@ const getTimestampByEpoch = (epoch) => {
 const getEpoch = (timestamp) => {
   var diff;
   if (timestamp >= Phase3.timestamp) {
-  diff = timestamp - Phase3.timestamp;
-  return Phase3.epoch + Math.floor(diff / (60 * 60 * 24));
+    diff = timestamp - Phase3.timestamp;
+    return Phase3.epoch + Math.floor(diff / (60 * 60 * 24));
   } else {
-  diff = Phase3.timestamp - timestamp;
-  return Phase3.epoch - Math.floor(diff / (60 * 60 * 24));
+    diff = Phase3.timestamp - timestamp;
+    return Phase3.epoch - Math.floor(diff / (60 * 60 * 24));
   }
 };
 
-module.exports = {Phase3, getTimestampByEpoch, getEpoch};
+module.exports = { Phase3, getTimestampByEpoch, getEpoch };

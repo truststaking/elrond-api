@@ -1,6 +1,11 @@
+const { encode } = require('./bech32');
 const vmQuery = require('./vmQuery');
 
-const { stakingContract, auctionContract } = require(`../configs/${process.env.CONFIG}`);
+const {
+  stakingContract,
+  auctionContract,
+  delegationManagerSC,
+} = require(`../configs/${process.env.CONFIG}`);
 
 const availableContracts = async () => {
   return await vmQuery({
@@ -10,4 +15,12 @@ const availableContracts = async () => {
   });
 };
 
-module.exports = availableContracts;
+const availableProviders = async () => {
+  const wallets = await vmQuery({
+    contract: delegationManagerSC,
+    func: 'getAllContractAddresses',
+  });
+  return wallets.map((SC) => encode(Buffer.from(SC, 'base64').toString('hex')));
+};
+
+module.exports = { availableContracts, availableProviders };

@@ -22,11 +22,13 @@ const getRewardsHistory = require('./getRewardsHistory');
 const vmQuery = require('./vmQuery');
 const { setForwardedHeaders } = require('./axiosWrapper');
 const getAddressHistory = require('./getAddressHistory');
+const { getAVGAPY } = require('./dynamoDB');
 const getAddressTransactions = require('./getAddressTransactions');
 const padHex = (value) => (value.length % 2 ? '0' + value : value);
-const { Phase3, getTimestampByEpoch, getEpoch } = require('./getEpoch')
+const { Phase3, getTimestampByEpoch, getEpoch } = require('./getEpoch');
 
 module.exports = {
+  getAVGAPY,
   availableContracts,
   batchProcess,
   bech32,

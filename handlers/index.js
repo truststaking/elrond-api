@@ -18,6 +18,7 @@ const { handler: shardsHandler } = require('./shards');
 const { handler: stakeHandler } = require('./stake');
 const { handler: statsHandler } = require('./stats');
 const { handler: tokensHandler } = require('./tokens');
+const { handler: getProvidersAPRHandler } = require('./getProvidersAPR');
 const { handler: transactionsHandler } = require('./transactions');
 const { handler: transactionsCreateHandler } = require('./transactionsCreate');
 const { handler: unbondPeriodHandler } = require('./unbondPeriod');
@@ -50,6 +51,7 @@ module.exports = {
   tokensHandler,
   transactionsHandler,
   transactionsCreateHandler,
+  getProvidersAPRHandler,
   unbondPeriodHandler,
   usernamesHandler,
   waitingListHandler,

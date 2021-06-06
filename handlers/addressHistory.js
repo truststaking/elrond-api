@@ -1,6 +1,6 @@
 const { response, getAddressHistory } = require('./helpers');
 
-exports.handler = async ({ pathParameters, queryStringParameters }) => {
+exports.handler = async ({ queryStringParameters }) => {
   try {
     let query = queryStringParameters || {};
     let { fields } = query || {};

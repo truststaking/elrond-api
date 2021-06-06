@@ -5,6 +5,7 @@ config.gatewayUrls = ['https://gateway.elrond.com'];
 config.apiUrl = 'https://api.elrond.com';
 config.providersUrl = 'https://devnet-delegation.maiarbrowser.com/providers';
 config.delegationContract = 'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt';
+config.delegationManagerSC = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqylllslmq6y6';
 config.auctionContract = 'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l';
 config.network = 'mainnet';
 

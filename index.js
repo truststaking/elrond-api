@@ -48,8 +48,8 @@ const server = app.listen(port, () => {
   }
 });
 
-server.keepAliveTimeout = 61 * 1000; //61s
-server.headersTimeout = 65 * 1000; //65s `keepAliveTimeout + server's expected response time`
+server.keepAliveTimeout = 120 * 1000; //61s
+server.headersTimeout = 120 * 1000; //65s `keepAliveTimeout + server's expected response time`
 
 metricsApp.listen(metricsPort);
 

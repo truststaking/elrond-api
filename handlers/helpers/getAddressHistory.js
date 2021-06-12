@@ -3,7 +3,7 @@ const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
 const e = require('cors');
 const genesis = require('./genesis.json');
-const {getEpoch} = require('./getEpoch');
+const { getEpoch } = require('./getEpoch');
 
 function hexToDec(hex) {
   return hex
@@ -19,6 +19,12 @@ const getAddressHistory = async (query) => {
   let wallet = {
     history: {},
     staked: {},
+    allClaims: {},
+    privateNodesRewards: [],
+    binanceIn: [],
+    waitingListRewards: [],
+    phase2ClaimRewards: [],
+    allRedelegations: {},
     claimable: new BigNumber('0'),
     available: new BigNumber('0'),
     unDelegated: {},
@@ -28,11 +34,12 @@ const getAddressHistory = async (query) => {
   };
 
   if (query.address in genesis) {
-    wallet.available = wallet.available.plus( new BigNumber(genesis[query.address].balance))
+    wallet.available = wallet.available.plus(new BigNumber(genesis[query.address].balance));
     if (genesis[query.address].delegation.address != '') {
-      wallet.staked[genesis[query.address].delegation.address] = new BigNumber(genesis[query.address].delegation.value);
+      wallet.staked[genesis[query.address].delegation.address] = new BigNumber(
+        genesis[query.address].delegation.value
+      );
     }
-
   }
   for (const transaction of data['transactions']) {
     let entry = null;
@@ -125,6 +132,7 @@ const getAddressHistory = async (query) => {
               });
             }
             entry.value = TmpValueRe.toFixed();
+            entry.label = 'Redelegate';
             break;
           case 'claimRewards':
             // eslint-disable-next-line no-case-declarations
@@ -132,8 +140,7 @@ const getAddressHistory = async (query) => {
             if (transaction.scResults.length > 0) {
               transaction.scResults.forEach((scTX) => {
                 TmpValueClaim = TmpValueClaim.plus(new BigNumber(scTX.value));
-                if ((scTX.data === undefined && scTX.value.charAt(0) != '-') 
-                   || (scTX.data == '')) {
+                if ((scTX.data === undefined && scTX.value.charAt(0) != '-') || scTX.data == '') {
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
                 } else if (scTX.data == '@ok' && transaction.fee.charAt(0) == '-') {
                   fee = fee.plus(new BigNumber(scTX.value));
@@ -141,6 +148,13 @@ const getAddressHistory = async (query) => {
               });
             }
             entry.value = TmpValueClaim.toFixed();
+            entry.label = 'ClaimRewards';
+            if (
+              transaction.receiver ===
+              'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+            ) {
+              entry.label = 'Phase2ClaimRewards';
+            }
             break;
           case 'unDelegate':
             if (transaction.scResults.length > 0) {
@@ -225,7 +239,7 @@ const getAddressHistory = async (query) => {
                 if (
                   scTX.data === '@ok' &&
                   transaction.receiver ==
-                  'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+                    'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
                 ) {
                   fee = new BigNumber('89000000000000');
                   var value = new BigNumber(transaction.value);
@@ -273,7 +287,7 @@ const getAddressHistory = async (query) => {
                 } else if (
                   scTX.data === '' &&
                   transaction.receiver ==
-                  'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+                    'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
                 ) {
                   wallet.unDelegated[transaction.receiver] = wallet.unDelegated[
                     transaction.receiver
@@ -282,7 +296,7 @@ const getAddressHistory = async (query) => {
                 } else if (
                   scTX.data == undefined &&
                   transaction.receiver ==
-                  'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                    'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
                 ) {
                   console.log(scTX.value);
                   wallet.available = wallet.available.plus(new BigNumber(scTX.value));
@@ -304,10 +318,21 @@ const getAddressHistory = async (query) => {
         wallet.available = wallet.available.minus(new BigNumber(transaction.value));
       }
     } else if (transaction.sender !== null && transaction.scResults === null) {
+      let label = 'Income';
+      if (transaction.sender === 'erd1au4chwnhwl6uhykpuydzagc8qekwwmpar0v0m2xkjjfm52hp6veszyz54d') {
+        label = 'WaitingList';
+      } else if (transaction.sender === '4294967295') {
+        label = 'PrivateNodes';
+      } else if (
+        transaction.sender === 'erd16x7le8dpkjsafgwjx0e5kw94evsqw039rwp42m2j9eesd88x8zzs75tzry'
+      ) {
+        label = 'Binance';
+      }
       entry = {
         sender: transaction.sender,
         txHash: transaction.txHash,
         value: transaction.value,
+        label,
       };
       wallet.available = wallet.available.plus(new BigNumber(transaction.value));
     } else {
@@ -346,11 +371,56 @@ const getAddressHistory = async (query) => {
       } else {
         wallet.history[epochTX] = { [transaction.timestamp]: entry, ...wallet.history[epochTX] };
       }
+      if (entry.label) {
+        if (!wallet.allClaims[transaction.receiver]) {
+          wallet.allClaims[transaction.receiver] = [];
+        }
+        if (!wallet.allRedelegations[transaction.receiver]) {
+          wallet.allRedelegations[transaction.receiver] = [];
+        }
+        if (entry.label === 'ClaimRewards') {
+          wallet.allClaims[transaction.receiver].push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        } else if (entry.label === 'Redelegate') {
+          wallet.allRedelegations[transaction.receiver].push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        } else if (entry.label === 'PrivateNodes') {
+          wallet.privateNodesRewards.push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        } else if (entry.label === 'WaitingList') {
+          wallet.waitingListRewards.push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        } else if (entry.label === 'Phase2ClaimRewards') {
+          wallet.phase2ClaimRewards.push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        } else if (entry.label === 'Binance') {
+          wallet.binanceIn.push({
+            value: entry.value,
+            epoch: entry.epoch,
+            hash: entry.txHash,
+          });
+        }
+      }
     }
   }
 
   Object.keys(wallet.staked).forEach(function (address) {
-    if ( wallet.staked[address].lte(new BigNumber(0.0))) {
+    if (wallet.staked[address].lte(new BigNumber(0.0))) {
       delete wallet.staked[address];
     } else {
       wallet.staked[address] = denominate({ input: wallet.staked[address].toFixed() });
@@ -362,12 +432,11 @@ const getAddressHistory = async (query) => {
   wallet.available = denominate({ input: wallet.available.toFixed() });
 
   Object.keys(wallet.unDelegated).forEach(function (address) {
-    if ( wallet.unDelegated[address].lte(new BigNumber(0.0))) {
+    if (wallet.unDelegated[address].lte(new BigNumber(0.0))) {
       delete wallet.unDelegated[address];
     } else {
       wallet.unDelegated[address] = denominate({ input: wallet.unDelegated[address].toFixed() });
     }
-
   });
   Object.keys(wallet.epochHistoryStaked).forEach(function (epoch) {
     Object.keys(wallet.epochHistoryStaked[epoch].staked).forEach((address) => {

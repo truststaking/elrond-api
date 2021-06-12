@@ -11,17 +11,17 @@ const getAVGAPY = async () => {
     let array = {};
     let keybaseIDs = [];
     for (let SC of data) {
-      let metadata = await getProviderMetadata(SC);
-      if (!metadata.idenity) {
-        let keybase = await getProfile(metadata['identity']);
-        if (keybase.name) {
-          keybaseIDs[SC] = keybase.name;
-        } else {
-          keybaseIDs[SC] = SC;
-        }
-      } else {
-        keybaseIDs[SC] = SC;
-      }
+      // let metadata = await getProviderMetadata(SC);
+      // if (!metadata.idenity) {
+      //   let keybase = await getProfile(metadata['identity']);
+      //   if (keybase.name) {
+      //     keybaseIDs[SC] = keybase.name;
+      //   } else {
+      //     keybaseIDs[SC] = SC;
+      //   }
+      // } else {
+      keybaseIDs[SC] = SC;
+      // }
       let ExclusiveStartKey,
         accumulated = [],
         result;
@@ -68,4 +68,30 @@ const getAVGAPY = async () => {
   }
 };
 
-module.exports = { getAVGAPY };
+const getEpochTimePrice = async (epoch, time) => {
+  let params = {
+    TableName: 'EGLDUSD',
+    Index: 'price',
+    KeyConditionExpression: 'epoch = :ep AND #time BETWEEN :timB AND :timG',
+    ExpressionAttributeNames: {
+      '#time': 'timestamp',
+    },
+    ExpressionAttributeValues: {
+      ':ep': { N: epoch.toString() },
+      ':timB': { N: `${time - 30}` },
+      ':timG': { N: `${time + 30}` },
+    },
+    Limit: 1,
+  };
+  let result = await db.send(new QueryCommand(params));
+  let price = '0';
+  try {
+    price = result.Items[0].price.S;
+  } catch (error) {
+    console.log(epoch);
+    console.log(result.Items);
+  }
+  return price;
+};
+
+module.exports = { getAVGAPY, getEpochTimePrice };

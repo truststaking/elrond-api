@@ -1,5 +1,6 @@
 const getAddressHistory = require('./getAddressHistory');
-const { getTimestampByEpoch, getEpoch, Phase3 } = require('./getEpoch')
+const { getTimestampByEpoch, getEpoch, Phase3 } = require('./getEpoch');
+const { getEpochTimePrice } = require('./dynamoDB');
 const {
   ContractFunction,
   ProxyProvider,
@@ -9,7 +10,8 @@ const {
 } = require('@elrondnetwork/erdjs');
 const BigNumber = require('bignumber.js');
 const denominate = require('./denominate');
-const axios = require('axios');
+const getProviderMetadata = require('./getProviders');
+const getProfile = require('./getProfile');
 const bech32 = require('./bech32');
 
 function DecimalHexTwosComplement(decimal) {
@@ -98,45 +100,33 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
         .toFixed();
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
-      agency_reward['reward'] = reward.toFixed();
+      agency_reward['reward'] = denominate({ input: reward, denomination: 6 });
       const timestamp = getTimestampByEpoch(epoch);
+      const epochPrice = await getEpochTimePrice(epoch, timestamp);
+      agency_reward['usdRewards'] = new BigNumber(epochPrice).multipliedBy(reward).toFixed();
+      agency_reward['usdEpoch'] = epochPrice;
       agency_reward['unix'] = timestamp * 1000;
       var date = new Date(getTimestampByEpoch(epoch) * 1000);
       agency_reward['date'] =
-        '' +
-        date.getDate() +
-        '/' +
-        (date.getMonth() + 1) +
-        '/' +
-        date.getFullYear() +
-        ' ' +
-        date.getHours() +
-        ':' +
-        date.getMinutes();
+        '' + date.getDate() + '/' + (date.getMonth() + 1) + '/' + date.getFullYear();
       return agency_reward;
     } else {
       const timestamp = getTimestampByEpoch(epoch);
       var dateTime = new Date(timestamp * 1000);
+      const epochPrice = await getEpochTimePrice(epoch, timestamp);
       return {
         staked: amount,
         reward: 0,
+        usdEpoch: epochPrice,
         unix: timestamp * 1000,
         date:
-          '' +
-          dateTime.getDate() +
-          '/' +
-          (dateTime.getMonth() + 1) +
-          '/' +
-          dateTime.getFullYear() +
-          ' ' +
-          dateTime.getHours() +
-          ':' +
-          dateTime.getMinutes(),
+          '' + dateTime.getDate() + '/' + (dateTime.getMonth() + 1) + '/' + dateTime.getFullYear(),
         APRDelegator: 0,
         APROwner: 0,
         epoch,
         ownerProfit: 0,
         rewardDistributed: 0,
+        usdRewards: 0,
         serviceFee: 0,
         toBeDistributed: 0,
         totalActiveStake: 0,
@@ -181,6 +171,7 @@ const getRewardsHistory = async (query) => {
   let result = {};
   let providers = {};
   let total = {};
+  let totalUSD = {};
   for (let epoch = Phase3.epoch - 15; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
       Object.keys(lastEpochHistory).forEach((SC) => {
@@ -267,6 +258,12 @@ const getRewardsHistory = async (query) => {
             total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
           }
 
+          if (!totalUSD[agencySC]) {
+            totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
+          } else {
+            totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
+          }
+
           if (!result[agencySC]) {
             result[agencySC] = [];
           }
@@ -279,17 +276,34 @@ const getRewardsHistory = async (query) => {
     }
   }
 
+  let keybaseIDs = {};
   let full_total = new BigNumber(0);
-  Object.keys(total).forEach(function (scAddress) {
+  let fullUSD_total = new BigNumber(0);
+  for (let scAddress of Object.keys(total)) {
     full_total = full_total.plus(total[scAddress]);
+    fullUSD_total = fullUSD_total.plus(totalUSD[scAddress]);
     total[scAddress] = parseFloat(total[scAddress].toFixed());
-  });
-
-  return {
+    totalUSD[scAddress] = parseFloat(totalUSD[scAddress].toFixed());
+    let metadata = await getProviderMetadata(scAddress);
+    if (!metadata.idenity) {
+      let keybase = await getProfile(metadata['identity']);
+      if (keybase.name) {
+        keybaseIDs[scAddress] = { ...keybase, ...metadata };
+      } else {
+        keybaseIDs[scAddress] = scAddress;
+      }
+    } else {
+      keybaseIDs[scAddress] = scAddress;
+    }
+  }
+  const toReturn = {
     rewards_per_epoch: result,
+    keybase: keybaseIDs,
     total_per_provider: total,
+    totalUSD_per_provider: totalUSD,
     total: parseFloat(full_total.toFixed()),
   };
+  return toReturn;
 };
 
 module.exports = getRewardsHistory;

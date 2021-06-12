@@ -48,6 +48,8 @@ function hexToDec(hex) {
     .reduce((result, ch) => result * 16 + '0123456789abcdefgh'.indexOf(ch), 0);
 }
 
+var epochPrice = {};
+
 const calculateReward = async (epoch, amount, agency, isOwner) => {
   let provider = new ProxyProvider('https://gateway.elrond.com', 20000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
@@ -101,10 +103,18 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['rewardDistributed'] = denominate({ input: agency_reward.rewardDistributed });
       agency_reward['totalActiveStake'] = denominate({ input: agency_reward.totalActiveStake });
       agency_reward['reward'] = denominate({ input: reward, denomination: 6 });
+      let pricePerEpoch = 0;
       const timestamp = getTimestampByEpoch(epoch);
-      const epochPrice = await getEpochTimePrice(epoch, timestamp);
-      agency_reward['usdRewards'] = new BigNumber(epochPrice).multipliedBy(reward).toFixed();
-      agency_reward['usdEpoch'] = epochPrice;
+      if (epoch in epochPrice) {
+        pricePerEpoch = epochPrice[epoch];
+      } else {
+        pricePerEpoch = await getEpochTimePrice(epoch, timestamp);
+        epochPrice[epoch] = pricePerEpoch;
+      }
+      agency_reward['usdRewards'] = parseFloat(
+        new BigNumber(pricePerEpoch).multipliedBy(reward).toFixed()
+      ).toFixed(2);
+      agency_reward['usdEpoch'] = pricePerEpoch;
       agency_reward['unix'] = timestamp * 1000;
       var date = new Date(getTimestampByEpoch(epoch) * 1000);
       agency_reward['date'] =
@@ -113,11 +123,17 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
     } else {
       const timestamp = getTimestampByEpoch(epoch);
       var dateTime = new Date(timestamp * 1000);
-      const epochPrice = await getEpochTimePrice(epoch, timestamp);
+      let pricePerEpoch = 0;
+      if (epoch in epochPrice) {
+        pricePerEpoch = epochPrice[epoch];
+      } else {
+        pricePerEpoch = await getEpochTimePrice(epoch, timestamp);
+        epochPrice[epoch] = pricePerEpoch;
+      }
       return {
         staked: amount,
         reward: 0,
-        usdEpoch: epochPrice,
+        usdEpoch: pricePerEpoch,
         unix: timestamp * 1000,
         date:
           '' + dateTime.getDate() + '/' + (dateTime.getMonth() + 1) + '/' + dateTime.getFullYear(),
@@ -172,6 +188,10 @@ const getRewardsHistory = async (query) => {
   let providers = {};
   let total = {};
   let totalUSD = {};
+  let avgPriceReward = {};
+  let avgRewardDaily = {};
+  let avgAPR = {};
+  let avgEGLD = {};
   for (let epoch = Phase3.epoch - 15; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
       Object.keys(lastEpochHistory).forEach((SC) => {
@@ -210,6 +230,20 @@ const getRewardsHistory = async (query) => {
             total[agencySC] = new BigNumber(agencyInfo['reward']);
           } else {
             total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
+          }
+
+          if (!totalUSD[agencySC]) {
+            totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
+            avgPriceReward[agencySC] = new BigNumber(agencyInfo['usdEpoch']);
+            avgAPR[agencySC] = new BigNumber(agencyInfo['APRDelegator']);
+            avgEGLD[agencySC] = new BigNumber(agencyInfo['reward']);
+          } else {
+            totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
+            avgAPR[agencySC] = avgAPR[agencySC].plus(new BigNumber(agencyInfo['APRDelegator']));
+            avgPriceReward[agencySC] = avgPriceReward[agencySC].plus(
+              new BigNumber(agencyInfo['usdEpoch'])
+            );
+            avgEGLD[agencySC] = avgEGLD[agencySC].plus(new BigNumber(agencyInfo['reward']));
           }
 
           if (!result[agencySC]) {
@@ -260,8 +294,16 @@ const getRewardsHistory = async (query) => {
 
           if (!totalUSD[agencySC]) {
             totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
+            avgPriceReward[agencySC] = new BigNumber(agencyInfo['usdEpoch']);
+            avgAPR[agencySC] = new BigNumber(agencyInfo['APRDelegator']);
+            avgEGLD[agencySC] = new BigNumber(agencyInfo['reward']);
           } else {
             totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
+            avgAPR[agencySC] = avgAPR[agencySC].plus(new BigNumber(agencyInfo['APRDelegator']));
+            avgPriceReward[agencySC] = avgPriceReward[agencySC].plus(
+              new BigNumber(agencyInfo['usdEpoch'])
+            );
+            avgEGLD[agencySC] = avgEGLD[agencySC].plus(new BigNumber(agencyInfo['reward']));
           }
 
           if (!result[agencySC]) {
@@ -283,12 +325,16 @@ const getRewardsHistory = async (query) => {
     full_total = full_total.plus(total[scAddress]);
     fullUSD_total = fullUSD_total.plus(totalUSD[scAddress]);
     total[scAddress] = parseFloat(total[scAddress].toFixed());
+    avgPriceReward[scAddress] = avgPriceReward[scAddress] / result[scAddress].length;
+    avgRewardDaily[scAddress] = totalUSD[scAddress] / result[scAddress].length;
+    avgAPR[scAddress] = avgAPR[scAddress] / result[scAddress].length;
+    avgEGLD[scAddress] = parseFloat(avgEGLD[scAddress] / result[scAddress].length).toFixed(4);
     totalUSD[scAddress] = parseFloat(totalUSD[scAddress].toFixed());
     let metadata = await getProviderMetadata(scAddress);
     if (!metadata.idenity) {
       let keybase = await getProfile(metadata['identity']);
       if (keybase.name) {
-        keybaseIDs[scAddress] = { ...keybase, ...metadata };
+        keybaseIDs[scAddress] = { ...keybase };
       } else {
         keybaseIDs[scAddress] = scAddress;
       }
@@ -300,8 +346,14 @@ const getRewardsHistory = async (query) => {
     rewards_per_epoch: result,
     keybase: keybaseIDs,
     total_per_provider: total,
+    avgPrice_per_provider: avgPriceReward,
+    avgAPR_per_provider: avgAPR,
+    avgEGLD_per_provider: avgEGLD,
+    avgUSDProvider: avgRewardDaily,
     totalUSD_per_provider: totalUSD,
+    activeStaked: data.staked,
     total: parseFloat(full_total.toFixed()),
+    totalUSD: parseFloat(fullUSD_total.toFixed()),
   };
   return toReturn;
 };

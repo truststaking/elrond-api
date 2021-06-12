@@ -38,7 +38,7 @@ const config = {
   },
   axiosConfig: {
     maxRedirects: 0,
-    timeout: 3000,
+    timeout: 10000,
   },
 };
 

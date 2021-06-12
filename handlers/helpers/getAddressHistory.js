@@ -420,7 +420,7 @@ const getAddressHistory = async (query) => {
   }
 
   Object.keys(wallet.staked).forEach(function (address) {
-    if (wallet.staked[address].lte(new BigNumber(0.0))) {
+    if (parseFloat(denominate({ input: wallet.staked[address].toFixed() })) < 1) {
       delete wallet.staked[address];
     } else {
       wallet.staked[address] = denominate({ input: wallet.staked[address].toFixed() });

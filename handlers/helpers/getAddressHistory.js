@@ -1,9 +1,10 @@
 const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
+const { getEpochTimePrice } = require('./dynamoDB');
 const denominate = require('./denominate');
 const e = require('cors');
 const genesis = require('./genesis.json');
-const { getEpoch } = require('./getEpoch');
+const { getEpoch, getTimestampByEpoch } = require('./getEpoch');
 
 function hexToDec(hex) {
   return hex
@@ -378,41 +379,99 @@ const getAddressHistory = async (query) => {
         if (!wallet.allRedelegations[transaction.receiver]) {
           wallet.allRedelegations[transaction.receiver] = [];
         }
+
+        const timestamp = transaction.timestamp;
+        const pricePerEpoch = await getEpochTimePrice(entry.epoch, timestamp);
+        const dateTime = new Date(timestamp * 1000);
         if (entry.label === 'ClaimRewards') {
           wallet.allClaims[transaction.receiver].push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         } else if (entry.label === 'Redelegate') {
           wallet.allRedelegations[transaction.receiver].push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         } else if (entry.label === 'PrivateNodes') {
           wallet.privateNodesRewards.push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         } else if (entry.label === 'WaitingList') {
           wallet.waitingListRewards.push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         } else if (entry.label === 'Phase2ClaimRewards') {
           wallet.phase2ClaimRewards.push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         } else if (entry.label === 'Binance') {
           wallet.binanceIn.push({
             value: entry.value,
             epoch: entry.epoch,
             hash: entry.txHash,
+            price: pricePerEpoch,
+            usdReward: parseFloat(pricePerEpoch * entry.value).toFixed(4),
+            date:
+              '' +
+              dateTime.getDate() +
+              '/' +
+              (dateTime.getMonth() + 1) +
+              '/' +
+              dateTime.getFullYear(),
           });
         }
       }

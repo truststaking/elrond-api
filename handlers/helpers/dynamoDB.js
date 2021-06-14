@@ -1,7 +1,7 @@
 const { DynamoDBClient, QueryCommand } = require('@aws-sdk/client-dynamodb');
 const { availableProviders } = require('./availableContracts');
 const getProviderMetadata = require('./getProviders');
-const { getTimestampByEpoch } = require('./getEpoch');
+const { getTimestampByEpoch, getEpoch } = require('./getEpoch');
 const getProfile = require('./getProfile');
 const db = new DynamoDBClient({ region: 'eu-west-1' });
 
@@ -10,55 +10,53 @@ const getAVGAPY = async () => {
   try {
     let array = {};
     let keybaseIDs = [];
+    let accumulated = [];
     for (let SC of data) {
-      // let metadata = await getProviderMetadata(SC);
-      // if (!metadata.idenity) {
-      //   let keybase = await getProfile(metadata['identity']);
-      //   if (keybase.name) {
-      //     keybaseIDs[SC] = keybase.name;
-      //   } else {
-      //     keybaseIDs[SC] = SC;
-      //   }
-      // } else {
-      keybaseIDs[SC] = SC;
-      // }
-      let ExclusiveStartKey,
-        accumulated = [],
-        result;
-      do {
-        let params = {
-          TableName: 'avg_apy',
-          Index: 'owner',
-          ExclusiveStartKey,
-          KeyConditionExpression: 'provider = :SC',
-          ExpressionAttributeValues: {
-            ':SC': { S: SC },
-          },
-        };
-        result = await db.send(new QueryCommand(params));
-        ExclusiveStartKey = result.LastEvaluatedKey;
-        accumulated = [...accumulated, ...result.Items];
-      } while (result.LastEvaluatedKey);
-      accumulated.forEach((data) => {
-        let tmpData = data;
-        Object.keys(data).forEach((fieldName) => {
-          Object.keys(data[fieldName]).forEach((fieldType) => {
-            tmpData[fieldName] = data[fieldName][fieldType];
-            if (fieldName === 'epoch') {
-              tmpData['timestamp'] = getTimestampByEpoch(parseInt(data[fieldName]));
-            }
-          });
-        });
-        if (!array[data.epoch]) {
-          array[data.epoch] = [];
+      let metadata = await getProviderMetadata(SC);
+      if (!metadata.idenity) {
+        let keybase = await getProfile(metadata['identity']);
+        if (keybase.name) {
+          keybaseIDs[SC] = keybase.name;
+        } else {
+          keybaseIDs[SC] = SC;
         }
-        array[data.epoch] = {
-          ...array[data.epoch],
-          [keybaseIDs[SC]]: parseFloat(data.avg_apy),
-          name: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
-        };
-      });
+      } else {
+        keybaseIDs[SC] = SC;
+      }
+      let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
+      let result;
+      let params = {
+        TableName: 'avg_apy',
+        Index: 'owner',
+        KeyConditionExpression: 'provider = :SC AND epoch = :EP',
+        ExpressionAttributeValues: {
+          ':SC': { S: SC },
+          ':EP': { N: `${todayEpoch}` },
+        },
+      };
+      result = await db.send(new QueryCommand(params));
+      console.log(result.Items);
+      accumulated = [...accumulated, ...result.Items];
     }
+    accumulated.forEach((data) => {
+      let tmpData = data;
+      Object.keys(data).forEach((fieldName) => {
+        Object.keys(data[fieldName]).forEach((fieldType) => {
+          tmpData[fieldName] = data[fieldName][fieldType];
+          if (fieldName === 'epoch') {
+            tmpData['timestamp'] = getTimestampByEpoch(parseInt(data[fieldName]));
+          }
+        });
+      });
+      if (!array[data.provider]) {
+        array[data.provider] = [];
+      }
+      array[data.provider] = {
+        ...array[data.provider],
+        [keybaseIDs[data.provider]]: parseFloat(data.avg_apy),
+        date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
+      };
+    });
     const graphData = Object.keys(array).map((value) => {
       return array[value];
     });
@@ -69,6 +67,8 @@ const getAVGAPY = async () => {
 };
 
 const getEpochTimePrice = async (epoch, time) => {
+  const timeB = time - 50;
+  const timeG = time + 50;
   let params = {
     TableName: 'EGLDUSD',
     Index: 'price',
@@ -78,8 +78,8 @@ const getEpochTimePrice = async (epoch, time) => {
     },
     ExpressionAttributeValues: {
       ':ep': { N: epoch.toString() },
-      ':timB': { N: `${time - 30}` },
-      ':timG': { N: `${time + 30}` },
+      ':timB': { N: `${timeB}` },
+      ':timG': { N: `${timeG}` },
     },
     Limit: 1,
   };
@@ -88,8 +88,47 @@ const getEpochTimePrice = async (epoch, time) => {
   try {
     price = result.Items[0].price.S;
   } catch (error) {
-    console.log(epoch);
-    console.log(result.Items);
+    let params = {
+      TableName: 'EGLDUSD',
+      Index: 'price',
+      KeyConditionExpression: 'epoch = :ep AND #time BETWEEN :timB AND :timG',
+      ExpressionAttributeNames: {
+        '#time': 'timestamp',
+      },
+      ExpressionAttributeValues: {
+        ':ep': { N: (epoch - 1).toString() },
+        ':timB': { N: `${timeB}` },
+        ':timG': { N: `${timeG}` },
+      },
+      Limit: 1,
+    };
+    let result = await db.send(new QueryCommand(params));
+    try {
+      price = result.Items[0].price.S;
+    } catch (error) {
+      let params = {
+        TableName: 'EGLDUSD',
+        Index: 'price',
+        KeyConditionExpression: 'epoch = :ep AND #time BETWEEN :timB AND :timG',
+        ExpressionAttributeNames: {
+          '#time': 'timestamp',
+        },
+        ExpressionAttributeValues: {
+          ':ep': { N: (epoch + 1).toString() },
+          ':timB': { N: `${timeB}` },
+          ':timG': { N: `${timeG}` },
+        },
+        Limit: 1,
+      };
+      let result = await db.send(new QueryCommand(params));
+      try {
+        price = result.Items[0].price.S;
+      } catch (error) {
+        console.log(epoch);
+        console.log('Start', timeB, ' End: ', timeG, ' Time: ', time);
+      }
+    }
+    // console.log(result);
   }
   return price;
 };

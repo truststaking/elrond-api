@@ -22,6 +22,7 @@ const stakeRouter = require('./stakeRouter');
 const statsRouter = require('./statsRouter');
 const tokensRouter = require('./tokensRouter');
 const getProvidersAPR = require('./getProvidersAPR');
+const getDistribution = require('./getDistribution');
 const transactionsRouter = require('./transactionsRouter');
 const unbondPeriodRouter = require('./unbondPeriodRouter');
 const usernamesRouter = require('./usernamesRouter');
@@ -30,6 +31,7 @@ const allTransactionsRouter = require('./allTransactionsRouter');
 
 module.exports = {
   indexRouter,
+  getDistribution,
   accountsRouter,
   blocksRouter,
   constantsRouter,

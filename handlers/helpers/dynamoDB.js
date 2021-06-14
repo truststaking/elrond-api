@@ -11,20 +11,10 @@ const getAVGAPY = async () => {
     let array = {};
     let keybaseIDs = [];
     let accumulated = [];
+    let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
+    const metaDataPromises = [];
     for (let SC of data) {
-      let metadata = await getProviderMetadata(SC);
-      if (!metadata.idenity) {
-        let keybase = await getProfile(metadata['identity']);
-        if (keybase.name) {
-          keybaseIDs[SC] = keybase.name;
-        } else {
-          keybaseIDs[SC] = SC;
-        }
-      } else {
-        keybaseIDs[SC] = SC;
-      }
-      let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
-      let result;
+      metaDataPromises.push(getProviderMetadata(SC));
       let params = {
         TableName: 'avg_apy',
         Index: 'owner',
@@ -34,11 +24,20 @@ const getAVGAPY = async () => {
           ':EP': { N: `${todayEpoch}` },
         },
       };
-      result = await db.send(new QueryCommand(params));
-      console.log(result.Items);
+      const result = await db.send(new QueryCommand(params));
       accumulated = [...accumulated, ...result.Items];
     }
-    accumulated.forEach((data) => {
+    const getProfileResponses = [];
+    const metaDataResponse = await Promise.all(metaDataPromises);
+    const SCs = Object.keys(data);
+    for (let response of metaDataResponse) {
+      getProfileResponses.push(getProfile(response['identity']));
+    }
+    const keybaseReponses = await Promise.all(getProfileResponses);
+    SCs.forEach((SC, index) => {
+      keybaseIDs[SC] = keybaseReponses[index].name;
+    });
+    accumulated.forEach((data, index) => {
       let tmpData = data;
       Object.keys(data).forEach((fieldName) => {
         Object.keys(data[fieldName]).forEach((fieldType) => {
@@ -53,7 +52,69 @@ const getAVGAPY = async () => {
       }
       array[data.provider] = {
         ...array[data.provider],
-        [keybaseIDs[data.provider]]: parseFloat(data.avg_apy),
+        [keybaseIDs[index]]: parseFloat(data.avg_apy),
+        date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
+      };
+    });
+    const graphData = Object.keys(array).map((value) => {
+      return array[value];
+    });
+    return { SCs: Object.keys(keybaseIDs).map((SC) => keybaseIDs[SC]), data: graphData };
+  } catch (err) {
+    console.log('Error', err);
+  }
+};
+
+const getDistribution = async () => {
+  const data = await availableProviders();
+  try {
+    let array = {};
+    let keybaseIDs = [];
+    let accumulated = [];
+    let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
+    const metaDataPromises = [];
+    for (let SC of data) {
+      metaDataPromises.push(getProviderMetadata(SC));
+      let params = {
+        TableName: 'agencies_distribution',
+        Index: 'provider-index',
+        KeyConditionExpression: 'provider = :SC AND epoch = :EP',
+        ExpressionAttributeValues: {
+          ':SC': { S: SC },
+          ':EP': { N: `${todayEpoch - 1}` },
+        },
+      };
+      const result = await db.send(new QueryCommand(params));
+      console.log(result.Items);
+      accumulated = [...accumulated, ...result.Items];
+    }
+    const getProfileResponses = [];
+    const metaDataResponse = await Promise.all(metaDataPromises);
+    const SCs = Object.keys(data);
+    for (let response of metaDataResponse) {
+      getProfileResponses.push(getProfile(response['identity']));
+    }
+    const keybaseReponses = await Promise.all(getProfileResponses);
+    SCs.forEach((SC, index) => {
+      keybaseIDs[SC] = keybaseReponses[index].name;
+    });
+    accumulated.forEach((data, index) => {
+      let tmpData = data;
+      Object.keys(data).forEach((fieldName) => {
+        Object.keys(data[fieldName]).forEach((fieldType) => {
+          tmpData[fieldName] = data[fieldName][fieldType];
+          if (fieldName === 'epoch') {
+            tmpData['timestamp'] = getTimestampByEpoch(parseInt(data[fieldName]));
+          }
+        });
+      });
+      if (!array[data.provider]) {
+        array[data.provider] = [];
+      }
+      array[data.provider] = {
+        ...array[data.provider],
+        name: keybaseIDs[index],
+        ...data,
         date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
       };
     });
@@ -133,4 +194,4 @@ const getEpochTimePrice = async (epoch, time) => {
   return price;
 };
 
-module.exports = { getAVGAPY, getEpochTimePrice };
+module.exports = { getAVGAPY, getEpochTimePrice, getDistribution };

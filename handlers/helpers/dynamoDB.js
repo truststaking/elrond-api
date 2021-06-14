@@ -52,7 +52,8 @@ const getAVGAPY = async () => {
       }
       array[data.provider] = {
         ...array[data.provider],
-        [keybaseIDs[index]]: parseFloat(data.avg_apy),
+        name: keybaseIDs[index],
+        ...data,
         date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
       };
     });

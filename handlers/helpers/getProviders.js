@@ -94,10 +94,10 @@ const getProviderMetadata = async (address) => {
       Buffer.from(base64, 'base64').toString().trim().toLowerCase()
     );
 
-    return { name, website, identity };
+    return { name, website, identity, address: address };
   }
 
-  return { name: null, website: null, identity: null };
+  return { name: null, website: null, identity: null, address };
 };
 
 const getNumUsers = async (address) => {

@@ -2,7 +2,7 @@ const axios = require('axios');
 
 const { axiosConfig } = require(`../configs/${process.env.CONFIG}`);
 
-const getProfile = async (identity) => {
+const getProfile = async (identity, address = {}) => {
   let value;
 
   try {
@@ -21,8 +21,8 @@ const getProfile = async (identity) => {
       const website = all.find(
         (element) => element['proof_type'] === 'dns' || element['proof_type'] === 'generic_web_site'
       );
-
       value = {
+        address,
         identity,
         name: profile && profile.full_name ? profile.full_name : undefined,
         description: profile && profile.bio ? profile.bio : undefined,

@@ -31,13 +31,13 @@ const getAVGAPY = async () => {
     const metaDataResponse = await Promise.all(metaDataPromises);
     const SCs = Object.keys(data);
     for (let response of metaDataResponse) {
-      getProfileResponses.push(getProfile(response['identity']));
+      getProfileResponses.push(getProfile(response['identity'], response['address']));
     }
     const keybaseReponses = await Promise.all(getProfileResponses);
-    SCs.forEach((SC, index) => {
-      keybaseIDs[SC] = keybaseReponses[index].name;
+    SCs.forEach((SC) => {
+      keybaseIDs[SC] = keybaseReponses.filter((item) => item.address == SC);
     });
-    accumulated.forEach((data, index) => {
+    accumulated.forEach((data) => {
       let tmpData = data;
       Object.keys(data).forEach((fieldName) => {
         Object.keys(data[fieldName]).forEach((fieldType) => {
@@ -52,7 +52,7 @@ const getAVGAPY = async () => {
       }
       array[data.provider] = {
         ...array[data.provider],
-        name: keybaseIDs[index],
+        name: keybaseIDs[data.provider].name,
         ...data,
         date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
       };
@@ -60,7 +60,7 @@ const getAVGAPY = async () => {
     const graphData = Object.keys(array).map((value) => {
       return array[value];
     });
-    return { SCs: Object.keys(keybaseIDs).map((SC) => keybaseIDs[SC]), data: graphData };
+    return { data: graphData };
   } catch (err) {
     console.log('Error', err);
   }
@@ -86,20 +86,18 @@ const getDistribution = async () => {
         },
       };
       const result = await db.send(new QueryCommand(params));
-      console.log(result.Items);
       accumulated = [...accumulated, ...result.Items];
     }
     const getProfileResponses = [];
     const metaDataResponse = await Promise.all(metaDataPromises);
-    const SCs = Object.keys(data);
     for (let response of metaDataResponse) {
-      getProfileResponses.push(getProfile(response['identity']));
+      getProfileResponses.push(getProfile(response['identity'], response['address']));
     }
     const keybaseReponses = await Promise.all(getProfileResponses);
-    SCs.forEach((SC, index) => {
-      keybaseIDs[SC] = keybaseReponses[index].name;
-    });
-    accumulated.forEach((data, index) => {
+    for (let SC of data) {
+      keybaseIDs[SC] = keybaseReponses.filter((item) => item.address === SC)[0];
+    }
+    accumulated.forEach((data) => {
       let tmpData = data;
       Object.keys(data).forEach((fieldName) => {
         Object.keys(data[fieldName]).forEach((fieldType) => {
@@ -114,7 +112,7 @@ const getDistribution = async () => {
       }
       array[data.provider] = {
         ...array[data.provider],
-        name: keybaseIDs[index],
+        name: keybaseIDs[data.provider]['name'],
         ...data,
         date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
       };
@@ -122,7 +120,7 @@ const getDistribution = async () => {
     const graphData = Object.keys(array).map((value) => {
       return array[value];
     });
-    return { SCs: Object.keys(keybaseIDs).map((SC) => keybaseIDs[SC]), data: graphData };
+    return { data: graphData };
   } catch (err) {
     console.log('Error', err);
   }

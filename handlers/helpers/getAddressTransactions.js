@@ -31,8 +31,7 @@ const getTransaction = async (query, type) => {
       if (item.scResults != null) {
         scResults = [];
         for (const scResult of item.scResults) {
-          if (scResult.receiver === scResult.sender)
-            continue;
+          if (scResult.receiver === scResult.sender) continue;
           let data =
             scResult.data != null ? Buffer.from(scResult.data, 'base64').toString() : scResult.data;
 
@@ -43,10 +42,14 @@ const getTransaction = async (query, type) => {
               data_list.forEach((info, index) => {
                 if (
                   index == 2 &&
-                  Buffer.from(item.data, 'base64')
+                  (Buffer.from(item.data, 'base64')
                     .toString()
                     .split('@')[0]
-                    .localeCompare('createNewDelegationContract') == 0
+                    .localeCompare('createNewDelegationContract') == 0 ||
+                    Buffer.from(item.data, 'base64')
+                      .toString()
+                      .split('@')[0]
+                      .localeCompare('makeNewContractFromValidatorData') == 0)
                 ) {
                   data_list_hex.push(bech32.encode(info));
                 } else {
@@ -86,7 +89,6 @@ const getTransaction = async (query, type) => {
         if (values[0] == 'unDelegate' || values[0] == 'unStake') {
           transaction.data = values[0];
           transaction.value = hexToDec(values[1]);
-          console.log(transaction.value);
         }
       }
       transactions.push(transaction);
@@ -104,8 +106,7 @@ const getTransaction = async (query, type) => {
 const getAddressTransactions = async (query) => {
   let transactions = [];
   let count = 0;
-  if (query.receiver === undefined)
-  {
+  if (query.receiver === undefined) {
     const queryReceiver = {
       receiver: query.address,
       before: query.before,
@@ -121,8 +122,7 @@ const getAddressTransactions = async (query) => {
     transactions = [...transactions, ...dataReceiver['transactions']];
   }
 
-  if (query.sender === undefined)
-  {
+  if (query.sender === undefined) {
     const querySender = {
       sender: query.address,
       before: query.before,

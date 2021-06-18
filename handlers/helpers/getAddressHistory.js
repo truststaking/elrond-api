@@ -2,6 +2,7 @@ const getAddressTransactions = require('./getAddressTransactions');
 const BigNumber = require('bignumber.js');
 const { getEpochTimePrice } = require('./dynamoDB');
 const denominate = require('./denominate');
+const bech32 = require('./bech32');
 const e = require('cors');
 const genesis = require('./genesis.json');
 const { getEpoch, getTimestampByEpoch } = require('./getEpoch');
@@ -59,6 +60,57 @@ const getAddressHistory = async (query) => {
           value: transaction.value,
         };
         switch (command) {
+          case 'makeNewContractFromValidatorData':
+            for (const scResult of transaction.scResults) {
+              let data = scResult.data;
+
+              if (data !== undefined) {
+                var data_list = data.split('@');
+                if (data_list[1] == 'ok') {
+                  let agency = data_list[2];
+                  wallet.epochHistoryStaked[epochTX] = {
+                    ...wallet.epochHistoryStaked[epochTX],
+                    staked: {
+                      [agency]: new BigNumber(
+                        wallet.staked[
+                          'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                        ]
+                      ),
+                    },
+                  };
+                  wallet.staked = {
+                    ...wallet.staked,
+                    [agency]: new BigNumber(
+                      wallet.staked[
+                        'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                      ]
+                    ),
+                  };
+                  delete wallet.staked[
+                    'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                  ];
+                }
+              }
+            }
+            break;
+          case 'mergeValidatorToDelegationWithWhitelist':
+            var agency = bech32.encode(transaction.data.split('@')[1]);
+            wallet.epochHistoryStaked[epochTX] = {
+              ...wallet.epochHistoryStaked[epochTX],
+              staked: {
+                [agency]: new BigNumber(
+                  wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
+                ),
+              },
+            };
+            wallet.staked = {
+              ...wallet.staked,
+              [agency]: new BigNumber(
+                wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
+              ),
+            };
+            delete wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'];
+            break;
           case 'delegate':
             // eslint-disable-next-line no-case-declarations
             let TmpValueDel = new BigNumber('0');
@@ -200,7 +252,6 @@ const getAddressHistory = async (query) => {
             }
             break;
           case 'createNewDelegationContract':
-            var agency = '';
             transaction.scResults.forEach((scTX) => {
               if (scTX.data !== undefined) {
                 agency = scTX.data.split('@')[2];

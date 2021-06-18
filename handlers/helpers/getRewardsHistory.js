@@ -192,6 +192,49 @@ const getRewardsHistory = async (query) => {
   let avgRewardDaily = {};
   let avgAPR = {};
   let avgEGLD = {};
+
+  const calculateRewardPerSC = async (agencySC, epoch) => {
+    let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
+    let agencyInfo = await calculateReward(
+      parseInt(epoch),
+      savedStaked,
+      agencySC,
+      providers[agencySC] | false
+    );
+    if (!total[agencySC]) {
+      total[agencySC] = new BigNumber(agencyInfo['reward']);
+    } else {
+      total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
+    }
+
+    if (!totalUSD[agencySC]) {
+      totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
+      avgPriceReward[agencySC] = new BigNumber(agencyInfo['usdEpoch']);
+      avgAPR[agencySC] = new BigNumber(agencyInfo['APRDelegator']);
+      avgEGLD[agencySC] = new BigNumber(agencyInfo['reward']);
+    } else {
+      totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
+      avgAPR[agencySC] = avgAPR[agencySC].plus(new BigNumber(agencyInfo['APRDelegator']));
+      avgPriceReward[agencySC] = avgPriceReward[agencySC].plus(
+        new BigNumber(agencyInfo['usdEpoch'])
+      );
+      avgEGLD[agencySC] = avgEGLD[agencySC].plus(new BigNumber(agencyInfo['reward']));
+    }
+
+    if (!result[agencySC]) {
+      result[agencySC] = [];
+    }
+
+    result[agencySC].push({
+      ...agencyInfo,
+    });
+  };
+  for (let agencySC of Object.keys(data.staked)) {
+    if (!providers[agencySC]) {
+      providers[agencySC] = await isOwner(agencySC, query.address);
+    }
+  }
+  const promisesEpoch = [];
   for (let epoch = Phase3.epoch - 15; epoch <= todayEpoch; epoch++) {
     if (epoch in data.epochHistoryStaked) {
       Object.keys(lastEpochHistory).forEach((SC) => {
@@ -216,43 +259,7 @@ const getRewardsHistory = async (query) => {
         fullEpochsStakedAmounts[epoch].staked !== undefined
       ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
-          let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
-          if (!providers[agencySC]) {
-            providers[agencySC] = await isOwner(agencySC, query.address);
-          }
-          let agencyInfo = await calculateReward(
-            parseInt(epoch),
-            savedStaked,
-            agencySC,
-            providers[agencySC]
-          );
-          if (!total[agencySC]) {
-            total[agencySC] = new BigNumber(agencyInfo['reward']);
-          } else {
-            total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
-          }
-
-          if (!totalUSD[agencySC]) {
-            totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
-            avgPriceReward[agencySC] = new BigNumber(agencyInfo['usdEpoch']);
-            avgAPR[agencySC] = new BigNumber(agencyInfo['APRDelegator']);
-            avgEGLD[agencySC] = new BigNumber(agencyInfo['reward']);
-          } else {
-            totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
-            avgAPR[agencySC] = avgAPR[agencySC].plus(new BigNumber(agencyInfo['APRDelegator']));
-            avgPriceReward[agencySC] = avgPriceReward[agencySC].plus(
-              new BigNumber(agencyInfo['usdEpoch'])
-            );
-            avgEGLD[agencySC] = avgEGLD[agencySC].plus(new BigNumber(agencyInfo['reward']));
-          }
-
-          if (!result[agencySC]) {
-            result[agencySC] = [];
-          }
-
-          result[agencySC].push({
-            ...agencyInfo,
-          });
+          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch));
         }
       }
     } else {
@@ -276,48 +283,15 @@ const getRewardsHistory = async (query) => {
         fullEpochsStakedAmounts[epoch].staked !== undefined
       ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
-          let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
-          if (!providers[agencySC]) {
-            providers[agencySC] = await isOwner(agencySC, query.address);
-          }
-          let agencyInfo = await calculateReward(
-            parseInt(epoch),
-            savedStaked,
-            agencySC,
-            providers[agencySC]
-          );
-          if (!total[agencySC]) {
-            total[agencySC] = new BigNumber(agencyInfo['reward']);
-          } else {
-            total[agencySC] = total[agencySC].plus(new BigNumber(agencyInfo['reward']));
-          }
-
-          if (!totalUSD[agencySC]) {
-            totalUSD[agencySC] = new BigNumber(agencyInfo['usdRewards']);
-            avgPriceReward[agencySC] = new BigNumber(agencyInfo['usdEpoch']);
-            avgAPR[agencySC] = new BigNumber(agencyInfo['APRDelegator']);
-            avgEGLD[agencySC] = new BigNumber(agencyInfo['reward']);
-          } else {
-            totalUSD[agencySC] = totalUSD[agencySC].plus(new BigNumber(agencyInfo['usdRewards']));
-            avgAPR[agencySC] = avgAPR[agencySC].plus(new BigNumber(agencyInfo['APRDelegator']));
-            avgPriceReward[agencySC] = avgPriceReward[agencySC].plus(
-              new BigNumber(agencyInfo['usdEpoch'])
-            );
-            avgEGLD[agencySC] = avgEGLD[agencySC].plus(new BigNumber(agencyInfo['reward']));
-          }
-
-          if (!result[agencySC]) {
-            result[agencySC] = [];
-          }
-
-          result[agencySC].push({
-            ...agencyInfo,
-          });
+          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch));
         }
       }
     }
   }
 
+  await Promise.all(promisesEpoch);
+
+  const metaDataPromises = [];
   let keybaseIDs = {};
   let full_total = new BigNumber(0);
   let fullUSD_total = new BigNumber(0);
@@ -330,18 +304,18 @@ const getRewardsHistory = async (query) => {
     avgAPR[scAddress] = avgAPR[scAddress] / result[scAddress].length;
     avgEGLD[scAddress] = parseFloat(avgEGLD[scAddress] / result[scAddress].length).toFixed(4);
     totalUSD[scAddress] = parseFloat(totalUSD[scAddress].toFixed());
-    let metadata = await getProviderMetadata(scAddress);
-    if (!metadata.idenity) {
-      let keybase = await getProfile(metadata['identity']);
-      if (keybase.name) {
-        keybaseIDs[scAddress] = { ...keybase };
-      } else {
-        keybaseIDs[scAddress] = scAddress;
-      }
-    } else {
-      keybaseIDs[scAddress] = scAddress;
-    }
+    metaDataPromises.push(getProviderMetadata(scAddress));
   }
+  const getProfileResponses = [];
+  const metaDataResponse = await Promise.all(metaDataPromises);
+  const SCs = Object.keys(data);
+  for (let response of metaDataResponse) {
+    getProfileResponses.push(getProfile(response['identity']));
+  }
+  const keybaseReponses = await Promise.all(getProfileResponses);
+  SCs.forEach((SC, index) => {
+    keybaseIDs[SC] = keybaseReponses[index];
+  });
   const toReturn = {
     rewards_per_epoch: result,
     keybase: keybaseIDs,

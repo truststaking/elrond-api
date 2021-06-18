@@ -308,12 +308,12 @@ const getRewardsHistory = async (query) => {
   }
   const getProfileResponses = [];
   const metaDataResponse = await Promise.all(metaDataPromises);
-  const SCs = Object.keys(data);
   for (let response of metaDataResponse) {
     getProfileResponses.push(getProfile(response['identity']));
   }
   const keybaseReponses = await Promise.all(getProfileResponses);
-  SCs.forEach((SC, index) => {
+  Object.keys(total).forEach((SC, index) => {
+    console.log(SC);
     keybaseIDs[SC] = keybaseReponses[index];
   });
   const toReturn = {

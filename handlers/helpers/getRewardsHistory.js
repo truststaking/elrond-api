@@ -313,7 +313,9 @@ const getRewardsHistory = async (query) => {
   }
   const keybaseReponses = await Promise.all(getProfileResponses);
   Object.keys(total).forEach((SC, index) => {
-    console.log(SC);
+    result[SC].sort(function (a, b) {
+      return b.epoch - a.epoch;
+    });
     keybaseIDs[SC] = keybaseReponses[index];
   });
   const toReturn = {

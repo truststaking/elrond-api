@@ -95,20 +95,53 @@ const getAddressHistory = async (query) => {
             break;
           case 'mergeValidatorToDelegationWithWhitelist':
             var agency = bech32.encode(transaction.data.split('@')[1]);
-            wallet.epochHistoryStaked[epochTX] = {
-              ...wallet.epochHistoryStaked[epochTX],
-              staked: {
-                [agency]: new BigNumber(
+            if (wallet.staked[agency]) {
+              wallet.staked[agency] = wallet.staked[agency].plus(
+                new BigNumber(
                   wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
-                ),
-              },
-            };
-            wallet.staked = {
-              ...wallet.staked,
-              [agency]: new BigNumber(
-                wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
-              ),
-            };
+                )
+              );
+              if (!wallet.epochHistoryStaked[epochTX]) {
+                wallet.epochHistoryStaked[epochTX] = {
+                  staked: {
+                    [agency]: new BigNumber(
+                      wallet.staked[
+                        'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                      ]
+                    ),
+                  },
+                };
+              } else {
+                if (!wallet.epochHistoryStaked[epochTX].staked[agency]) {
+                  wallet.epochHistoryStaked[epochTX].staked[agency] = new BigNumber(
+                    wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
+                  );
+                } else {
+                  wallet.epochHistoryStaked[epochTX].staked[agency] = new BigNumber(
+                    wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
+                  );
+                }
+              }
+            } else {
+              if (!wallet.epochHistoryStaked[epochTX]) {
+                wallet.epochHistoryStaked[epochTX] = {
+                  staked: {
+                    [agency]: new BigNumber(
+                      wallet.staked[
+                        'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+                      ]
+                    ),
+                  },
+                };
+              } else {
+                wallet.epochHistoryStaked[epochTX].staked = {
+                  ...wallet.epochHistoryStaked[epochTX].staked,
+                  [agency]: new BigNumber(
+                    wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
+                  ),
+                };
+              }
+            }
             delete wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'];
             break;
           case 'delegate':

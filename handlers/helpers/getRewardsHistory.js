@@ -51,7 +51,7 @@ function hexToDec(hex) {
 var epochPrice = {};
 
 const calculateReward = async (epoch, amount, agency, isOwner) => {
-  let provider = new ProxyProvider('https://api.elrond.com', 20000);
+  let provider = new ProxyProvider('https://api.elrond.com', 25000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
   if (epoch) {

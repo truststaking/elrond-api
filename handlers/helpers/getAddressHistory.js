@@ -102,9 +102,6 @@ const getAddressHistory = async (query) => {
                   wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l']
                 )
               );
-              wallet.staked[agency] = wallet.staked[agency].plus(
-                new BigNumber(wallet.staked[agency])
-              );
               if (!wallet.epochHistoryStaked[epochTX]) {
                 wallet.epochHistoryStaked[epochTX] = {
                   staked: {

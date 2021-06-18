@@ -49,7 +49,8 @@ const getTransaction = async (query, type) => {
                     Buffer.from(item.data, 'base64')
                       .toString()
                       .split('@')[0]
-                      .localeCompare('makeNewContractFromValidatorData') == 0)
+                      .localeCompare('makeNewContractFromValidatorData') == 0) &&
+                  info.includes('000000')
                 ) {
                   data_list_hex.push(bech32.encode(info));
                 } else {

@@ -29,14 +29,13 @@ const getAVGAPY = async () => {
     }
     const getProfileResponses = [];
     const metaDataResponse = await Promise.all(metaDataPromises);
-    const SCs = Object.keys(data);
     for (let response of metaDataResponse) {
       getProfileResponses.push(getProfile(response['identity'], response['address']));
     }
     const keybaseReponses = await Promise.all(getProfileResponses);
-    SCs.forEach((SC) => {
-      keybaseIDs[SC] = keybaseReponses.filter((item) => item.address == SC);
-    });
+    for (let SC of data) {
+      keybaseIDs[SC] = keybaseReponses.filter((item) => item.address === SC)[0];
+    }
     accumulated.forEach((data) => {
       let tmpData = data;
       Object.keys(data).forEach((fieldName) => {

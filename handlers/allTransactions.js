@@ -9,9 +9,15 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             'receiver',
             'sender',
             'before',
-            'ord'
+            'ord',
+            'data',
         ];
         let data = {reply:'No address provided'};
+        let d;
+        if (query.data) {
+            d = query.data;
+            delete query.data;
+        }
         if (!query.address) {
             return response({ status: 503, data});
         }
@@ -40,6 +46,20 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
             }
             transactions[epoch].push(transaction);
         });
+        if (d) {
+            Object.keys(transactions).forEach(epoch => {
+                let indexes_to_be_deleted = []
+                transactions[epoch].forEach(function (transaction, index, object) {
+                    if (!transaction.data 
+                        || !d.some( v => transaction.data.includes(v))) {
+                            indexes_to_be_deleted.push(index-indexes_to_be_deleted.length);
+                        }
+                });
+                indexes_to_be_deleted.forEach(index => {
+                    transactions[epoch].splice(index, 1);
+                })
+            });
+        }
         return response({ status, data: transactions, fields });
     } catch (error) {
         console.error('transactions error', error);

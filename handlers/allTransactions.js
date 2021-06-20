@@ -16,6 +16,9 @@ exports.handler = async ({ pathParameters, queryStringParameters }) => {
         let d;
         if (query.data) {
             d = query.data;
+            if (!Array.isArray(d)) {
+                d = [d];
+            }
             delete query.data;
         }
         if (!query.address) {

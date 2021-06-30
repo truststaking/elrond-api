@@ -295,15 +295,27 @@ const getRewardsHistory = async (query) => {
   let keybaseIDs = {};
   let full_total = new BigNumber(0);
   let fullUSD_total = new BigNumber(0);
+
+  let final_result = {};
+  let final_total = {};
+  let final_totalUSD = {};
+  let final_avgPriceReward = {};
+  let final_avgRewardDaily = {};
+  let final_avgAPR = {};
+  let final_avgEGLD = {};
+
   for (let scAddress of Object.keys(total)) {
+    if (query.agency && scAddress != query.agency) {
+      continue;
+    }
     full_total = full_total.plus(total[scAddress]);
     fullUSD_total = fullUSD_total.plus(totalUSD[scAddress]);
-    total[scAddress] = parseFloat(total[scAddress].toFixed());
-    avgPriceReward[scAddress] = avgPriceReward[scAddress] / result[scAddress].length;
-    avgRewardDaily[scAddress] = totalUSD[scAddress] / result[scAddress].length;
-    avgAPR[scAddress] = avgAPR[scAddress] / result[scAddress].length;
-    avgEGLD[scAddress] = parseFloat(avgEGLD[scAddress] / result[scAddress].length).toFixed(4);
-    totalUSD[scAddress] = parseFloat(totalUSD[scAddress].toFixed());
+    final_total[scAddress] = parseFloat(total[scAddress].toFixed());
+    final_avgPriceReward[scAddress] = avgPriceReward[scAddress] / result[scAddress].length;
+    final_avgRewardDaily[scAddress] = totalUSD[scAddress] / result[scAddress].length;
+    final_avgAPR[scAddress] = avgAPR[scAddress] / result[scAddress].length;
+    final_avgEGLD[scAddress] = parseFloat(avgEGLD[scAddress] / result[scAddress].length).toFixed(4);
+    final_totalUSD[scAddress] = parseFloat(totalUSD[scAddress].toFixed());
     metaDataPromises.push(getProviderMetadata(scAddress));
   }
   const getProfileResponses = [];
@@ -312,21 +324,22 @@ const getRewardsHistory = async (query) => {
     getProfileResponses.push(getProfile(response['identity']));
   }
   const keybaseReponses = await Promise.all(getProfileResponses);
-  Object.keys(total).forEach((SC, index) => {
+  Object.keys(final_total).forEach((SC, index) => {
     result[SC].sort(function (a, b) {
       return b.epoch - a.epoch;
     });
+    final_result[SC] = result[SC];
     keybaseIDs[SC] = keybaseReponses[index];
   });
   const toReturn = {
-    rewards_per_epoch: result,
+    rewards_per_epoch: final_result,
     keybase: keybaseIDs,
-    total_per_provider: total,
-    avgPrice_per_provider: avgPriceReward,
-    avgAPR_per_provider: avgAPR,
-    avgEGLD_per_provider: avgEGLD,
-    avgUSDProvider: avgRewardDaily,
-    totalUSD_per_provider: totalUSD,
+    total_per_provider: final_total,
+    avgPrice_per_provider: final_avgPriceReward,
+    avgAPR_per_provider: final_avgAPR,
+    avgEGLD_per_provider: final_avgEGLD,
+    avgUSDProvider: final_avgRewardDaily,
+    totalUSD_per_provider: final_totalUSD,
     activeStaked: data.staked,
     total: parseFloat(full_total.toFixed()),
     totalUSD: parseFloat(fullUSD_total.toFixed()),

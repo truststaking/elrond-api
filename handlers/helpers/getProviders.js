@@ -91,7 +91,7 @@ const getProviderMetadata = async (address) => {
 
   if (response) {
     const [name, website, identity] = response.map((base64) =>
-      Buffer.from(base64, 'base64').toString().trim().toLowerCase()
+      base64 ? Buffer.from(base64, 'base64').toString().trim().toLowerCase() : '-'
     );
 
     return { name, website, identity, address: address };

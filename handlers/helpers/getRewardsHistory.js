@@ -1,6 +1,7 @@
 const getAddressHistory = require('./getAddressHistory');
 const { getTimestampByEpoch, getEpoch, Phase3 } = require('./getEpoch');
 const { getEpochTimePrice } = require('./dynamoDB');
+const axios = require('axios');
 const {
   ContractFunction,
   ProxyProvider,
@@ -40,6 +41,21 @@ function DecimalHexTwosComplement(decimal) {
     return output;
   }
 }
+const getTodayPrice = async () => {
+  const { data } = await axios.get('https://data.elrond.com/latest/quotes/egld/price');
+  return data;
+};
+
+const getTodayRates = async () => {
+  const { data } = await axios.get(
+    'https://freecurrencyapi.net/api/v1/rates?base_currency=USD&apikey=91f0c190-ebdf-11eb-be37-d903e042eb34'
+  );
+  var result = {};
+  Object.keys(data.data).forEach((key) => {
+    result = data.data[key];
+  });
+  return result;
+};
 
 function hexToDec(hex) {
   return hex
@@ -50,7 +66,7 @@ function hexToDec(hex) {
 
 var epochPrice = {};
 
-const calculateReward = async (epoch, amount, agency, isOwner) => {
+const calculateReward = async (epoch, amount, agency, isOwner, todayPrice) => {
   let provider = new ProxyProvider('https://api.elrond.com', 25000);
   let delegationContract = new SmartContract({ address: new Address(agency) });
 
@@ -114,6 +130,9 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
       agency_reward['usdRewards'] = parseFloat(
         new BigNumber(pricePerEpoch).multipliedBy(reward).toFixed()
       ).toFixed(2);
+      agency_reward['usdRewardsToday'] = parseFloat(
+        new BigNumber(todayPrice).multipliedBy(reward).toFixed()
+      ).toFixed(2);
       agency_reward['usdEpoch'] = pricePerEpoch;
       agency_reward['unix'] = timestamp * 1000;
       var date = new Date(getTimestampByEpoch(epoch) * 1000);
@@ -135,6 +154,7 @@ const calculateReward = async (epoch, amount, agency, isOwner) => {
         reward: 0,
         usdEpoch: pricePerEpoch,
         unix: timestamp * 1000,
+        usdRewardsToday: 0,
         date:
           '' + dateTime.getDate() + '/' + (dateTime.getMonth() + 1) + '/' + dateTime.getFullYear(),
         APRDelegator: 0,
@@ -181,6 +201,8 @@ const getRewardsHistory = async (query) => {
   };
 
   let data = await getAddressHistory(inner_query);
+  let todayPrice = await getTodayPrice();
+  let todayRates = await getTodayRates();
   let fullEpochsStakedAmounts = {};
   let todayEpoch = getEpoch(Math.floor(Date.now() / 1000));
   let lastEpochHistory = {};
@@ -189,17 +211,17 @@ const getRewardsHistory = async (query) => {
   let total = {};
   let totalUSD = {};
   let avgPriceReward = {};
-  let avgRewardDaily = {};
   let avgAPR = {};
   let avgEGLD = {};
 
-  const calculateRewardPerSC = async (agencySC, epoch) => {
+  const calculateRewardPerSC = async (agencySC, epoch, todayPrice) => {
     let savedStaked = fullEpochsStakedAmounts[epoch].staked[agencySC];
     let agencyInfo = await calculateReward(
       parseInt(epoch),
       savedStaked,
       agencySC,
-      providers[agencySC] | false
+      providers[agencySC] | false,
+      todayPrice
     );
     if (!total[agencySC]) {
       total[agencySC] = new BigNumber(agencyInfo['reward']);
@@ -259,7 +281,7 @@ const getRewardsHistory = async (query) => {
         fullEpochsStakedAmounts[epoch].staked !== undefined
       ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
-          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch));
+          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch, todayPrice));
         }
       }
     } else {
@@ -283,7 +305,7 @@ const getRewardsHistory = async (query) => {
         fullEpochsStakedAmounts[epoch].staked !== undefined
       ) {
         for (let agencySC of Object.keys(fullEpochsStakedAmounts[epoch].staked)) {
-          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch));
+          promisesEpoch.push(calculateRewardPerSC(agencySC, epoch, todayPrice));
         }
       }
     }
@@ -332,6 +354,7 @@ const getRewardsHistory = async (query) => {
     keybaseIDs[SC] = keybaseReponses[index];
   });
   const toReturn = {
+    todayRates,
     rewards_per_epoch: final_result,
     keybase: keybaseIDs,
     total_per_provider: final_total,

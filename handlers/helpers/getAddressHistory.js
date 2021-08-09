@@ -5,6 +5,7 @@ const denominate = require('./denominate');
 const bech32 = require('./bech32');
 const e = require('cors');
 const genesis = require('./genesis.json');
+const nodesSetup = require('./nodeSetup.json');
 const { getEpoch, getTimestampByEpoch } = require('./getEpoch');
 
 function hexToDec(hex) {
@@ -34,13 +35,31 @@ const getAddressHistory = async (query) => {
     fees: new BigNumber('0'),
     epochHistoryStaked: {},
   };
-
+  wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'] = new BigNumber(
+    0
+  );
   if (query.address in genesis) {
     wallet.available = wallet.available.plus(new BigNumber(genesis[query.address].balance));
-    if (genesis[query.address].delegation.address != '') {
+    console.log('In genessins');
+    console.log(wallet.available.toString());
+    console.log(genesis[query.address]);
+    if (
+      genesis[query.address]['delegation'].address ===
+      'erd1qqqqqqqqqqqqqpgqxwakt2g7u9atsnr03gqcgmhcv38pt7mkd94q6shuwt'
+    ) {
       wallet.staked[genesis[query.address].delegation.address] = new BigNumber(
         genesis[query.address].delegation.value
       );
+      console.log(wallet.staked[genesis[query.address].delegation.address]);
+    }
+    for (let value of nodesSetup['initialNodes']) {
+      if (value.address == query.address) {
+        wallet.staked[
+          'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+        ] = wallet.staked['erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'].plus(
+          new BigNumber(2500000000000000000000)
+        );
+      }
     }
   }
   for (const transaction of data['transactions']) {
@@ -343,18 +362,18 @@ const getAddressHistory = async (query) => {
                   }
                 }
               });
-              if (
-                transaction.receiver ==
-                'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
-              ) {
-                let sizeData = transaction.data.split('@');
-                let nodesUnstaked = sizeData.length;
-                if (wallet.staked[transaction.receiver]) {
-                  wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
-                    new BigNumber(2500000000000000000000).multipliedBy(nodesUnstaked)
-                  );
-                }
-              }
+              // if (
+              //   transaction.receiver ==
+              //   'erd1qqqqqqqqqqqqqqqpqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqplllst77y4l'
+              // ) {
+              //   let sizeData = transaction.data.split('@');
+              //   let nodesUnstaked = sizeData.length;
+              //   if (wallet.staked[transaction.receiver]) {
+              //     wallet.staked[transaction.receiver] = wallet.staked[transaction.receiver].minus(
+              //       new BigNumber(2500000000000000000000).multipliedBy(nodesUnstaked)
+              //     );
+              //   }
+              // }
             }
 
             break;

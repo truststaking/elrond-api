@@ -48,7 +48,7 @@ const getTodayPrice = async () => {
 
 const getTodayRates = async () => {
   const { data } = await axios.get(
-    'https://freecurrencyapi.net/api/v1/rates?base_currency=usd&apikey=91f0c190-ebdf-11eb-be37-d903e042eb34'
+    'http://freecurrencyapi.net/api/v1/rates?base_currency=usd&apikey=91f0c190-ebdf-11eb-be37-d903e042eb34'
   );
   var result = {};
   Object.keys(data.data).forEach((key) => {

@@ -14,12 +14,6 @@ const denominate = require('./denominate');
 const getProviderMetadata = require('./getProviders');
 const getProfile = require('./getProfile');
 const bech32 = require('./bech32');
-const Binance = require('node-binance-api');
-const { aggregateByYear, calculateFIFOCapitalGains } = require('fifo-capital-gains-js');
-const binance = new Binance().options({
-  APIKEY: 'FATDx4XlgbSykmW9OdW9SunR3t8vOSsm7MsIgPXAtiO4L2pbcbHc9bwaM6fhBySx',
-  APISECRET: '5apwNMoImo62TdGnxwWOHSq5sBy0A0Btrja2XwQTFCTh20AH2OpTotkRCVqldZIF',
-});
 
 function DecimalHexTwosComplement(decimal) {
   var size = 8;
@@ -195,88 +189,88 @@ const isOwner = async (agency, address) => {
   }
   return reply;
 };
-const getUSDTReport = async (pair = 'EGLDUSDT', ERD = false) => {
-  const result = {
-    pair,
-    avgBuy: 0,
-    avgSell: 0,
-    totalBuy: 0,
-    totalSell: 0,
-    listSells: [],
-    listBuys: [],
-    fifo: [],
-  };
-  let filledOrders = [];
-  const orders = await binance.allOrders(pair);
-  filledOrders = orders.filter((data) => data.status === 'FILLED');
-  result.fifo = filledOrders
-    .map((data) => {
-      if (ERD) {
-        data.executedQty = parseFloat(data.executedQty) / 1000;
-        data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
-        data.origQty = parseFloat(data.origQty) * 1000;
-        data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
-      } else {
-        data.price = parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty);
-      }
-      const res = {
-        amount: parseFloat(data.executedQty),
-        date: new Date(data.time),
-        dateLocal: new Date(data.time).toLocaleDateString(),
-        price: parseFloat(data.price),
-        symbol: pair,
-        label: 'Trade',
-        type: data.side,
-        unix: data.time,
-        cummulativeQuoteQty: data.cummulativeQuoteQty,
-      };
-      return res;
-    })
-    .filter((data) => data !== undefined);
+// const getUSDTReport = async (pair = 'EGLDUSDT', ERD = false) => {
+//   const result = {
+//     pair,
+//     avgBuy: 0,
+//     avgSell: 0,
+//     totalBuy: 0,
+//     totalSell: 0,
+//     listSells: [],
+//     listBuys: [],
+//     fifo: [],
+//   };
+//   let filledOrders = [];
+//   // const orders = await binance.allOrders(pair);
+//   // filledOrders = orders.filter((data) => data.status === 'FILLED');
+//   result.fifo = filledOrders
+//     .map((data) => {
+//       if (ERD) {
+//         data.executedQty = parseFloat(data.executedQty) / 1000;
+//         data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
+//         data.origQty = parseFloat(data.origQty) * 1000;
+//         data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
+//       } else {
+//         data.price = parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty);
+//       }
+//       const res = {
+//         amount: parseFloat(data.executedQty),
+//         date: new Date(data.time),
+//         dateLocal: new Date(data.time).toLocaleDateString(),
+//         price: parseFloat(data.price),
+//         symbol: pair,
+//         label: 'Trade',
+//         type: data.side,
+//         unix: data.time,
+//         cummulativeQuoteQty: data.cummulativeQuoteQty,
+//       };
+//       return res;
+//     })
+//     .filter((data) => data !== undefined);
 
-  result.listBuys = filledOrders
-    .map((data) => {
-      if (data.side === 'BUY') {
-        if (ERD) {
-          data.executedQty = parseFloat(data.executedQty);
-          data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
-          data.origQty = parseFloat(data.origQty) * 1000;
-          data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
-        }
-        return data;
-      }
-      return undefined;
-    })
-    .filter((data) => data !== undefined);
-  result.listSells = filledOrders
-    .map((data) => {
-      if (data.side === 'SELL') {
-        if (ERD) {
-          data.executedQty = parseFloat(data.executedQty);
-          data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
-          data.origQty = parseFloat(data.origQty) * 1000;
-          data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
-        }
-        return data;
-      }
-      return undefined;
-    })
-    .filter((data) => data !== undefined);
-  let avgBuyPrice = 0;
-  result.listBuys.forEach((element) => {
-    result.totalBuy += parseFloat(element.executedQty);
-    avgBuyPrice += parseFloat(element.cummulativeQuoteQty) / parseFloat(element.executedQty);
-  });
-  result.avgBuy = avgBuyPrice / result.listBuys.length;
-  let avgSellPrice = 0;
-  result.listSells.forEach((element) => {
-    result.totalSell += parseFloat(element.executedQty);
-    avgSellPrice += parseFloat(element.cummulativeQuoteQty) / parseFloat(element.executedQty);
-  });
-  result.avgSell = avgSellPrice / result.listSells.length;
+//   result.listBuys = filledOrders
+//     .map((data) => {
+//       if (data.side === 'BUY') {
+//         if (ERD) {
+//           data.executedQty = parseFloat(data.executedQty);
+//           data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
+//           data.origQty = parseFloat(data.origQty) * 1000;
+//           data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
+//         }
+//         return data;
+//       }
+//       return undefined;
+//     })
+//     .filter((data) => data !== undefined);
+//   result.listSells = filledOrders
+//     .map((data) => {
+//       if (data.side === 'SELL') {
+//         if (ERD) {
+//           data.executedQty = parseFloat(data.executedQty);
+//           data.cummulativeQuoteQty = parseFloat(data.cummulativeQuoteQty);
+//           data.origQty = parseFloat(data.origQty) * 1000;
+//           data.price = (parseFloat(data.cummulativeQuoteQty) / parseFloat(data.executedQty)) * 1000;
+//         }
+//         return data;
+//       }
+//       return undefined;
+//     })
+//     .filter((data) => data !== undefined);
+//   let avgBuyPrice = 0;
+//   result.listBuys.forEach((element) => {
+//     result.totalBuy += parseFloat(element.executedQty);
+//     avgBuyPrice += parseFloat(element.cummulativeQuoteQty) / parseFloat(element.executedQty);
+//   });
+//   result.avgBuy = avgBuyPrice / result.listBuys.length;
+//   let avgSellPrice = 0;
+//   result.listSells.forEach((element) => {
+//     result.totalSell += parseFloat(element.executedQty);
+//     avgSellPrice += parseFloat(element.cummulativeQuoteQty) / parseFloat(element.executedQty);
+//   });
+//   result.avgSell = avgSellPrice / result.listSells.length;
 
-  return result;
-};
+//   return result;
+// };
 const getRewardsHistory = async (query) => {
   if (query.start < Phase3.timestamp) {
     query.start = Phase3.timestamp;
@@ -432,19 +426,19 @@ const getRewardsHistory = async (query) => {
   for (let response of metaDataResponse) {
     getProfileResponses.push(getProfile(response['identity']));
   }
-  let fifoRewards = [];
+  // let fifoRewards = [];
   const keybaseReponses = await Promise.all(getProfileResponses);
   Object.keys(final_total).forEach((SC, index) => {
-    fifoRewards.push({
-      amount: result[SC].reward,
-      date: new Date(result[SC].date),
-      price: result[SC].usdEpoch,
-      symbol: 'EGLDUSDT',
-      type: 'BUY',
-      label: 'Income',
-      unix: result[SC].unix,
-      cummulativeQuoteQty: result[SC].usdRewardsToday,
-    });
+    // fifoRewards.push({
+    //   amount: result[SC].reward,
+    //   date: new Date(result[SC].date),
+    //   price: result[SC].usdEpoch,
+    //   symbol: 'EGLDUSDT',
+    //   type: 'BUY',
+    //   label: 'Income',
+    //   unix: result[SC].unix,
+    //   cummulativeQuoteQty: result[SC].usdRewardsToday,
+    // });
     result[SC].sort(function (a, b) {
       return b.epoch - a.epoch;
     });
@@ -465,61 +459,61 @@ const getRewardsHistory = async (query) => {
     total: parseFloat(full_total.toFixed()),
     totalUSD: parseFloat(fullUSD_total.toFixed()),
   };
-  const results = [];
-  const GBPUSDT = await getUSDTReport('GBPUSDT');
-  const EGLDUSDT = await getUSDTReport('EGLDUSDT');
-  const EGLDBTC = await getUSDTReport('EGLDBTC');
-  const EGLDBNB = await getUSDTReport('EGLDBNB');
-  const EGLDEUR = await getUSDTReport('EGLDEUR');
-  const EGLDBUSD = await getUSDTReport('EGLDBUSD');
-  const EURUSDT = await getUSDTReport('EURUSDT');
-  const EURBUSD = await getUSDTReport('EURBUSD');
-  const ERDUSDT = await getUSDTReport('ERDUSDT', true);
-  const ERDBTC = await getUSDTReport('ERDBTC', true);
-  const ERDBNB = await getUSDTReport('ERDBNB', true);
-  const ERDBUSD = await getUSDTReport('ERDBUSD', true);
-  results.push(ERDBTC);
-  results.push(ERDBNB);
-  results.push(ERDBUSD);
-  results.push(GBPUSDT);
-  results.push(EGLDUSDT);
-  results.push(EGLDBTC);
-  results.push(EGLDBNB);
-  results.push(EGLDEUR);
-  results.push(EGLDBUSD);
-  results.push(EURUSDT);
-  results.push(EURBUSD);
-  results.push(ERDUSDT);
-  const mergeFIFO = [
-    ...ERDBTC.fifo,
-    ...ERDBNB.fifo,
-    ...EGLDBTC.fifo,
-    ...EGLDBNB.fifo,
-    ...EGLDEUR.fifo,
-    ...EGLDUSDT.fifo,
-    ...EGLDBUSD.fifo,
-    ...ERDUSDT.fifo,
-    ...ERDBUSD.fifo,
-    ...fifoRewards,
-  ];
-  const sortedFIFO = mergeFIFO.sort(function (a, b) {
-    var c = a.unix;
-    var d = b.unix;
+  // const results = [];
+  // const GBPUSDT = await getUSDTReport('GBPUSDT');
+  // const EGLDUSDT = await getUSDTReport('EGLDUSDT');
+  // const EGLDBTC = await getUSDTReport('EGLDBTC');
+  // const EGLDBNB = await getUSDTReport('EGLDBNB');
+  // const EGLDEUR = await getUSDTReport('EGLDEUR');
+  // const EGLDBUSD = await getUSDTReport('EGLDBUSD');
+  // const EURUSDT = await getUSDTReport('EURUSDT');
+  // const EURBUSD = await getUSDTReport('EURBUSD');
+  // const ERDUSDT = await getUSDTReport('ERDUSDT', true);
+  // const ERDBTC = await getUSDTReport('ERDBTC', true);
+  // const ERDBNB = await getUSDTReport('ERDBNB', true);
+  // const ERDBUSD = await getUSDTReport('ERDBUSD', true);
+  // results.push(ERDBTC);
+  // results.push(ERDBNB);
+  // results.push(ERDBUSD);
+  // results.push(GBPUSDT);
+  // results.push(EGLDUSDT);
+  // results.push(EGLDBTC);
+  // results.push(EGLDBNB);
+  // results.push(EGLDEUR);
+  // results.push(EGLDBUSD);
+  // results.push(EURUSDT);
+  // results.push(EURBUSD);
+  // results.push(ERDUSDT);
+  // const mergeFIFO = [
+  //   ...ERDBTC.fifo,
+  //   ...ERDBNB.fifo,
+  //   ...EGLDBTC.fifo,
+  //   ...EGLDBNB.fifo,
+  //   ...EGLDEUR.fifo,
+  //   ...EGLDUSDT.fifo,
+  //   ...EGLDBUSD.fifo,
+  //   ...ERDUSDT.fifo,
+  //   ...ERDBUSD.fifo,
+  //   ...fifoRewards,
+  // ];
+  // const sortedFIFO = mergeFIFO.sort(function (a, b) {
+  //   var c = a.unix;
+  //   var d = b.unix;
 
-    if (c > d) {
-      return d;
-    } else return c;
-  });
-  const capitalGains = calculateFIFOCapitalGains(sortedFIFO);
-  let totalBuy = 0;
-  let totalSell = 0;
-  results.forEach((data) => {
-    totalBuy += data.totalBuy;
-    totalSell += data.totalSell;
-  });
-  console.log(totalBuy);
-  console.log(totalSell);
-  return { ...toReturn, gains: capitalGains, totalBuy: totalBuy, totalSell: totalSell };
+  //   if (c > d) {
+  //     return d;
+  //   } else return c;
+  // });
+  // // const capitalGains = calculateFIFOCapitalGains(sortedFIFO);
+  // let totalBuy = 0;
+  // let totalSell = 0;
+  // results.forEach((data) => {
+  //   totalBuy += data.totalBuy;
+  //   totalSell += data.totalSell;
+  // });
+  // console.log(totalBuy);
+  // console.log(totalSell);
+  return { ...toReturn };
 };
 
 module.exports = getRewardsHistory;

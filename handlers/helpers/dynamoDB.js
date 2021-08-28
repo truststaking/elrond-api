@@ -111,7 +111,7 @@ const getDistribution = async () => {
       }
       array[data.provider] = {
         ...array[data.provider],
-        name: keybaseIDs[data.provider]['name'],
+        name: keybaseIDs[data.provider] ? keybaseIDs[data.provider].name : data.provider,
         ...data,
         date: new Date(getTimestampByEpoch(parseInt(data.epoch)) * 1000).toLocaleDateString(),
       };
